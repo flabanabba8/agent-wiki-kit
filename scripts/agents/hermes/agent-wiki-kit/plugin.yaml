@@ -1,0 +1,8 @@
+name: agent-wiki-kit
+version: 1.0.0
+description: Applies the agent-wiki-kit wiki's rules inside Hermes - raw/ sources stay immutable, unreadable pages are re-rendered in Camoufox, and wiki edits need a log entry. Silent outside that repository.
+author: agent-wiki-kit
+provides_hooks:
+  - pre_tool_call
+  - transform_tool_result
+  - pre_llm_call

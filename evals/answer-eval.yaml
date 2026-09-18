@@ -1,0 +1,28 @@
+# Answer-quality eval (scripts/answer-eval.py). Each answer must cite at least one page in
+# must_cite and contain every string in must_mention (case-insensitive). Facts are checked
+# against raw/docs/official/; update them when the product changes.
+questions:
+  - q: "Which SKILL.md frontmatter field controls whether a skill appears as a slash command?"
+    must_cite: [skills]
+    must_mention: ["user-invocable"]
+  - q: "Where do project-scoped MCP servers get configured so teammates share them?"
+    must_cite: [mcp]
+    must_mention: [".mcp.json"]
+  - q: "Which environment variable sets the default model for subagents?"
+    must_cite: [subagents, models-and-effort, environment-variables]
+    must_mention: ["CLAUDE_CODE_SUBAGENT_MODEL"]
+  - q: "How does a command hook find the project root directory?"
+    must_cite: [hooks]
+    must_mention: ["CLAUDE_PROJECT_DIR"]
+  - q: "In this wiki's repo, what happens when WebFetch returns a JavaScript shell?"
+    must_cite: [camoufox, harness]
+    must_mention: ["Camoufox"]
+  - q: "What is the canonical command for the multi-agent cloud code review?"
+    must_cite: [ci-cd-and-code-review, slash-commands]
+    must_mention: ["/code-review ultra"]
+  - q: "Which permission mode do Pro, Max and Team plans start in by default?"
+    must_cite: [permissions-and-modes]
+    must_mention: ["auto"]
+  - q: "Which tool runs dynamic multi-agent workflows in Claude Code?"
+    must_cite: [workflows, tools-reference]
+    must_mention: ["Workflow"]

@@ -1,0 +1,30 @@
+name: wiki-ci
+on:
+  push:
+  pull_request:
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # freshness.py and the tests read git history
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependencies
+        run: pip install pytest pyyaml
+      - name: No third-party sources in git
+        run: |
+          tracked=$(git ls-files raw | grep -v "^raw/README.md$" || true)
+          if [ -n "$tracked" ]; then echo "raw/ holds other publishers' text and must not be committed:"; echo "$tracked" | head; exit 1; fi
+      - name: Codex and OpenCode configs match the Claude Code originals
+        run: python scripts/agents/sync.py --check
+      - name: Unit tests
+        run: python -m pytest -q tests
+      - name: Wiki lint (fails below 90)
+        run: ./scripts/wiki-lint.sh --ci --threshold 90
+      - name: Temporal validity
+        run: ./scripts/wiki-temporal.sh
+      - name: No unsourced identifiers
+        run: python scripts/lint_identifiers.py --ci

@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "mem0-hot": {
+      "command": "./.venv/bin/python",
+      "args": [
+        "scripts/mem0/mcp_server.py"
+      ]
+    },
+    "camoufox": {
+      "command": "./.venv/bin/python",
+      "args": [
+        "scripts/camoufox/mcp_server.py"
+      ]
+    }
+  }
+}

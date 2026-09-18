@@ -1,0 +1,114 @@
+# Retrieval eval for the wiki (scripts/wiki-eval.py).
+#
+# Why: wiki-lint proves structure never regresses; this proves semantic search still finds the
+# page that answers a question. A question passes if an expected page is in the top k (or first,
+# with top1: true). `hard: true` marks paraphrased questions with little keyword overlap; they
+# are reported as a separate subset and are allowed to fail. Add real misses with
+# scripts/eval-harvest.py --add "question" page [page ...].
+k: 5
+questions:
+  # --- Core (direct phrasing) ---
+  - q: "How do I install Claude Code and log in?"
+    expect: [install-and-setup]
+  - q: "What permission modes are there and how do they differ?"
+    expect: [permissions-and-modes]
+  - q: "How should I write a CLAUDE.md file?"
+    expect: [claude-md-and-memory]
+  - q: "How does context compaction work?"
+    expect: [context-window]
+  - q: "Resume a previous session or rewind file changes"
+    expect: [sessions-and-checkpoints]
+  - q: "Change the model and effort level"
+    expect: [models-and-effort]
+  - q: "Write a skill with SKILL.md frontmatter"
+    expect: [skills]
+  - q: "Create a custom subagent with its own tools"
+    expect: [subagents]
+  - q: "List of hook events and exit codes"
+    expect: [hooks]
+  - q: "Add an MCP server for the whole team"
+    expect: [mcp]
+  - q: "Install a plugin from a marketplace"
+    expect: [plugins]
+  - q: "Run parallel sessions with git worktrees"
+    expect: [worktrees-and-background-work]
+  - q: "Schedule a cloud agent on a cron"
+    expect: [routines-and-scheduling]
+  - q: "Run Claude Code non-interactively with -p"
+    expect: [headless-mode, ci-cd-and-code-review]
+  - q: "Use Claude Code with Amazon Bedrock"
+    expect: [cloud-providers]
+  - q: "Settings file precedence and managed settings"
+    expect: [settings, enterprise-admin]
+  - q: "All Claude Code environment variables"
+    expect: [environment-variables]
+  - q: "Build an agent with the Claude Agent SDK"
+    expect: [agent-sdk]
+  - q: "Claude model ids, context windows and pricing"
+    expect: [claude-models]
+  - q: "Tool search and programmatic tool calling"
+    expect: [advanced-tool-use]
+  - q: "Five workflow patterns for building agents"
+    expect: [agentic-patterns]
+  - q: "pass@k versus pass^k in agent evals"
+    expect: [agent-evals]
+  - q: "Codex CLI compared with Claude Code"
+    expect: [openai-codex]
+  - q: "Run Claude Code on an open-weight model through OpenRouter"
+    expect: [open-models]
+  - q: "Stealth browser for pages WebFetch cannot read"
+    expect: [camoufox]
+  - q: "Semantic search over the wiki with mem0"
+    expect: [mem0]
+  - q: "How this repo's doctor, lint and weekly maintenance work"
+    expect: [harness]
+  # --- Hard set: paraphrased, little keyword overlap ---
+  - q: "Stop the assistant from running a destructive shell command before it executes"
+    expect: [hooks, permissions-and-modes, sandboxing-and-security]
+    hard: true
+  - q: "Pay less when the same long prompt prefix is sent every turn"
+    expect: [context-window, costs-and-usage]
+    hard: true
+  - q: "Give teammates the same external tool integrations without each running add commands"
+    expect: [mcp, plugins]
+    hard: true
+  - q: "Undo the last few file edits the assistant made"
+    expect: [sessions-and-checkpoints]
+    hard: true
+    top1: true
+  - q: "The page I fetched came back as nothing but a header and a footer"
+    expect: [camoufox]
+    hard: true
+  - q: "Why did every agent I ran in parallel converge on the same wrong answer?"
+    expect: [multi-agent-systems]
+    hard: true
+  - q: "Are my benchmark score gaps just noise from container resource limits?"
+    expect: [agent-evals]
+    hard: true
+  - q: "Keep a multi-day autonomous coding run on track across context resets"
+    expect: [long-running-agents]
+    hard: true
+  - q: "Stop a self-improvement loop from retrying edits that were already reverted"
+    expect: [self-improving-agents]
+    hard: true
+  - q: "Which subscription plans start sessions without prompting for each edit?"
+    expect: [permissions-and-modes]
+    hard: true
+  - q: "Does knowing the problem domain matter more than knowing how to code when using the agent?"
+    expect: [claude-code-in-practice]
+    hard: true
+  - q: "Let an agent remember things across conversations using files on the API"
+    expect: [context-editing-and-memory-tool, claude-md-and-memory]
+    hard: true
+  - q: "Make my skills work in other agent tools too"
+    expect: [agent-standards, skills]
+    hard: true
+  - q: "Make this repository's skills and rules work in Codex, OpenCode and Hermes as well as Claude Code"
+    expect: [cross-agent-setup]
+  - q: "Two coding agents crash each other when they both open the local vector memory store"
+    expect: [cross-agent-setup, mem0]
+    hard: true
+  - q: "How does OpenCode load project instructions and block a tool call from a plugin"
+    expect: [opencode]
+  - q: "Where does Hermes Agent keep MCP servers and how do its shell hooks block a tool"
+    expect: [hermes-agent]

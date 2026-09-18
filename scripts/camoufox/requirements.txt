@@ -1,0 +1,5 @@
+# Camoufox: a Firefox-based browser for pages that plain HTTP fetches cannot read (JavaScript-rendered
+# or bot-walled). Optional. Installed by ./scripts/setup.sh --with-browser, which also downloads the
+# browser itself (several hundred MB) with `python -m camoufox fetch`.
+camoufox[geoip]>=0.5
+mcp>=1.2,<2

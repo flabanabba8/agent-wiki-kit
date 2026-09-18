@@ -1,0 +1,97 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebSearch",
+      "WebFetch",
+      "Bash(git *)",
+      "Bash(find:*)",
+      "Bash(wc *)",
+      "Bash(ls *)",
+      "Bash(./.venv/bin/python scripts/mem0/query_wiki.py*)",
+      "Bash(./.venv/bin/python scripts/mem0/index_wiki.py*)",
+      "Bash(./.venv/bin/python scripts/wiki-eval.py*)",
+      "Bash(./scripts/wiki-lint.sh*)",
+      "Bash(./scripts/wiki-temporal.sh*)",
+      "Bash(./scripts/doctor.sh*)",
+      "Bash(./scripts/freshness.py*)",
+      "Bash(./.venv/bin/python scripts/camoufox/fetch.py*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/scripts/hooks/session-start.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/scripts/hooks/guard-raw.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/scripts/hooks/stop-anti-evaporation.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "WebFetch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.venv/bin/python \"$CLAUDE_PROJECT_DIR\"/scripts/hooks/webfetch_camoufox_fallback.py",
+            "timeout": 120,
+            "statusMessage": "Checking WebFetch result; rendering with Camoufox if the page needs it"
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "WebFetch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.venv/bin/python \"$CLAUDE_PROJECT_DIR\"/scripts/hooks/webfetch_camoufox_fallback.py",
+            "timeout": 120,
+            "statusMessage": "Checking WebFetch result; rendering with Camoufox if the page needs it"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/scripts/hooks/session-end.sh",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+# mem0 wiki integration — local-first stack (no OpenAI/Ollama required)
+# torch is CPU-only (install with: uv pip install --torch-backend cpu ...) — avoids the
+# ~2GB CUDA/nvidia wheel stack. CPU is ample for embedding the wiki.
+mem0ai>=2.0,<3      # 2.x API: search/get_all use top_k (not 0.1.x's limit); filters= for scope
+sentence-transformers>=2.2   # local HuggingFace embeddings (all-MiniLM-L6-v2, 384d)
+torch                        # CPU build via --torch-backend cpu (see setup.sh)
+anthropic>=0.40              # only used for infer=True hot-recall adds; key optional
+mcp>=1.2,<2                    # FastMCP server for the hot-recall layer (reason 2). mcp 2.x renamed FastMCP → MCPServer; pinned <2 until mcp_server.py is ported
+pyyaml>=6                    # evals and frontmatter checks
+pytest>=8                    # ./.venv/bin/python -m pytest -q tests

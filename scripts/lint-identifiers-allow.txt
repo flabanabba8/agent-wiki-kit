@@ -1,0 +1,2 @@
+# Identifiers that are legitimately absent from raw/ (one per line, then a # reason).
+# Keep this short: every entry is a name the lint can no longer vouch for.

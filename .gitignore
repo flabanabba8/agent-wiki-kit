@@ -1,0 +1,48 @@
+outputs/*.pdf
+outputs/handoff-*.md
+.claude/settings.local.json
+CLAUDE.local.md
+*.tmp
+.DS_Store
+.venv/
+# mem0 local store (vectors, history.db, manifest) — reproducible from wiki/ via index_wiki.py
+.mem0-data/
+__pycache__/
+*.pyc
+# --- secrets & credentials (added by Claude) ---
+.env
+.env.*
+!.env.example
+!.env.sample
+*.key
+*.pem
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+*service-account*.json
+*service_account*.json
+*credentials*.json
+gcp-*.json
+*.keystore
+.netrc
+outputs/screenshots/
+outputs/webfetch-fallback/
+outputs/.webfetch-fallback.log
+outputs/.webfetch-blocked.json
+outputs/.maintenance.log
+outputs/lint-*.md
+outputs/lint-*.json
+outputs/eval-*.json
+outputs/.hashes/
+outputs/.source-hashes.tsv
+outputs/.query-log.jsonl
+outputs/answer-eval-*.json
+outputs/contradiction-scan-*.md
+# Primary sources are third-party text and are never committed. Rebuild with ./scripts/sources.py fetch
+raw/*
+!raw/README.md
+# generated reports
+outputs/*
+!outputs/.gitkeep
+!outputs/reverify-queue.md
