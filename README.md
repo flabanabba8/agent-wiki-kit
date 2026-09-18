@@ -155,7 +155,7 @@ Four subagents do the heavy lifting: `wiki-researcher` (read-only, with web acce
 | Official doc pages snapshotted | 195 |
 | Skills | 8 |
 | Agents | 4 |
-| Health score | 97/100 |
+| Health score | 100/100 |
 
 ## License
 
