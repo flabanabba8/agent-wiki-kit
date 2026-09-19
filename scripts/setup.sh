@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
 # One-command setup for a fresh clone.
 #
-#   ./scripts/setup.sh                   # venv, semantic index, git hooks, agent configs, health check
-#   ./scripts/setup.sh --with-browser    # also install Camoufox (several hundred MB) for unreadable pages
-#   ./scripts/setup.sh --with-sources    # also download the primary sources into raw/ (about 400 files)
+#   ./scripts/setup.sh --full            # everything: the basics, the source documents and the browser
+#   ./scripts/setup.sh                   # the basics: venv, semantic index, git hooks, agent configs, health check
+#   ./scripts/setup.sh --with-sources    # basics + the primary sources in raw/ (about 400 files)
+#   ./scripts/setup.sh --with-browser    # basics + Camoufox (about 1.2 GB) for pages plain HTTP cannot read
 #
 # Nothing here needs an API key. Safe to run again: every step checks before it acts.
 set -uo pipefail
 R="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$R"
 BROWSER=0; SOURCES=0
 for a in "$@"; do case "$a" in
+  --full) BROWSER=1; SOURCES=1 ;;
   --with-browser) BROWSER=1 ;; --with-sources) SOURCES=1 ;;
   -h|--help) sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
   *) echo "unknown option: $a" >&2; exit 2 ;;
@@ -47,12 +49,14 @@ fi
 
 step "Health check"
 ./scripts/doctor.sh
-if ! ls raw/docs/official/*.md >/dev/null 2>&1; then
-  cat <<'EOF'
-
-The source documents are NOT installed. They belong to other publishers, so they are not in the
-repository. To download them (about 400 files):  ./scripts/setup.sh --with-sources
-EOF
+NEED_SRC=0; NEED_BROWSER=0
+ls raw/docs/official/*.md >/dev/null 2>&1 || NEED_SRC=1
+./.venv/bin/python -c "import camoufox" >/dev/null 2>&1 && ./.venv/bin/python -m camoufox path >/dev/null 2>&1 || NEED_BROWSER=1
+if [ "$NEED_SRC" = 1 ] || [ "$NEED_BROWSER" = 1 ]; then
+  echo; echo "This is a basic installation. Still optional, not installed:"
+  [ "$NEED_SRC" = 1 ] && echo "  - the source documents (other publishers' text, so not in the repository): --with-sources"
+  [ "$NEED_BROWSER" = 1 ] && echo "  - the Camoufox browser, which reads pages plain HTTP cannot: --with-browser"
+  echo "For everything in one step:  ./scripts/setup.sh --full"
 fi
 cat <<'EOF'
 

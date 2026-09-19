@@ -50,5 +50,5 @@ done
   echo "claude_code_version_at_fetch: $(claude --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
 } > "$OUT/MANIFEST.txt"
 echo "saved $OK pages to $OUT ($FAIL failed) — manifest: $OUT/MANIFEST.txt"
-echo "next: ./scripts/wiki-lint.sh (hash check) and ./scripts/freshness.py — wiki pages citing raw/docs/claude-code-full-docs.md should migrate their sources: to the per-page files here as they are re-verified."
+echo "next: ./scripts/sources.py changed   (which sources differ from the verified snapshot), then ./scripts/freshness.py"
 [ "$FAIL" -eq 0 ]
