@@ -10,9 +10,9 @@ sources:
   - raw/docs/official/hooks.md
 related: ["[[subagents]]", "[[hooks]]", "[[multi-agent-systems]]", "[[worktrees-and-background-work]]", "[[costs-and-usage]]"]
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-15
+last_verified: 2026-09-19
 aliases: [teammates, team-lead, claude-code-experimental-agent-teams, teammate-mode]
 ---
 
@@ -96,7 +96,9 @@ To define a reusable role, write a subagent definition and name it in the spawn 
 - **`model`** applies when the spawn prompt names no model.
 - **Body** is appended to an in-process teammate's system prompt and replaces a split-pane teammate's prompt.
 - **`skills`** is not applied; teammates load skills from project and user settings.
-- **`mcpServers`** applies only to split-pane teammates.
+- **`mcpServers`** applies only to split-pane teammates; an in-process teammate loads MCP servers from your project and user settings instead.
+
+When Claude messages an in-process teammate that has stopped, Claude Code brings it back in the same session, restores the conversation saved for it and hands it the message as its next prompt. A definition from a project's `.claude/agents/` or an `--add-dir` directory is re-applied only if you have trusted the folder the agent file sits in — trusting a parent folder doesn't count — and until then the teammate returns with none of its tools or instructions, keeping only what every in-process teammate gets.
 
 ## Tasks, messages and plans
 
@@ -138,7 +140,7 @@ Each session has exactly one team, named `session-` plus the first eight charact
 
 ## Limitations
 
-- `/resume` and `/rewind` don't restore in-process teammates; spawn new ones after resuming.
+- `/resume` and `/rewind` don't restore in-process teammates, and after a resume Claude can't bring one back by messaging it either; spawn new ones instead.
 - Task status can lag and block dependent tasks; check the work and update the status or nudge the teammate.
 - Shutdown waits for the current request or tool call to finish.
 - No nested teams: only the lead manages the team, and it can't hand off leadership.

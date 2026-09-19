@@ -9,9 +9,9 @@ sources:
   - raw/docs/official/best-practices.md
 related: ["[[overview]]", "[[context-window]]", "[[tools-reference]]", "[[sessions-and-checkpoints]]", "[[permissions-and-modes]]"]
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-15
+last_verified: 2026-09-19
 aliases: [agentic-loop, claude-code-architecture, agentic-harness, how-claude-code-works-internally]
 ---
 
@@ -69,7 +69,7 @@ When you run `claude` in a directory, Claude Code can reach:
 - **Your project:** files in the directory and its subdirectories, plus files elsewhere with your permission.
 - **Your terminal:** any command you could run, including build tools, git, package managers, and scripts.
 - **Your git state:** current branch, uncommitted changes, and recent commits.
-- **CLAUDE.md and auto memory:** persistent instructions and learned notes. The first 200 lines or 25KB of `MEMORY.md` load at session start ([[claude-md-and-memory]]).
+- **CLAUDE.md and auto memory:** persistent instructions and learned notes. Claude can read a repository's `AGENTS.md` as project instructions instead, or alongside them. The first 200 lines or 25KB of `MEMORY.md` load at session start ([[claude-md-and-memory]]).
 - **Extensions you configured:** MCP servers, skills, subagents, and Claude in Chrome.
 
 Because it sees the whole project, Claude makes coordinated edits across files, runs tests, and commits when asked. An inline assistant sees only the current file.
@@ -79,7 +79,7 @@ Because it sees the whole project, Claude makes coordinated edits across files, 
 | Environment | Where code runs | Use case |
 |---|---|---|
 | Local | Your machine | Default. Full access to your files, tools, and environment |
-| Cloud | Anthropic-managed VMs, or self-hosted environments your org operates | Offload tasks, work on repos you don't have locally ([[claude-code-on-the-web]]) |
+| Cloud sessions | Anthropic-managed VMs, or self-hosted environments your org operates | Offload tasks, work on repos you don't have locally ([[claude-code-on-the-web]]) |
 | Remote Control | Your machine, controlled from a browser or phone | Use the web UI while files and execution stay local |
 
 ## Session lifecycle at a glance

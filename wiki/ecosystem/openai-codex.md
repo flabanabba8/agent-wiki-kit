@@ -34,9 +34,9 @@ sources:
   - raw/docs/official/cli-reference.md
 related: ["[[open-models]]", "[[permissions-and-modes]]", "[[sandboxing-and-security]]", "[[agent-standards]]", "[[subagents]]"]
 created: 2026-09-15
-updated: 2026-09-17
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-17
+last_verified: 2026-09-19
 aliases: [codex-cli, openai-codex, codex-cli-vs-claude-code, codex-compared-with-claude-code, switching-from-codex-to-claude-code, agents-md]
 valid_until: 2027-03-15
 ---
@@ -150,7 +150,7 @@ Area by area; the Claude Code column comes from the official Claude Code docs.
 | Area | Codex CLI | Claude Code |
 |---|---|---|
 | Install | `install.sh`, npm `@openai/codex`, `brew install --cask codex` | `curl -fsSL https://claude.ai/install.sh \| bash`, `brew install --cask claude-code`, `winget install Anthropic.ClaudeCode` |
-| Instruction file | `AGENTS.md` (+ `AGENTS.override.md`), 32 KiB cap | `CLAUDE.md`, `CLAUDE.local.md`, `~/.claude/CLAUDE.md`. It does not read `AGENTS.md` directly: put `@AGENTS.md` in CLAUDE.md or symlink it ([[claude-md-and-memory]]) |
+| Instruction file | `AGENTS.md` (+ `AGENTS.override.md`), 32 KiB cap | `CLAUDE.md`, `CLAUDE.local.md`, `~/.claude/CLAUDE.md`, and `AGENTS.md` when no `CLAUDE.md` sits at or above your directory ([[claude-md-and-memory]]) |
 | Config format | TOML: `~/.codex/config.toml`, `.codex/config.toml`, profile files | JSON: `~/.claude/settings.json`, `.claude/settings.json`, `.claude/settings.local.json`, managed settings |
 | Autonomy controls | `sandbox_mode` × `approval_policy`, optional `auto_review` reviewer | Permission modes `default` (Manual), `acceptEdits`, `plan`, `auto`, `dontAsk`, `bypassPermissions` plus allow/ask/deny rules ([[permissions-and-modes]]) |
 | OS sandbox | On by default: Seatbelt, `bwrap` + `seccomp`, Windows sandbox; network off | Opt-in via `/sandbox`: Seatbelt on macOS, `bubblewrap` + `socat` on Linux/WSL2 ([[sandboxing-and-security]]) |

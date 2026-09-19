@@ -12,9 +12,9 @@ sources:
   - raw/docs/changelog-2.1.273-to-2.1.274.md
 related: ["[[enterprise-admin]]", "[[sandboxing-and-security]]", "[[cloud-providers]]", "[[llm-gateways]]", "[[sessions-and-checkpoints]]"]
 created: 2026-09-15
-updated: 2026-09-17
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-17
+last_verified: 2026-09-19
 aliases: [zero-data-retention, zdr, data-retention, disable-telemetry, claude-code-privacy]
 ---
 
@@ -44,7 +44,7 @@ Session quality survey responses, including any transcript you choose to share, 
 | ZDR sessions flagged for a policy violation | Inputs and outputs up to 2 years |
 | Local transcripts in `~/.claude/projects/` (plaintext) | 30 days by default; set `cleanupPeriodDays`. Desktop and Cowork transcripts are exempt by default; `desktopSessionCleanupPeriodDays` sets their limit |
 
-You can delete individual Claude Code on the web sessions, which permanently removes their event data. Local session storage is described on [[sessions-and-checkpoints]].
+You can delete an individual cloud session, which permanently removes its event data ([[claude-code-on-the-web]]). Local session storage is described on [[sessions-and-checkpoints]].
 
 ## Data flow and encryption
 
@@ -112,7 +112,7 @@ With ZDR enabled, Anthropic processes Claude Code prompts and responses in real 
 - **Cloud providers:** ZDR on Enterprise covers only Anthropic's direct platform. On Bedrock, Agent Platform and Foundry, the provider's own agreement governs retention ([[cloud-providers]]).
 - **Coverage:** Claude Code inference for requests that authenticate into the ZDR organization. Personal accounts and keys from other organizations aren't covered; deploy `forceLoginMethod` and `forceLoginOrgUUID` to pin logins to the ZDR organization.
 - **Not covered:** claude.ai chat, Cowork, Claude Code Analytics metadata (emails, usage stats), user and seat management data, and third-party tools or MCP servers.
-- **Disabled under ZDR** (blocked in the backend): Claude Code on the web, Desktop cloud sessions, Claude Tag, Artifacts, feedback submission (`/feedback`, `/bug`, `/share`) and Remote Control. Contribution metrics are also unavailable, so the analytics dashboard shows usage only.
+- **Disabled under ZDR** (blocked in the backend): cloud sessions, including those started from the desktop app, because they need server-side storage of prompts and completions; Claude Tag; Artifacts; feedback submission (`/feedback`, `/bug`, `/share`); and Remote Control. Contribution metrics are also unavailable, so the analytics dashboard shows usage only.
 - **Models:** Claude Fable 5.1 and Fable 5 are Covered Models that require data retention by default. Where a ZDR organization can't use them, they are hidden or disabled in `/model`, and the `best` alias resolves to Opus.
 
 ### ZDR admin features on Enterprise

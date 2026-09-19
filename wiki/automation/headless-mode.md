@@ -7,9 +7,9 @@ sources:
   - raw/docs/official/cli-reference.md
 related: ["[[agent-sdk]]", "[[cli-reference]]", "[[permissions-and-modes]]", "[[ci-cd-and-code-review]]", "[[agent-sdk-control]]", "[[hooks]]"]
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-15
+last_verified: 2026-09-19
 aliases: [claude-p, print-mode, non-interactive-mode, bare-mode, json-output]
 ---
 
@@ -27,7 +27,7 @@ claude -p "Find and fix the bug in auth.py" --allowedTools "Read,Edit,Bash"
 - **Exit status:** 0 on success and non-zero on failure. Invalid flags go to stderr before the run starts. A failure inside the run, such as missing auth, is printed as the result on stdout.
 - **Stdin** is read, so piping works: `cat build-error.txt | claude -p 'concisely explain the root cause of this build error' > output.txt`. Piped input is capped at **10MB**. For larger inputs, write a file and reference it.
 - **Incompatible flags:** `--bg` is rejected, and so is `--cloud` with a task description.
-- **Skills and custom commands** work: put `/skill-name` in the prompt. Terminal-only built-ins such as `/login` don't. `/model`, `/effort`, `/fast`, `/color` and `/rename` take their value as an argument.
+- **Skills and custom commands** work: put `/skill-name` in the prompt. Terminal-only built-ins such as `/login` don't. `/model`, `/effort`, `/fast`, `/color` and `/rename` take their value as an argument, `/output-style` switches or lists output styles, `/mcp` prints a server-status summary, and `/config key=value` changes a setting.
 - **Session persistence:** add `--no-session-persistence` to keep a run from being saved or resumed.
 
 ## Bare mode

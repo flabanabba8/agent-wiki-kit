@@ -6,9 +6,9 @@ sources:
   - raw/docs/official/commands.md
 related: ["[[cli-reference]]", "[[skills]]", "[[context-window]]", "[[sessions-and-checkpoints]]", "[[models-and-effort]]", "[[troubleshooting]]"]
 created: 2026-09-15
-updated: 2026-09-17
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-17
+last_verified: 2026-09-19
 aliases: [slash-command-list, claude-commands, in-session-commands, built-in-commands]
 ---
 
@@ -20,11 +20,11 @@ Commands control Claude Code from inside a session: switch models, manage permis
 
 - **Position.** A command is recognized only at the start of a message; the text after it becomes its arguments. Skills are the exception: `/skill-a /skill-b do XYZ` loads every leading skill (up to six), each receiving the trailing text.
 - **Mid-response.** A command sent while Claude is responding queues until the turn ends. Some run immediately, such as `/status`, `/tasks` and `/usage`; in fullscreen rendering, dialogs such as `/theme` and `/help` open immediately too.
-- **Availability.** Not every command appears for every user; platform, plan, provider and policy decide. Unavailable ones are left out of the menu and return `Unknown command`.
+- **Availability.** Platform, plan, provider and policy decide which commands appear. An unmatched name returns `Unknown command` in an interactive terminal; in `-p` runs, the SDK, the Desktop Code tab, the VS Code chat panel, cloud sessions and routines it reaches Claude as a prompt, with a note and the commands available there, unless it names a built-in that can't run in that session. A command your organization's policy disables answers for itself, as the cloud-session commands do when `allow_remote_sessions` is off.
 - **Menu matching.** The top suggestion is highlighted only when your letters match a name or alias from the start of the name or of a word in it, ignoring `:`, `_` and `-`: `/adddir` highlights `/add-dir`, `/new` highlights `/clear`. After a typo nothing is highlighted and `Enter` submits your text as typed.
 - **Hidden commands** such as `/heapdump` appear only once you type the full name.
 
-**(S)** marks a bundled skill (a prompt handed to Claude), **(W)** a bundled workflow that fans work out across subagents in the background. `<arg>` is required, `[arg]` optional.
+**(S)** marks a bundled skill, **(W)** a bundled workflow fanning work across background subagents. `<arg>` is required, `[arg]` optional.
 
 ## Session and context
 
@@ -40,8 +40,7 @@ Commands control Claude Code from inside a session: switch models, manage permis
 | `/subtask <task>` | Spawn a forked subagent that inherits the conversation; its result returns here |
 | `/rewind` | Roll code and/or conversation back to a checkpoint, or summarize from a message. Aliases `/checkpoint`, `/undo` |
 | `/rename [name]` | Rename the session (auto-generates a name when omitted) |
-| `/btw [question]` | Side question that doesn't enter the conversation history |
-| `/recap` | One-line summary of the session |
+| `/btw [question]`, `/recap` | Side question that doesn't enter the conversation history; one-line summary of the session |
 | `/goal [condition\|clear]` | Set a completion condition and keep working across turns until an evaluator says it holds; `clear` drops it — [[prompting-and-workflows]] |
 | `/cd <path>` | Move the session to another working directory, keeping the conversation |
 | `/add-dir <path>` | Add a working directory for file access |
@@ -75,8 +74,7 @@ See [[models-and-effort]].
 | `/init` | Generate a starter `CLAUDE.md`; `CLAUDE_CODE_NEW_INIT=1` gives an interactive flow covering skills, hooks and memory files |
 | `/memory` | Edit `CLAUDE.md` files, toggle and view auto memory |
 | `/import [codex\|gemini\|cursor] [--dry-run] [--yes]` | Import instruction files, MCP servers, commands, subagents and skills from OpenAI Codex, Gemini CLI or Cursor |
-| `/hooks` | View hook configurations |
-| `/keybindings` | Open your keybindings file |
+| `/hooks`, `/keybindings` | View hook configurations; open your keybindings file |
 | `/privacy-settings` | View and update privacy settings (Pro and Max) |
 
 See [[permissions-and-modes]], [[settings]] and [[claude-md-and-memory]].
@@ -85,8 +83,7 @@ See [[permissions-and-modes]], [[settings]] and [[claude-md-and-memory]].
 
 | Command | Purpose |
 | :--- | :--- |
-| `/skills` | List skills; type to filter, `t` sorts by tokens, `Space`/`Enter` cycles visibility |
-| `/reload-skills` | Re-scan skill and command directories without restarting |
+| `/skills`, `/reload-skills` | List skills — type to filter, `t` sorts by tokens, `Space`/`Enter` cycles visibility; re-scan skill and command directories without restarting |
 | `/skill-doctor` | Per-skill context cost and usage, to find skills to turn off |
 | `/plugin [subcommand]` | Plugin menu, or `list`, `install`, `enable`, `disable` directly |
 | `/reload-plugins [--force]` | Apply plugin changes without restarting; `--force` accepts a prompt-cache reset |
@@ -108,9 +105,9 @@ See [[permissions-and-modes]], [[settings]] and [[claude-md-and-memory]].
 | `/loop [interval] [prompt]` | (S) Repeat a prompt while the session stays open; omit the interval to let Claude self-pace. Alias `/proactive` |
 | `/schedule [description]` | Create, update, list or run cloud routines. Alias `/routines` |
 | `/deep-research <question>` | (W) Fan out web searches, cross-check sources, write a cited report |
-| `/teleport` | Pull a Claude Code on the web session into this terminal. Alias `/tp` |
+| `/teleport` | Pull a cloud session into this terminal. Alias `/tp` |
 | `/remote-control` | Make this session available through Remote Control. Alias `/rc` |
-| `/remote-env` | Default environment for cloud agents |
+| `/remote-env` | Default cloud environment for cloud sessions started from the CLI |
 | `/autofix-pr [prompt]` | Cloud session watching this branch's PR that pushes fixes for CI failures and review comments |
 | `/desktop` | Continue in the Desktop app (macOS, x64 Windows). Alias `/app` |
 
@@ -165,12 +162,11 @@ See [[costs-and-usage]].
 
 | Command | Purpose |
 | :--- | :--- |
-| `/theme` | Color theme, including `auto`, daltonized, ANSI and custom themes |
+| `/theme`, `/color [color\|default]` | Color theme, including `auto`, daltonized, ANSI and custom themes; prompt bar color for this session |
+| `/output-style [style]` | List output styles or switch to one, e.g. `/output-style concise` |
 | `/tui [default\|fullscreen]` | Switch renderer and relaunch with the conversation intact |
-| `/focus` | Toggle the focus view (fullscreen only) |
-| `/scroll-speed` | Mouse-wheel scroll speed (fullscreen only) |
+| `/focus`, `/scroll-speed` | Toggle the focus view; mouse-wheel scroll speed (both fullscreen only) |
 | `/statusline` | Configure the status line |
-| `/color [color\|default]` | Prompt bar color for this session |
 | `/terminal-setup` | Install a Shift+Enter newline binding and related terminal fixes |
 | `/voice [hold\|tap\|off]` | Voice dictation |
 | `/powerup` | Interactive lessons teaching features with animated demos ([[interface]]) |
@@ -184,15 +180,13 @@ See [[interface]].
 | `/ide` | Manage IDE integrations |
 | `/chrome` | Claude in Chrome settings |
 | `/install-slack-app` | Install the Claude Slack app |
-| `/web-setup` | Connect GitHub to Claude Code on the web using local `gh` credentials |
+| `/web-setup` | Connect GitHub for cloud sessions using local `gh` credentials |
 | `/artifacts` | List, attach, open or copy links to your artifacts |
 | `/design [brief]` | (S) Draft artboards on a canvas artifact you can edit, export or implement ([[artifacts]]) |
-| `/design-sync [hint]` | (S) Upload your repo's React design system to Claude Design |
-| `/design-login` | Authorize design-system access for `/design-sync` |
+| `/design-sync [hint]`, `/design-login` | (S) Upload your repo's React design system to Claude Design; authorize its design-system access |
 | `/dataviz [request]` | (S) Chart and dashboard design guidance |
 | `/claude-api [subcommand]` | (S) Claude API and Managed Agents reference; subcommands `migrate`, `upgrade`, `managed-agents-onboard`, `prompt-audit`, `cost-optimize`, `build-eval`, `hillclimb` |
 | `/team-onboarding` | Onboarding guide from 30 days of your usage |
-| `/mobile` | QR code for the mobile app. Aliases `/ios`, `/android` |
-| `/stickers`, `/radio` | Order stickers; open Claude FM in the browser |
+| `/mobile`, `/stickers`, `/radio` | QR code for the mobile app (aliases `/ios`, `/android`); order stickers; open Claude FM |
 
 Replacements: for `/pr-comments`, ask Claude to read the PR comments; for `/vim`, `/config` → Editor mode; for `/ultraplan`, plan mode.

@@ -13,16 +13,16 @@ sources:
   - raw/docs/official/data-usage.md
 related: ["[[llm-gateways]]", "[[enterprise-admin]]", "[[models-and-effort]]", "[[data-and-privacy]]", "[[settings]]"]
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-15
+last_verified: 2026-09-19
 aliases: [bedrock-setup, vertex-ai-setup, microsoft-foundry-setup, claude-platform-on-aws, third-party-providers]
 valid_until: 2027-03-15
 ---
 
 # Cloud Providers
 
-Claude Code can run its model traffic through a cloud provider instead of a claude.ai or Console login. Pick this when you want to inherit existing AWS, GCP or Azure compliance controls, IAM and billing. For most organizations the docs still recommend Claude for Teams or Enterprise, which needs no infrastructure and includes Claude on the web ([[enterprise-admin]]). To put a proxy or gateway in front of a provider, see [[llm-gateways]].
+Claude Code can run its model traffic through a cloud provider instead of a claude.ai or Console login. Pick this when you want to inherit existing AWS, GCP or Azure compliance controls, IAM and billing. For most organizations the docs still recommend Claude for Teams or Enterprise, which needs no infrastructure and covers both Claude Code and Claude on the web in one subscription ([[enterprise-admin]]). To put a proxy or gateway in front of a provider, see [[llm-gateways]].
 
 ## Choose a provider
 
@@ -138,7 +138,7 @@ Aliases, effort and fallback behaviour are covered on [[models-and-effort]].
 
 ## Feature differences
 
-Everything local works on every provider: the CLI, Agent SDK, IDE extensions, subagents, hooks, skills, plugins, MCP, checkpoints, sandboxing, Workflows, OpenTelemetry and managed-settings files. Features that need a claude.ai subscription do not work on any of these providers, including [[claude-code-on-the-web]], Desktop (except through Claude Desktop on 3P), routines, Remote Control, Chrome and Artifacts.
+Everything local works on every provider: the CLI, Agent SDK, IDE extensions, subagents, hooks, skills, plugins, MCP, checkpoints, sandboxing, Workflows, OpenTelemetry and managed-settings files. Features that need a claude.ai subscription do not work on any of these providers, including cloud sessions ([[claude-code-on-the-web]]), Desktop (except through Claude Desktop on 3P), routines, Code Review, Remote Control, Chrome and Artifacts.
 
 | Feature | Bedrock | Platform on AWS | Agent Platform | Foundry |
 |---|---|---|---|---|

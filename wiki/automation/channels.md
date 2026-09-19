@@ -7,9 +7,9 @@ sources:
   - raw/docs/official/channels-reference.md
 related: ["[[mcp]]", "[[plugins]]", "[[enterprise-admin]]", "[[permissions-and-modes]]", "[[routines-and-scheduling]]", "[[claude-code-on-the-web]]"]
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-15
+last_verified: 2026-09-19
 aliases: [claude-channels, telegram-channel, discord-channel, webhook-channel, permission-relay]
 valid_until: 2027-03-15
 ---
@@ -47,7 +47,7 @@ claude --channels plugin:fakechat@claude-plugins-official
 
 Open http://localhost:8787 and type a message. In the terminal it shows as `← fakechat · web: …`, and Claude receives it as a `<channel source="plugin:fakechat:fakechat">` event and answers through fakechat's `reply` tool. You can pass several plugins to `--channels`, separated by spaces.
 
-If the marketplace is missing, run `/plugin marketplace add anthropics/claude-plugins-official`. Choose user scope when installing (see [[plugins]]).
+If the marketplace is missing, run `/plugin marketplace add anthropics/claude-plugins-official`. Choose user scope when installing, and ignore a `Run /reload-plugins to activate.` note when you are about to restart with `--channels` anyway (see [[plugins]]).
 
 ### Telegram and Discord
 

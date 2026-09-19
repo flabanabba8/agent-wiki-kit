@@ -11,9 +11,9 @@ sources:
   - raw/docs/changelog-2.1.271-to-2.1.272.md
 related: ["[[agent-sdk]]", "[[agent-sdk-deployment]]", "[[long-running-agents]]", "[[context-engineering]]", "[[trustworthy-agents]]"]
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 confidence: medium
-last_verified: 2026-09-15
+last_verified: 2026-09-19
 aliases: [claude-managed-agents, managed-agents-api, brain-and-hands, meta-harness]
 ---
 

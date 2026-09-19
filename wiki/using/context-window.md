@@ -14,9 +14,9 @@ sources:
   - raw/docs/official/troubleshooting.md
 related: ["[[claude-md-and-memory]]", "[[costs-and-usage]]", "[[subagents]]", "[[models-and-effort]]", "[[context-engineering]]"]
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-15
+last_verified: 2026-09-19
 aliases: [compaction, auto-compact, prompt-caching, context-management, slash-context]
 valid_until: 2027-03-15
 ---
@@ -31,7 +31,7 @@ The context window is everything Claude knows about the session: the system prom
 
 - The system prompt, with core instructions and tool definitions
 - Environment info: working directory, platform, shell, OS version, and git repo status. Branch, status, and recent commits load as a block at the end of the system prompt
-- Auto memory (the first 200 lines or 25KB of `MEMORY.md`), `~/.claude/CLAUDE.md`, the project CLAUDE.md, and unscoped rules ([[claude-md-and-memory]])
+- Auto memory (the first 200 lines or 25KB of `MEMORY.md`), `~/.claude/CLAUDE.md`, the project CLAUDE.md, unscoped rules, and any `AGENTS.md` loaded as project instructions ([[claude-md-and-memory]])
 - MCP tool **names** only. Full schemas stay deferred and load on demand through tool search ([[mcp]])
 - Skill descriptions. Skills with `disable-model-invocation: true` aren't listed until you invoke them ([[skills]])
 - Anything your setup adds, such as an output style or `--append-system-prompt` text
@@ -103,8 +103,8 @@ Extended-context availability and `[1m]` variants are in [[models-and-effort]].
 | System prompt, output style | Still apply |
 | Project-root CLAUDE.md, unscoped rules, auto memory | Re-injected from disk |
 | The plan written in plan mode | Re-injected from disk |
-| Path-scoped rules, nested CLAUDE.md | Reload when Claude next reads a matching file |
-| Files read or edited | Up to five re-read, most recently modified first. Files over 5,000 tokens come back as a path reference only |
+| Path-scoped rules, nested CLAUDE.md | Not re-injected; they reload when Claude next reads a matching file. Drop a rule's `paths:` or move it to the root CLAUDE.md to keep it |
+| Files read or edited | Up to five re-read, most recently modified first. One over 5,000 tokens comes back as a path reference, shown as `Referenced file` rather than `Read` |
 | Invoked skill bodies | Re-injected, capped at 5,000 tokens per skill and 25,000 total, oldest dropped first. Truncation keeps the top of `SKILL.md` |
 | Skill description listing | Not re-injected. Only invoked skills are kept |
 | Background commands and subagents | Keep running. Claude is reminded they exist |

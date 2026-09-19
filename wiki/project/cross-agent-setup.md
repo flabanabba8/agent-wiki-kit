@@ -31,11 +31,12 @@ sources:
   - scripts/agents/adapter.py
   - scripts/agents/hermes/setup.sh
   - scripts/mem0/config.py
+  - raw/docs/official/memory.md
 related: ["[[harness]]", "[[openai-codex]]", "[[opencode]]", "[[hermes-agent]]", "[[agent-standards]]", "[[camoufox]]"]
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-17
+last_verified: 2026-09-19
 aliases: [use-this-repo-from-codex, opencode-and-hermes-setup, agents-md-symlink, cross-agent-compatibility, share-skills-between-coding-agents]
 ---
 
@@ -55,7 +56,7 @@ This repository was built for Claude Code, and it works the same way from [[open
 | Rules as hooks | `.claude/settings.json` | `.codex/hooks.json` (generated) | `.opencode/plugins/agent-wiki-kit.js` | user-level plugin, linked by the setup script |
 | Subagents | `.claude/agents/*.md` | `.codex/agents/*.toml` (generated) | `.opencode/agents/*.md` (generated) | none: Hermes has no definition format |
 
-Two facts make the symlinks necessary rather than optional. Codex reads only `AGENTS.md` and scans only `.agents/skills`. OpenCode and Hermes load the **first** instruction file they find, so a separate `AGENTS.md` would shadow `CLAUDE.md` and then drift from it. Codex follows a symlinked skills folder but skips a symlinked `SKILL.md` file, so link the folder, never the files.
+Two facts make the symlinks necessary rather than optional. Codex reads only `AGENTS.md` and scans only `.agents/skills`. OpenCode and Hermes load the **first** instruction file they find, so a separate `AGENTS.md` would shadow `CLAUDE.md` and then drift from it. Codex follows a symlinked skills folder but skips a symlinked `SKILL.md` file, so link the folder, never the files. Claude Code can read `AGENTS.md` too, but only when no `CLAUDE.md` sits at or above the working directory; with both present it reads `CLAUDE.md` alone, so the symlink does not load these instructions twice.
 
 All four agents ignore SKILL.md frontmatter fields they do not know, so Claude-only fields such as `user-invocable` and `argument-hint` are harmless. The frontmatter must still be **strict YAML**: Claude Code tolerates an unquoted value containing `: ` and Codex repairs it, but OpenCode silently drops the whole skill. A test now parses every skill strictly.
 

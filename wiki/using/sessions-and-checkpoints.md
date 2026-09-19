@@ -1,21 +1,21 @@
 ---
 title: Sessions and Checkpoints
 type: how-to
-tldr: "Resume, name, branch, rewind, transcripts"
+tldr: "Resume, branch, rewind to undo edits, transcripts"
 sources:
   - raw/docs/official/sessions.md
   - raw/docs/official/checkpointing.md
 related: ["[[context-window]]", "[[worktrees-and-background-work]]", "[[headless-mode]]", "[[permissions-and-modes]]", "[[cli-reference]]"]
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-15
-aliases: [resume-session, continue-conversation, rewind, checkpoints, fork-session]
+last_verified: 2026-09-19
+aliases: [resume-session, continue-conversation, rewind, checkpoints, undo-file-edits, fork-session]
 ---
 
 # Sessions and Checkpoints
 
-A **session** is a saved conversation tied to a project directory. The CLI writes it continuously to a local transcript, so you can close the terminal, run `/clear`, or crash, and then pick up where you left off. **Checkpoints** are automatic snapshots of Claude's file edits, one per prompt, that let you rewind code, conversation, or both. The desktop app, the web, and the VS Code extension keep their own session history; this page covers the CLI.
+A **session** is a saved conversation tied to a project directory. The CLI writes it continuously to a local transcript, so you can close the terminal, run `/clear`, or crash, and then pick up where you left off. **Checkpoints** are automatic snapshots of Claude's file edits, one per prompt, that let you rewind code, conversation, or both. The desktop app, claude.ai/code, and the VS Code extension keep their own session history; this page covers the CLI.
 
 ## Resume a session
 
@@ -79,7 +79,7 @@ claude --continue --fork-session
 - **Remote Control:** connected clients follow you into the branch.
 - **Concurrent use:** resuming one session in two terminals without forking interleaves both into a single transcript.
 
-## Checkpoints and `/rewind`
+## Undo file edits: checkpoints and `/rewind`
 
 Every prompt that starts a turn creates a checkpoint of the files Claude's editing tools touched. Snapshots are kept for the 100 most recent checkpoints, survive resume, and are swept with other session data after about 30 days (`cleanupPeriodDays`).
 
@@ -98,7 +98,7 @@ Summarizing doesn't touch files. To steer a summary, highlight a Summarize optio
 
 **Checkpoints don't capture:**
 
-- Files changed by Bash commands (`rm`, `mv`, `cp`, scripts)
+- Files changed by Bash commands such as `rm`, `mv`, `cp`, or a script
 - Edits by subagents, except a foreground forked skill; revert those with git
 - Changes made outside Claude Code or by other sessions
 - Messages you queued that joined a running turn; rewind to the prompt that started the turn

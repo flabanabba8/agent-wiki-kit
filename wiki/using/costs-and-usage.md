@@ -8,9 +8,9 @@ sources:
   - raw/docs/official/commands.md
 related: ["[[models-and-effort]]", "[[context-window]]", "[[enterprise-admin]]", "[[headless-mode]]", "[[agent-teams]]"]
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-15
+last_verified: 2026-09-19
 aliases: [usage-limits, token-costs, cost-command, reduce-token-usage, usage-credits]
 valid_until: 2027-03-15
 ---

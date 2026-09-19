@@ -7,9 +7,9 @@ sources:
   - raw/docs/official/corporate-launcher.md
 related: ["[[enterprise-admin]]", "[[settings]]", "[[llm-gateways]]", "[[worktrees-and-background-work]]", "[[environment-variables]]"]
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-15
+last_verified: 2026-09-19
 aliases: [corporate-proxy, custom-ca-certificates, mtls-client-certificates, network-allowlist, corporate-launcher]
 ---
 
@@ -81,7 +81,7 @@ Some organizations require every process to start through a launcher that applie
 - **Setting form:** the named `processWrapper` setting carries the same value; `CLAUDE_CODE_PROCESS_WRAPPER` wins when both are set.
 - **Allowed sources:** only user, `--settings` and managed settings are honored. Project and local settings are ignored, so a committed repository can't put a binary in front of every process.
 - **Coverage:** the launcher wraps the background service, every agent view session including warm spares, respawns after updates or crashes, update relaunches, Remote Control session processes, and split-pane agent-team teammates.
-- **Not covered:** an installed service whose unit predates the setting, sessions you start yourself in a terminal (use a `claude` script earlier on `PATH` for those), the first process of a `claude-cli://` deep link, `--worktree` with `--tmux` relaunches, and the Chrome native-messaging host. On Windows the variable is ignored.
+- **Not covered:** an installed service whose unit predates the setting, sessions you start yourself in a terminal (use a `claude` script earlier on `PATH` for those; the service and its sessions start without a `PATH` lookup, so the two launchers don't stack), the first process of a `claude-cli://` deep link, `--worktree` with `--tmux` relaunches, and the Chrome native-messaging host. On Windows the variable is ignored.
 - **Value format:** an argument list, not a shell command. Whitespace separates tokens, double quotes group, a value starting with `[` is read as a JSON array, and shell operators such as `;` or `$(` are rejected.
 - **After deploying:** run `claude daemon stop --any`, or `claude daemon stop` for an installed service, so the next background command starts a wrapped supervisor. Confirm with the Self-exec entry in `/status` or with `claude daemon status`.
 

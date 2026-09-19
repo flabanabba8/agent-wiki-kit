@@ -11,9 +11,9 @@ sources:
   - raw/docs/changelog-2.1.273-to-2.1.274.md
 related: ["[[overview]]", "[[settings]]", "[[troubleshooting]]", "[[cloud-providers]]", "[[environment-variables]]"]
 created: 2026-09-15
-updated: 2026-09-17
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-17
+last_verified: 2026-09-19
 aliases: [install-claude-code, claude-code-login, update-claude-code, release-channel, uninstall-claude-code]
 valid_until: 2027-03-15
 ---
@@ -31,7 +31,7 @@ This page covers installing the CLI, logging in, running a first session, keepin
 | Shell | Bash, Zsh, PowerShell, or CMD |
 | Network | Internet connection required |
 | Location | An Anthropic supported country |
-| Account | Pro, Max, Team, Enterprise, or Console. The free Claude.ai plan has no Claude Code access |
+| Account | Pro, Max, Team, Enterprise, or Console. The free claude.ai plan has no Claude Code access |
 
 ripgrep usually ships with Claude Code.
 
@@ -121,8 +121,8 @@ Run `claude` in a project directory. On first launch a browser window opens for 
 
 | Account type | How to sign in |
 |---|---|
-| Claude Pro or Max | Your Claude.ai account |
-| Claude for Teams or Enterprise | The Claude.ai account your admin invited. Enterprise adds SSO, domain capture, and managed policy |
+| Claude Pro or Max | Your claude.ai account |
+| Claude for Teams or Enterprise | The claude.ai account your admin invited. Enterprise adds SSO, domain capture, and managed policy |
 | Claude Console | Console credentials after an admin invites you. A "Claude Code" workspace is created for cost tracking. You can sign in with or without creating an API key |
 | Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry | Set the provider's environment variables before running `claude`, or pick **3rd-party platform** at the login prompt. No browser login. See [[cloud-providers]] |
 | Claude apps gateway | Corporate SSO through `/login`. See [[llm-gateways]] |

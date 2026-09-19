@@ -7,11 +7,11 @@ sources:
   - raw/docs/official/scheduled-tasks.md
   - raw/docs/official/desktop-scheduled-tasks.md
   - raw/docs/changelog-2.1.273-to-2.1.274.md
-related: ["[[claude-code-on-the-web]]", "[[desktop-app]]", "[[ci-cd-and-code-review]]", "[[mcp]]", "[[channels]]"]
+related: ["[[claude-code-on-the-web]]", "[[claude-projects]]", "[[desktop-app]]", "[[ci-cd-and-code-review]]", "[[mcp]]", "[[channels]]"]
 created: 2026-09-15
-updated: 2026-09-17
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-17
+last_verified: 2026-09-19
 aliases: [routines, schedule-command, loop-command, cron-tasks, scheduled-tasks]
 valid_until: 2027-03-15
 ---
@@ -35,7 +35,7 @@ To react to events as they happen instead of polling, use [[channels]]. For sche
 
 ## Routines (cloud)
 
-A **routine** saves a prompt, one or more GitHub repositories, a cloud environment and a set of connectors, and runs them automatically as a full Claude Code cloud session. Routines are a research preview on Pro, Max, Team and Enterprise. They belong to your individual account and are not shared. Commits, PRs and connector actions appear under your identity.
+A **routine** saves a prompt, one or more GitHub repositories, a cloud environment and a set of connectors, and runs them automatically as a full Claude Code cloud session. Routines are a research preview on Pro, Max, Team and Enterprise. They belong to your individual account and are not shared. Commits, PRs and connector actions appear under your identity. Ask Claude for scheduled work inside a project and the routine it creates runs as threads there, listed on the project's **Routines** tab ([[claude-projects]]).
 
 ### Create
 
@@ -44,10 +44,10 @@ A **routine** saves a prompt, one or more GitHub repositories, a cloud environme
 - **Desktop:** Code tab → **Routines** → **New routine** → **Cloud**. Choosing **Local** creates a Desktop scheduled task instead.
 
 All three surfaces write to the same account. The form sets:
-- **Prompt and model.** Runs are autonomous, with no permission-mode picker and no approvals, so write the prompt to be self-contained with explicit success criteria.
+- **Prompt and model.** Runs are autonomous: there is no permission-mode picker, and nothing stops for approval apart from some artifact actions, so write the prompt to be self-contained with explicit success criteria.
 - **Repositories.** Each is cloned from its default branch on every run. Claude pushes to `claude/`-prefixed branches. A push to any other branch is rejected if the branch is protected, has someone else's open PR, or carries commits by other authors.
-- **Environment.** Controls network access, environment variables and a cached setup script. The **Default** environment uses **Trusted** network access, limited to an allowlist. Other hosts fail with `403` and `x-deny-reason: host_not_allowed`. To reach more hosts, edit the environment and choose **Custom** or **Full**. See [[claude-code-on-the-web]].
-- **Connectors.** All your claude.ai connectors are included by default, and Claude can use every tool in them, writes included, without asking. Remove the ones you don't need. Servers added locally with `claude mcp add` aren't available unless you add them as connectors or commit them in `.mcp.json` (see [[mcp]]).
+- **Environment.** Controls network access, environment variables and a cached setup script. The **Default** environment uses **Trusted** network access, limited to an allowlist. Other hosts fail with `403` and `x-deny-reason: host_not_allowed`. To reach more hosts, edit the environment and choose **Custom** or **Full**. An organization-shared environment opens read-only here, so an Owner changes its network access from the **Cloud environments** page in admin settings. See [[claude-code-on-the-web]].
+- **Connectors.** All your claude.ai connectors are included by default, and Claude can use every tool in them, writes included, without asking. Remove the ones you don't need. Servers added locally with `claude mcp add` aren't available unless you add them as connectors; a routine with one repository can also take them from a committed `.mcp.json` (see [[mcp]]).
 
 ### Triggers
 
@@ -72,16 +72,16 @@ The response carries `claude_code_session_id` and `claude_code_session_url`. The
 
 ### Manage
 
-- Web detail page: **Run now**, a pause/resume toggle under **Repeats**, edit, delete, and run history.
+- Web detail page: **Run now**, the on/off switch at the top of the page to pause or resume the schedule, and run history. The menu beside the routine's name holds **Edit** (name, prompt, repositories, environment, connectors, triggers) and **Delete**.
 - CLI: `/schedule list`, `/schedule update`, `/schedule run`, or ask something like `/schedule why did my nightly review do nothing this morning?`.
 - A green run status means only that the session exited without an infrastructure error. Open the run to check whether the task actually succeeded.
+- A scheduled or **Run now** run republishes an existing artifact without asking only when you can edit it, it belongs to your own organization, it isn't shared publicly or shared with the latest version pinned for viewers, the publish carries the page alone and forces over nothing newer, and the page holds no grant reaching beyond it such as connector calls. Everything else, including a first publish, asks first — so give a page-tending routine an artifact you already published ([[artifacts]]).
 
 ### Limits and troubleshooting
 
-- Routines draw on subscription usage and also have a daily per-account run cap. Organizations with usage credits turned on can keep running on overage.
-- When the owner's GitHub connection is missing, a routine skips the run and keeps retrying for up to 72 hours.
-- `Unknown command: /schedule` appears when you are signed in with an API key, profile or cloud provider (claude.ai login is required), are inside a web session, or your organization has disabled Claude Code on the web or routines. Owners control the Routines toggle at claude.ai/admin-settings/claude-code.
-- If `/schedule` asks you to authenticate, run `/login` with your claude.ai account.
+- Routines draw on subscription usage and also have a daily per-account run cap. Organizations with usage credits turned on can keep running on overage. While your subscription is paused, routines are on hold, and you turn them back on once it is active again.
+- With the owner's GitHub connection missing or expired, a routine skips runs for up to 72 hours and resumes on its own once you reconnect. After 72 hours without one it turns off, and you turn it back on after reconnecting.
+- `/schedule` is hidden when its requirements aren't met. Signed in with a Console API key or an Anthropic profile it points you at Claude for Enterprise; fully signed out it asks you to run `/login` with a claude.ai account; inside a cloud session it says the command isn't available there; and where your organization's policy disables cloud sessions it answers `Cloud sessions are disabled by your organization's policy`. With a cloud-provider login it stays `Unknown command: /schedule`. Owners control the Routines toggle at claude.ai/admin-settings/claude-code.
 
 ## Desktop scheduled tasks
 
@@ -119,5 +119,6 @@ See [[desktop-app]] for the Desktop app itself.
 - **Expiry:** recurring tasks expire 7 days after creation, after one final fire.
 - **Cron syntax:** `*`, values, `*/15`, ranges and lists. `L`, `W`, `?` and names like `MON` are not supported. If both day fields are set, a date matches when either one matches.
 - Starting a new conversation clears all tasks. `--resume` or `--continue` restores unexpired `CronCreate` tasks but not a self-paced `/loop`. Backgrounding the session carries `/loop` tasks over (see [[worktrees-and-background-work]]).
+- With feature-flag fetching off, a task you asked to keep across sessions is stored in the project's `.claude/scheduled_tasks.json` and runs only in the folder where you created it; copying the file into another folder, such as a worktree, lists the tasks there but never runs them. A symlinked `.claude` directory or task file is an error instead.
 
 To disable the scheduler, set `CLAUDE_CODE_DISABLE_CRON=1`.

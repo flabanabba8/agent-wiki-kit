@@ -13,9 +13,9 @@ sources:
   - raw/docs/changelog-2.1.273-to-2.1.274.md
 related: ["[[settings]]", "[[cloud-providers]]", "[[llm-gateways]]", "[[data-and-privacy]]", "[[plugins]]", "[[mcp]]"]
 created: 2026-09-15
-updated: 2026-09-17
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-17
+last_verified: 2026-09-19
 aliases: [managed-settings, server-managed-settings, mdm-policy, opentelemetry-monitoring, claude-code-analytics]
 ---
 
@@ -54,7 +54,8 @@ Minimal file:
 ```
 
 - **Drop-ins:** several teams can own parts of a file-based policy in `managed-settings.d/*.json`. These files merge alphabetically after `managed-settings.json`. Single values are replaced, lists are unioned, and nested blocks such as `env` merge key by key. MDM templates for Jamf, Iru, Intune and Group Policy live in the anthropics/claude-code repo under `examples/mdm`.
-- **Several sources on one machine:** by default (`managedSourcesBehavior: "first-wins"`) Claude Code uses only the highest-ranked source that carries a policy key. A few keys are read from every admin source anyway: the sandbox locks, `forceRemoteSettingsRefresh`, `maxEffortLevel`, and `env`, which merges per variable. Set `"merge"` in the top source to compose all admin sources: lists union, locks take the strictest value, and allowlists such as `availableModels` come whole from the top source.
+- **Several sources on one machine:** by default (`managedSourcesBehavior: "first-wins"`) Claude Code uses only the highest-ranked source that carries a policy key. Some keys are read from every admin source anyway (the user-writable HKCU tier excepted): the sandbox locks, `forceRemoteSettingsRefresh`, `maxEffortLevel`, `deniedMcpServers`, `disableClaudeAiConnectors`, `allowManagedMcpServersOnly`, the `false`-only keys `useAutoModeDuringPlan`, `syncClaudeAiSkills`, `syncClaudeAiPlugins` and `enableArtifact`, and `env`, which merges per variable. While the MCP allowlist lock is on, the managed `allowedMcpServers` list comes from the highest-ranked admin source that sets one, and blocks a parent-supplied list; with no admin list, every server the denylist allows loads. Set `"merge"` in the top source to compose all admin sources: lists union, locks take the strictest value, and allowlists such as `availableModels` come whole from the top source.
+- **Gateway login keys** (`forceLoginMethod: "gateway"`, `forceLoginGatewayUrl`, `gatewayInternalNetworks`) are never read from server-managed settings or HKCU: the highest-ranked admin source on the machine supplies them ([[llm-gateways]]).
 - **WSL** reads only `/etc/claude-code` unless `wslInheritsWindowsSettings: true` is set in HKLM or the Windows file.
 - **Surfaces:** managed settings reach the terminal, the IDE extensions, the desktop Code tab and Agent SDK sessions. Anthropic-hosted cloud sessions receive **only server-managed settings**, and Cowork sessions never fetch them. A developer's `--model` or `ANTHROPIC_MODEL` still picks a session model under a managed `model`, so deploy `availableModels` if you need a lock.
 
@@ -80,6 +81,7 @@ Minimal file:
 | Plugin sources ([[plugins]]) | `strictKnownMarketplaces`, `blockedMarketplaces`, `disableSideloadFlags`, `disableCommandPluginSources`, `pluginSuggestionMarketplaces` |
 | Customization only via plugins or managed | `strictPluginOnlyCustomization` |
 | Hooks | `allowManagedHooksOnly`, `allowedHttpHookUrls` |
+| claude.ai skill and plugin sync | `syncClaudeAiSkills`, `syncClaudeAiPlugins` (each honors only `false`) |
 | Login | `forceLoginMethod`, `forceLoginOrgUUID` (these block `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN` and `apiKeyHelper` sessions) |
 | Background agents | `disableAgentView`, or `processWrapper` for a corporate launcher |
 | Models and effort | `availableModels`, `enforceAvailableModels`, `maxEffortLevel` |
@@ -90,14 +92,14 @@ Permission rules and sandboxing work at different layers. Denying WebFetch doesn
 
 ## Verify enforcement
 
-Have a developer run `/status`. `Setting sources` shows `Enterprise managed settings` with the selected source: `(remote)`, `(plist)`, `(HKLM)`, `(file)`, `(drop-ins)`, `(HKCU)`, `(parent process)`, `(helper)`, or a list ending `, merged`. A `Skipped sources` line names any source that was found but overridden. If the line is missing, no source delivered a policy key. `claude doctor` lists dropped entries, and shows `Managed settings (remote)` (the fetch outcome) and `Organization policy` lines. An unparseable managed file stops Claude Code from starting.
+Have a developer run `/status`. `Setting sources` shows `Enterprise managed settings` with the selected source: `(remote)`, `(plist)`, `(HKLM)`, `(file)`, `(drop-ins)`, `(HKCU)`, `(parent process)`, `(helper)`, or a list ending `, merged`. A `Skipped sources` line names any source that was found but overridden. If the line is missing, no source delivered a policy key. `claude doctor` lists dropped entries, and shows `Managed settings (remote)` (the fetch outcome) and `Organization policy` lines. Both `/status` and `claude doctor` name the source and key when an admin source sets `allowManagedMcpServersOnly` or `allowedMcpServers` and that value isn't the one in force. An unparseable managed file stops Claude Code from starting.
 
 ## Distribute plugins
 
 - **Per repository:** declare `extraKnownMarketplaces` (for example, a GitHub repo source) and `enabledPlugins` (`"code-formatter@company-tools": true`) in `.claude/settings.json`. They apply once teammates trust the folder.
 - **Organization-wide:** upload or sync plugins in claude.ai **Organization settings > Plugins**. A plugin with a top-level `bin/` directory is rejected.
 - **Containers and CI:** prebuild a read-only seed and point `CLAUDE_CODE_PLUGIN_SEED_DIR` at it. Build the seed with `CLAUDE_CODE_PLUGIN_CACHE_DIR=/opt/claude-seed claude plugin install my-tool@your-plugins`.
-- **Lockdown:** `strictKnownMarketplaces` unset means no restriction, `[]` blocks every marketplace (including the official one), and a list acts as an allowlist.
+- **Lockdown:** `strictKnownMarketplaces` unset means no restriction, `[]` blocks every marketplace (including the official one), and a list acts as an allowlist. A marketplace hosted on claude.ai is matched by host, so a `hostPattern` entry matching `claude.ai` governs it in `strictKnownMarketplaces` and `blockedMarketplaces`; on the allowlist such an entry still doesn't admit a member's personal claude.ai uploads. Plugins synced from a developer's claude.ai account come from the account, not a marketplace, so this lockdown misses them: set `syncClaudeAiPlugins: false`, or turn Skills off for the organization on claude.ai, which stops both skills and plugins syncing.
 
 ## Monitor with OpenTelemetry
 
@@ -120,6 +122,8 @@ OTel export works on every provider and is opt-in:
 - **Metrics:** `claude_code.session.count`, `lines_of_code.count`, `pull_request.count`, `commit.count`, `cost.usage` (USD), `token.usage`, `code_edit_tool.decision` and `active_time.total`, all prefixed `claude_code.`.
 - **Events and spans:** `claude_code.user_prompt`, and `claude_code.managed_settings_resolved`, which reports the managed-settings sources in effect and the policy helper's state; `OTEL_LOG_MANAGED_SETTINGS=1` adds the redacted settings and their digests. The `claude_code.llm_request` trace span carries an `effort` attribute, as the `api_request` event does.
 - **Privacy defaults:** prompt text, assistant responses, tool arguments, tool content and raw API bodies are off until you set `OTEL_LOG_USER_PROMPTS`, `OTEL_LOG_ASSISTANT_RESPONSES`, `OTEL_LOG_TOOL_DETAILS`, `OTEL_LOG_TOOL_CONTENT` or `OTEL_LOG_RAW_API_BODIES`. With OAuth, `user.email` is included, sent only to your collector. `OTEL_LOG_TOOL_DETAILS=1` also puts real agent, skill, plugin and MCP server names on cost and token metrics.
+- **Tool content:** `OTEL_LOG_TOOL_CONTENT=1` adds a `tool.output` span event on `claude_code.tool` for successful Read and Bash calls, carrying file text or command output; Edit and Write record one only with `OTEL_LOG_TOOL_DETAILS=1` as well, and no other tool records one. Each attribute is cut at the 60 KB content limit. Under detailed beta tracing, `OTEL_LOG_USER_PROMPTS=1` also gates `new_context`, which carries tool results on the `claude_code.llm_request` span.
+- **Raw bodies:** `OTEL_LOG_RAW_API_BODIES=file:<dir>` writes untruncated bodies to that directory and appends one content-free line per successful response to `<dir>/index.jsonl`, linking each response file to its request file and to the transcript message it became. Pair the two events by `request_body_id`.
 - **Cardinality:** trim attributes with `OTEL_METRICS_INCLUDE_SESSION_ID`, `OTEL_METRICS_INCLUDE_ACCOUNT_UUID` and similar flags.
 - **Debugging:** if nothing arrives, run `claude --debug` and look for `[3P telemetry]` errors.
 

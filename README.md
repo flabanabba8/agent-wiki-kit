@@ -2,14 +2,15 @@
 
 A knowledge wiki that maintains itself, plus the harness that keeps it honest. It ships as a working example, a source-backed wiki about Claude Code and agentic systems, and it is built to be pointed at your own subject.
 
-It currently holds **74 wiki pages** in 11 topic folders, cross-linked with **1,100+ wikilinks** and verified against **400 raw source files**. Every claim traces to a primary source, every identifier is checked against those sources, and the same rules are enforced whether you work in Claude Code, OpenAI Codex, OpenCode or Hermes Agent.
+It currently holds **75 wiki pages** in 11 topic folders, cross-linked with **1,200+ wikilinks** and verified against **403 raw source files**. Every claim traces to a primary source, every identifier is checked against those sources, and the same rules are enforced whether you work in Claude Code, OpenAI Codex, OpenCode or Hermes Agent.
 
 > [!IMPORTANT]
 > **Two things to know before you start.**
 >
-> 1. **The source documents are not in this repository.** They are other publishers' documentation and papers, so a clone contains none of them. **If you want them, run the install script with `--with-sources`:**
+> 1. **The source documents are not in this repository.** They are other publishers' documentation and papers, so a clone contains none of them. **If you want them, run the install script:**
 >    ```bash
->    ./scripts/setup.sh --with-sources
+>    ./scripts/setup.sh --full            # sources and the Camoufox browser
+>    ./scripts/setup.sh --with-sources    # sources only
 >    ```
 >    The wiki reads fine without them. You need them to verify a page against its sources, to run the freshness checks, or to ingest updates.
 > 2. **To build your own project with this kit, ask your agent to do it.** Open this folder in Claude Code, Codex, OpenCode or Hermes and say what you want, for example: *"Use this kit to start a new wiki about Kubernetes networking."* The agent follows the bundled `new-wiki` skill: it agrees the structure with you, clears the example content, keeps the harness, ingests your first sources and proves the checks pass. You are not expected to rewire it by hand.
@@ -26,15 +27,31 @@ The pattern is Andrej Karpathy's LLM wiki: immutable sources in `raw/`, LLM-main
 
 ## Quick start
 
-Requirements: `git`, Python 3.10 or newer, about 1.5 GB of disk for the local embedding stack. No API key.
+Requirements: `git` and Python 3.10 or newer. No API key. A basic installation needs about 1.5 GB of disk for the local embedding stack.
+
+### Full installation (recommended)
+
+One command sets up everything: the Python environment, the local semantic index, the git hooks, the **source documents** (about 400 files) and the **Camoufox browser** that reads pages plain HTTP cannot.
 
 ```bash
 git clone https://github.com/flabanabba8/agent-wiki-kit.git
 cd agent-wiki-kit
-./scripts/setup.sh                  # environment, semantic index, git hooks, health check
-./scripts/setup.sh --with-sources   # the same, plus the source documents (about 400 files)
-./scripts/setup.sh --with-browser   # the same, plus Camoufox for pages plain HTTP cannot read
+./scripts/setup.sh --full
 ```
+
+Allow a few minutes and about 3 GB of disk: 1.5 GB for the Python environment, 1.2 GB for the browser, and about 30 MB of source documents. The script is safe to run again: every step checks before it acts.
+
+### Basic installation
+
+If you only want to read and query the wiki, skip the two large downloads. You can add either later.
+
+```bash
+./scripts/setup.sh                  # environment, semantic index, git hooks, health check
+./scripts/setup.sh --with-sources   # add the source documents
+./scripts/setup.sh --with-browser   # add the Camoufox browser
+```
+
+A basic installation tells you at the end what it left out, and `./scripts/doctor.sh` keeps reporting it until you install it.
 
 Then open the folder in your agent and ask a question. The agent searches the wiki first:
 
@@ -90,7 +107,7 @@ Edit the Claude Code file, run `./scripts/agents/sync.py`, commit both. The memo
 | **Start** | 3 | What Claude Code is, installation, how the agentic loop works |
 | **Using** | 9 | Prompting and workflows, CLAUDE.md and memory, context, permissions, sandboxing, sessions, models, interface, costs |
 | **Extending** | 6 | Skills, subagents, agent teams, hooks, MCP, plugins |
-| **Automation** | 6 | Worktrees and background work, workflows, routines and scheduling, channels, artifacts, headless mode |
+| **Automation** | 7 | Worktrees and background work, workflows, routines and scheduling, channels, artifacts, headless mode |
 | **Surfaces** | 6 | IDEs, desktop app, web and Remote Control, Chrome and computer use, Slack, CI/CD and code review |
 | **Deployment** | 6 | Cloud providers, LLM gateways, settings, enterprise admin, data and privacy, network configuration |
 | **Reference** | 7 | CLI, slash commands, environment variables, tools, glossary, what's new, troubleshooting |
@@ -106,7 +123,7 @@ agent-wiki-kit/
 ├── CLAUDE.md                    # the schema: page format, rules, workflows (AGENTS.md is a symlink to it)
 ├── wiki/                        # the pages, plus index.md, hot.md (session cache) and log.md (append-only)
 ├── raw/                         # primary sources: fetched locally, never committed
-│   └── docs/                    # official/ (195 code.claude.com pages), changelog, vendor docs
+│   └── docs/                    # official/ (197 code.claude.com pages), changelog, vendor docs
 ├── sources/                     # manifest.tsv and identifiers.txt: what raw/ contains, without its text
 ├── scripts/                     # setup.sh, doctor.sh, wiki-lint.sh, sources.py, freshness.py, evals,
 │   ├── mem0/                    #   the local semantic index and the scratch-memory MCP server
@@ -148,11 +165,11 @@ Four subagents do the heavy lifting: `wiki-researcher` (read-only, with web acce
 
 | Metric | Value |
 |---|---|
-| Wiki pages | 74 |
-| Words | 115,000+ |
-| Wikilinks | 1,160 (70 unique) |
-| Raw sources | 400 files |
-| Official doc pages snapshotted | 195 |
+| Wiki pages | 75 |
+| Words | 121,000+ |
+| Wikilinks | 1,200 (71 unique) |
+| Raw sources | 403 files |
+| Official doc pages snapshotted | 197 |
 | Skills | 8 |
 | Agents | 4 |
 | Health score | 100/100 |

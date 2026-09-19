@@ -7,11 +7,12 @@ sources:
   - raw/docs/official/platforms.md
   - raw/docs/official/quickstart.md
   - raw/docs/official/setup.md
+  - raw/docs/official/claude-projects.md
 related: ["[[install-and-setup]]", "[[how-claude-code-works]]", "[[prompting-and-workflows]]", "[[claude-md-and-memory]]", "[[cli-reference]]"]
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-15
+last_verified: 2026-09-19
 aliases: [what-is-claude-code, claude-code-intro, claude-code-surfaces, getting-started-with-claude-code]
 ---
 
@@ -23,7 +24,7 @@ Every surface runs the same engine. Your repo's CLAUDE.md files, settings, and M
 
 ## What you need
 
-- **An account.** You need a Claude Pro, Max, Team, or Enterprise subscription, or a Claude Console account. The free Claude.ai plan doesn't include Claude Code.
+- **An account.** You need a Claude Pro, Max, Team, or Enterprise subscription, or a Claude Console account. The free claude.ai plan doesn't include Claude Code.
 - **Or a cloud provider.** The terminal CLI, VS Code, and JetBrains also work through Amazon Bedrock, Google Cloud's Agent Platform, or Microsoft Foundry (see [[cloud-providers]]).
 - **The desktop app** needs a paid subscription. It bundles Claude Code, so you don't install the CLI separately.
 
@@ -37,8 +38,10 @@ Install steps, login, and updates are covered in [[install-and-setup]].
 | VS Code (and Cursor) | Working inside the editor | Inline diffs, @-mentions, plan review, conversation history | [[ide-integrations]] |
 | JetBrains IDEs | IntelliJ, PyCharm, WebStorm, and others | Diff viewer and selection sharing. Needs the CLI installed separately | [[ide-integrations]] |
 | Desktop app | Visual review, parallel sessions | Diff viewer, app preview, scheduled tasks. Computer use and Dispatch on Pro and Max | [[desktop-app]] |
-| Web (claude.ai/code) | Long tasks that need little steering, repos you don't have locally | Runs in the cloud and keeps going after you disconnect | [[claude-code-on-the-web]] |
+| Web (claude.ai/code) | Long tasks that need little steering, repos you don't have locally | Cloud sessions keep running after you disconnect | [[claude-code-on-the-web]] |
 | Mobile (Claude app for iOS and Android) | Starting and monitoring tasks away from your desk | Thin client for cloud sessions, Remote Control, and Dispatch | [[claude-code-on-the-web]] |
+
+For a longer body of work, a **project** is one conversation in which Claude coordinates parallel cloud sessions that share repositories, instructions and memory, and reports back ([[claude-projects]]).
 
 You can mix surfaces on the same project. Configuration, project memory, and MCP servers are shared across the local surfaces.
 
@@ -77,7 +80,7 @@ Claude Code follows the Unix philosophy: pipe logs into it, chain it with other 
 
 ## Customize and extend
 
-- **Instructions:** CLAUDE.md files and auto memory carry project knowledge across sessions ([[claude-md-and-memory]]).
+- **Instructions:** CLAUDE.md or AGENTS.md files, plus auto memory, carry project knowledge across sessions ([[claude-md-and-memory]]).
 - **Skills:** package repeatable workflows such as a deploy or PR review ([[skills]]).
 - **Hooks:** run shell commands at fixed points, such as formatting after each edit ([[hooks]]).
 - **Subagents and teams:** delegate work to separate contexts ([[subagents]], [[agent-teams]]).

@@ -37,9 +37,9 @@ sources:
   - raw/docs/official/headless.md
 related: ["[[openai-codex]]", "[[skills]]", "[[mcp]]", "[[permissions-and-modes]]", "[[hooks]]", "[[agent-standards]]"]
 created: 2026-09-17
-updated: 2026-09-17
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-17
+last_verified: 2026-09-19
 aliases: [opencode, opencode-vs-claude-code, opencode-config, opencode-plugin-hooks, opencode-skills]
 valid_until: 2027-03-15
 ---
@@ -173,7 +173,7 @@ Built-in tool names and the argument keys those hooks see: `bash` (`command`), `
 
 | Area | OpenCode | Claude Code |
 |---|---|---|
-| Instruction file | `AGENTS.md`, falling back to `CLAUDE.md`; first match wins, one layer only | `CLAUDE.md`, `CLAUDE.local.md`, `~/.claude/CLAUDE.md`, all levels concatenated, `@path` imports ([[claude-md-and-memory]]) |
+| Instruction file | `AGENTS.md`, falling back to `CLAUDE.md`; first match wins, one layer only | `CLAUDE.md`, `CLAUDE.local.md`, `~/.claude/CLAUDE.md`, all levels concatenated, `@path` imports; `AGENTS.md` when no `CLAUDE.md` is present ([[claude-md-and-memory]]) |
 | Config format | JSON/JSONC `opencode.json`, `~/.config/opencode/opencode.json`, merged; `.opencode/` dirs | JSON `.claude/settings.json`, `~/.claude/settings.json`, `.claude/settings.local.json`, managed settings |
 | Extra instruction files | `instructions` array of paths, globs and URLs | `@imports` inside CLAUDE.md |
 | Autonomy controls | `permission` rules (`allow`/`ask`/`deny`), last match wins, `--auto` | Permission modes `default` (Manual), `acceptEdits`, `plan`, `auto`, `dontAsk`, `bypassPermissions` plus allow/ask/deny rules ([[permissions-and-modes]]) |

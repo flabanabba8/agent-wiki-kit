@@ -5,11 +5,12 @@ tldr: "Script-orchestrated subagents at scale"
 sources:
   - raw/docs/official/workflows.md
   - raw/docs/official/agents.md
+  - raw/docs/changelog-2.1.275-to-2.1.278.md
 related: ["[[subagents]]", "[[agent-teams]]", "[[skills]]", "[[models-and-effort]]", "[[costs-and-usage]]", "[[worktrees-and-background-work]]"]
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-15
+last_verified: 2026-09-19
 aliases: [dynamic-workflows, workflow-tool, ultracode, deep-research, orchestrate-subagents]
 valid_until: 2027-03-15
 ---
@@ -115,6 +116,7 @@ return audits.filter(Boolean)
 - `meta` must be the first statement and a plain literal, or `/<name>` disappears from autocomplete.
 - `Date.now()`, `Math.random()` and a no-argument `new Date()` throw, which keeps replays deterministic. Pass timestamps through `args`.
 - `import()` is not allowed, and the script itself has no filesystem or shell access. Only its agents do.
+- On Bedrock, Google Cloud's Agent Platform and Microsoft Foundry, a prompt the script computes reaches the subagent framed as script-authored text, so the safety classifier doesn't read it as coming from you.
 
 Before editing a saved script, run the `/workflow-authoring` bundled skill. After editing, run `/reload-skills`. Each run's script is also written under the session directory in `~/.claude/projects/`, where you can diff or edit it and ask Claude to relaunch.
 
@@ -122,7 +124,7 @@ Before editing a saved script, run the `/workflow-authoring` bundled skill. Afte
 
 | Constraint | Value |
 |---|---|
-| Concurrent agents | Up to 16 (fewer with fewer CPUs) |
+| Concurrent agents | 16 by default, fewer with fewer CPUs available. `CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS` takes 1 to 256 |
 | Items per `parallel()`/`pipeline()` call | 4,096 (longer lists are rejected with an error) |
 | Agents per run | 1,000 |
 | Mid-run user input | None, apart from agent permission prompts and usage-limit waits |

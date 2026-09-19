@@ -4,17 +4,20 @@ type: how-to
 tldr: "Host, secure, monitor and meter SDK agents"
 sources:
   - raw/docs/official/agent-sdk__hosting.md
+  - raw/docs/official/agent-sdk__configuration.md
+  - raw/docs/official/agent-sdk__agent-loop.md
   - raw/docs/official/agent-sdk__secure-deployment.md
   - raw/docs/official/agent-sdk__observability.md
   - raw/docs/official/agent-sdk__cost-tracking.md
   - raw/docs/official/agent-sdk__session-storage.md
   - raw/docs/official/agent-sdk__claude-code-features.md
+  - raw/docs/official/agent-sdk__subagents.md
 related: ["[[agent-sdk]]", "[[sandboxing-and-security]]", "[[enterprise-admin]]", "[[costs-and-usage]]", "[[managed-agents]]", "[[network-config]]"]
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-15
-aliases: [agent-sdk-hosting, secure-agent-deployment, agent-sdk-observability, agent-sdk-cost-tracking, session-store]
+last_verified: 2026-09-19
+aliases: [agent-sdk-hosting, secure-agent-deployment, agent-sdk-observability, agent-sdk-cost-tracking, session-store, max-budget-usd]
 ---
 
 # Deploying Agent SDK Agents
@@ -53,7 +56,7 @@ For long-running sessions in TypeScript, `streamInput()` adds turns to a live se
 
 ## Persist sessions with a SessionStore
 
-A `SessionStore` mirrors transcripts to your own backend, so any host can resume a session. Implement `append` and `load`; the optional methods are `listSessions`, `listSessionSummaries`, `delete` and `listSubkeys`. The SDK ships `InMemorySessionStore` for development and testing. The TypeScript repository has S3, Redis and Postgres reference adapters under `examples/session-stores/`, and both SDKs ship a conformance suite (`run_session_store_conformance` in Python).
+A `SessionStore` mirrors transcripts to your own backend, so any host can resume a session. Implement `append` and `load`; the optional methods are `listSessions`, `listSessionSummaries`, `delete` and `listSubkeys`. `load` must return entries deep-equal to what was appended and in the same order, so a backend that reorders object keys is fine. The SDK ships `InMemorySessionStore` for development and testing. Both repositories carry one runnable reference adapter per storage type under `examples/session-stores/` (TypeScript) and `examples/session_stores/` (Python) — an object store (S3), a key-value store (Redis) and a relational or document database (Postgres) — plus a conformance suite for your own (`run_session_store_conformance` in Python).
 
 ```python
 store = MyRedisStore(client)  # your adapter
@@ -145,7 +148,12 @@ Organization-wide monitoring setup is in [[enterprise-admin]].
 - **Per step.** Assistant messages carry usage. Deduplicate by message ID, because parallel tool calls share one. Their `output_tokens` is a placeholder, so read output tokens from the result.
 - **Crashes.** After a crash, the `error_during_execution` result may carry zeroed cost fields. Recover totals from the previous turn's result.
 - **Caching.** Prompt caching is automatic; watch `cache_creation_input_tokens` and `cache_read_input_tokens`. With API-key and cloud-provider auth, your turns use a 5-minute TTL. `ENABLE_PROMPT_CACHING_1H` requests 1 hour, or set `CLAUDE_CODE_PROMPT_CACHE_TTL` and `CLAUDE_CODE_SUBAGENT_PROMPT_CACHE_TTL` separately.
-- **Caps.** Limit spend with `max_budget_usd` and the subagent limits in [[agent-sdk-control]]. Plan usage limits are in [[costs-and-usage]].
+
+### Cap turns and spend
+
+Both caps are off unless you set them. `max_turns` / `maxTurns` counts tool-use round trips; `max_budget_usd` / `maxBudgetUsd` is compared against the same client-side estimate as `total_cost_usd`. Hitting either ends the run with the matching result subtype ([[agent-sdk]]). Zero means different things: `max_turns=0` runs without a turn limit, exactly like leaving it unset, while the CLI rejects `max_budget_usd=0` as an invalid amount at startup and the session never runs.
+
+With streaming input the session survives a cap result. The turn count starts over for each queued message, but the budget total accumulates, so once spend reaches the cap every later message in the conversation ends with `error_max_budget_usd` until a `/clear` starts the budget over. At the budget cap Claude Code also refuses to spawn subagents, answering `Budget limit reached`, and stops background subagents that are still running; subagent requests count toward the total. Per-subagent turn caps are in [[agent-sdk-control]], and plan usage limits in [[costs-and-usage]].
 
 ## Known limitations
 

@@ -5,8 +5,10 @@ tldr: "Claude Code's agent loop as a Python/TS library"
 sources:
   - raw/docs/official/agent-sdk__overview.md
   - raw/docs/official/agent-sdk__quickstart.md
+  - raw/docs/official/agent-sdk__configuration.md
   - raw/docs/official/agent-sdk__agent-loop.md
   - raw/docs/official/agent-sdk__python.md
+  - raw/docs/official/agent-sdk__typescript.md
   - raw/docs/official/agent-sdk__claude-code-features.md
   - raw/docs/official/agent-sdk__modifying-system-prompts.md
   - raw/docs/official/agent-sdk__streaming-vs-single-mode.md
@@ -15,10 +17,10 @@ sources:
   - raw/docs/official/agent-sdk__migration-guide.md
 related: ["[[agent-sdk-control]]", "[[agent-sdk-deployment]]", "[[managed-agents]]", "[[headless-mode]]", "[[how-claude-code-works]]"]
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-15
-aliases: [claude-agent-sdk, claude-code-sdk, agent-sdk-python, agent-sdk-typescript, claude-sdk-client]
+last_verified: 2026-09-19
+aliases: [claude-agent-sdk, claude-code-sdk, agent-sdk-python, agent-sdk-typescript, claude-sdk-client, agent-sdk-options, agent-sdk-configuration]
 ---
 
 # Claude Agent SDK
@@ -104,6 +106,8 @@ Check `ResultMessage.subtype` before reading `result`, which is present only on 
 
 After yielding an error result, a single-shot `query()` raises, so wrap the loop in `try`. To detect a refusal, check for `stop_reason == "refusal"`.
 
+When Claude Code refuses to start at all, it writes an `error_during_execution` result with zeroed totals and a `startup_failure_reason` naming the refusal, so your app can offer the fix instead of retrying. Values include `org_pin_mismatch`, `managed_settings_invalid`, `proxy_invalid`, `temp_dir_unusable`, `cwd_unavailable`, `shell_tool_missing`, `session_held_by_background`, `cli_version_too_old` and `bypass_root`; `errors` carries the same text as stderr. Two failures produce that result on their own: a resume Claude Code stops because it can't return the session to its worktree, and a refused `continue` of a conversation a background session holds. Every other startup failure exits non-zero with stderr output and no result message unless you set `CLAUDE_CODE_STARTUP_FAILURE_RESULTS` to `1` in `env`.
+
 ## Key options
 
 In Python, options go in `ClaudeAgentOptions` with snake_case names. In TypeScript, they go in the `options` object with camelCase names.
@@ -113,21 +117,25 @@ In Python, options go in `ClaudeAgentOptions` with snake_case names. In TypeScri
 | `allowed_tools` / `disallowed_tools` | Pre-approve or deny tools. Allowing a tool does not limit Claude to that set |
 | `tools` | Restrict which built-in tools exist in the session |
 | `permission_mode`, `can_use_tool` | How much oversight there is, and the approval callback |
-| `system_prompt` | A custom string, `{"type": "preset", "preset": "claude_code", "append": "..."}`, or `{"type": "file", "path": "..."}` |
-| `setting_sources` | Which filesystem settings load: `"user"`, `"project"`, `"local"` |
+| `system_prompt` | A custom string, `{"type": "preset", "preset": "claude_code", "append": "..."}`, `{"type": "custom", "prompt": "..."}`, or `{"type": "file", "path": "..."}` |
+| `setting_sources`, `settings` | Which filesystem settings load (`"user"`, `"project"`, `"local"`), and a settings file path, inline JSON string or TypeScript settings object that overrides all three |
 | `model`, `fallback_model`, `effort`, `thinking` | Model and reasoning depth. `effort` runs from `low` to `max` ([[models-and-effort]]) |
-| `max_turns`, `max_budget_usd`, `task_budget` | Stop conditions |
+| `max_turns`, `max_budget_usd`, `task_budget` | Stop conditions ([[agent-sdk-deployment]]) |
 | `cwd`, `add_dirs`, `env` | Working directory, extra directories, subprocess environment |
 | `mcp_servers`, `agents`, `skills`, `plugins`, `hooks` | Extensions ([[agent-sdk-control]]) |
 | `resume`, `continue_conversation`, `fork_session`, `session_store` | Sessions |
 | `output_format`, `include_partial_messages` | Structured output and streaming |
 
-`env` behaves differently in each language. Python merges it on top of the inherited environment. TypeScript replaces the environment, so spread `process.env` into it.
+`env` behaves differently in each language. Python merges it on top of the inherited environment. TypeScript replaces the environment, so spread `process.env` into it to keep `PATH`, `HOME` and `ANTHROPIC_API_KEY`. Whatever form you pass to `settings` overrides user, project and local filesystem settings; only managed policy outranks it.
+
+**Model.** With no `model` option, setting or environment variable, a session starts on Claude Code's default model; the value is an alias or a full model name ([[claude-models]]). `fallback_model` names one backup or a comma-separated list, and the session switches to it when the primary is overloaded or unavailable, then retries the primary at the start of each user turn. In TypeScript, a fallback equal to `model` throws at startup. The Messages API parameters `temperature`, `top_p` and `max_tokens` have no options fields: set `effort` or a spend cap instead, or call the Messages API directly.
+
+**Working directory.** `cwd` decides which project's settings and hooks load, where session skills are discovered, and which project a stored session belongs to. Neither SDK has a setter for it, so use a new session to work in another directory. To let tools reach files outside it, list paths in `add_dirs` / `additionalDirectories`.
 
 ### Two defaults that surprise people
 
-- **System prompt.** If you don't set `system_prompt`, the SDK uses a minimal prompt that covers tool calling only, not Claude Code's prompt, whereas `claude -p` uses the full Claude Code prompt. For CLI-like behavior, use the `claude_code` preset, optionally with `append`. For an agent with a different identity, surface or permission model, write your own prompt and add back the tool and safety guidance it needs.
-- **Filesystem settings.** If you omit `setting_sources`, the SDK loads user, project and local settings, CLAUDE.md files, rules, skills, agents and commands, just as the CLI does. Pass `[]` for isolation. Managed policy, `~/.claude.json` and auto memory load either way ([[agent-sdk-deployment]] covers multi-tenant isolation).
+- **System prompt.** If you don't set `system_prompt`, the SDK uses a minimal prompt that covers tool calling only, not Claude Code's prompt, whereas `claude -p` uses the full Claude Code prompt. For CLI-like behavior, use the `claude_code` preset, optionally with `append`. For an agent with a different identity, surface or permission model, write your own prompt and add back the tool and safety guidance it needs. The prompt is recorded on a session's first request, so a different `append` or custom prompt on a resumed session reaches Claude only after compaction; `snapshot: false` on the preset or custom object form rebuilds it every request, at the cost of the session's prompt cache. To change the agent's instructions while it runs, put them in the next user message or in a hook's `additionalContext` instead ([[agent-sdk-control]]).
+- **Filesystem settings.** If you omit `setting_sources`, the SDK loads user, project and local settings, CLAUDE.md files, rules, skills, agents and commands, just as the CLI does. Pass `[]` for isolation. In Python, setting `skills` while `setting_sources` is unset loads only user and project sources, so pass the list explicitly to keep local settings. Managed policy, `~/.claude.json` and auto memory load either way ([[agent-sdk-deployment]] covers multi-tenant isolation).
 
 ## query() or ClaudeSDKClient
 

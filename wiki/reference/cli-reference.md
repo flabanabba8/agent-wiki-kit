@@ -7,9 +7,9 @@ sources:
   - raw/docs/official/env-vars.md
 related: ["[[headless-mode]]", "[[slash-commands]]", "[[environment-variables]]", "[[permissions-and-modes]]", "[[worktrees-and-background-work]]", "[[settings]]"]
 created: 2026-09-15
-updated: 2026-09-17
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-17
+last_verified: 2026-09-19
 aliases: [claude-flags, claude-command-line, cli-options, claude-subcommands]
 ---
 
@@ -80,7 +80,7 @@ A leading `--dangerously-skip-permissions` or `--allow-dangerously-skip-permissi
 | `--resume`, `-r` | Resume by ID, name, or absolute `.jsonl` transcript path; with no value, open the picker. ID lookup searches this project and its worktrees, then every project on the machine |
 | `--fork-session`, `--from-pr` | With `--resume` or `--continue`, create a new session ID; or open a picker filtered to sessions linked to a PR — number, GitHub/GitHub Enterprise URL, GitLab MR URL or Bitbucket URL |
 | `--session-id`, `--name`, `-n` | Use a specific UUID; display name shown in `/resume` and the terminal title, resumed with `claude --resume <name>` |
-| `--no-session-persistence`, `--teleport` | Don't save the session (print mode only); resume a web session in this terminal |
+| `--no-session-persistence`, `--teleport` | Don't save the session (print mode only); resume a cloud session in this terminal |
 
 Session mechanics: [[sessions-and-checkpoints]].
 
@@ -120,7 +120,7 @@ Rule syntax and modes: [[permissions-and-modes]]. Tool names: [[tools-reference]
 
 The replacement flags are mutually exclusive; append flags combine with either. Appending keeps the default tool guidance and safety instructions, so replace only when the identity or permission model differs — then supply whatever the task still needs. Switchable personas are output styles ([[interface]]); project conventions go in CLAUDE.md ([[claude-md-and-memory]]).
 
-The built prompt is recorded on a conversation's first request and reused, including after `--resume` or `--continue`, until compaction or a new conversation. Pass `--system-prompt-snapshot off` while iterating on prompt text across `--continue` runs; bare mode doesn't record unless you pass `--system-prompt-snapshot on`.
+The built prompt is recorded on a conversation's first request and reused, including after `--resume` or `--continue`, until compaction or a new conversation. Pass `--system-prompt-snapshot off` while iterating on prompt text across `--continue` runs; outside cloud sessions, bare mode doesn't record unless you pass `--system-prompt-snapshot on`.
 
 ### Print mode and output
 
@@ -144,7 +144,7 @@ The built prompt is recorded on a conversation's first request and reused, inclu
 
 - `--bg`, `--background`: start as a background agent and return the session ID; can't be combined with `-p`. `--exec` runs a shell command as a PTY-backed background job.
 - `--worktree`, `-w`, `--tmux`: start in a git worktree at `<repo>/.claude/worktrees/<name>`, accepting `#<number>`, a GitHub PR URL or a GitLab MR URL; create a tmux session for it, where `--tmux=classic` forces classic tmux over iTerm2 panes.
-- `--cloud`, `--environment <environment-id>`: with a task, create a web session; with a session ID or URL plus `-p`, queue a follow-up (`--remote` is a deprecated alias). Or create the cloud session on a self-hosted environment (`ccpool_` IDs), where `--ref <branch>` sets the checkout base.
+- `--cloud`, `--environment <environment-id>`: with a task, create a cloud session; with a session ID or URL plus `-p`, queue a follow-up (`--remote` is a deprecated alias). Or create it on a self-hosted environment (`ccpool_` IDs), where `--ref <branch>` sets the checkout base.
 - `--remote-control`, `--rc`: interactive session with Remote Control enabled; `--remote-control-session-name-prefix <prefix>` prefixes auto-generated names.
 - `--teammate-mode`, `--channels`: agent team display `in-process` (default), `auto`, `tmux`, `iterm2`; listen for channel notifications from `plugin:<name>@<marketplace>` entries, where `--dangerously-load-development-channels` enables channels off the approved allowlist, for development.
 

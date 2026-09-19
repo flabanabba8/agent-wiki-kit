@@ -11,9 +11,9 @@ sources:
   - raw/docs/official/goal.md
 related: ["[[context-window]]", "[[claude-md-and-memory]]", "[[subagents]]", "[[permissions-and-modes]]", "[[headless-mode]]", "[[coding-principles]]"]
 created: 2026-09-15
-updated: 2026-09-17
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-17
+last_verified: 2026-09-19
 aliases: [claude-code-best-practices, explore-plan-implement-commit, common-workflows, prompt-tips, debugging-with-claude]
 ---
 
@@ -53,7 +53,7 @@ Ask for **evidence** â€” test output, the command and its result, a screenshot â
 | `/goal clear` | Drops an active goal; `stop`, `off`, `reset`, `none`, `cancel` and `/clear` also drop it |
 | `claude -p "/goal <condition>"` | Runs the loop to completion in one non-interactive run; `--output-format stream-json --verbose` shows progress |
 
-The evaluator never runs commands or reads files: it judges only what Claude surfaced. Name a measurable end state, the check that proves it (`npm test` exits 0), and anything that must not change. Conditions run to 4,000 characters; `or stop after 20 turns` bounds the loop.
+The evaluator never runs commands or reads files: it judges only what appears in the transcript. Name a measurable end state, the check that proves it (`npm test` exits 0), and anything that must not change. Conditions run to 4,000 characters; `or stop after 20 turns` bounds the loop.
 
 A goal doesn't change your permission mode: run it in auto mode for unattended turns ([[permissions-and-modes]]). Several turns without tool use stop the loop and hand control back, goal still set. Failed auth, an exhausted credit balance, an unclearable context overflow or an unavailable model clears it; other failures retry or pause, and pending background work defers evaluation until a check-in (`CLAUDE_CODE_GOAL_CHECKIN_MINUTES`). The evaluator is a session-scoped prompt-based Stop hook, so `/goal` needs hooks enabled and a trusted folder ([[hooks]]); resuming restores an active goal ([[sessions-and-checkpoints]]).
 

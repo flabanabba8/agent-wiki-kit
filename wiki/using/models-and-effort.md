@@ -8,11 +8,12 @@ sources:
   - raw/docs/official/advisor.md
   - raw/docs/official/sub-agents.md
   - raw/docs/models-overview-2026-09.md
+  - raw/docs/changelog-2.1.275-to-2.1.278.md
 related: ["[[claude-models]]", "[[costs-and-usage]]", "[[subagents]]", "[[context-window]]", "[[cloud-providers]]", "[[workflows]]"]
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-15
+last_verified: 2026-09-19
 aliases: [model-selection, effort-level, fast-mode, advisor-tool, opusplan]
 valid_until: 2027-03-15
 ---
@@ -41,7 +42,7 @@ Current Claude API IDs: `claude-fable-5-1`, `claude-opus-5`, `claude-sonnet-5`, 
 | Amazon Bedrock, Google Cloud's Agent Platform | Opus 5 | Sonnet 4.5 |
 | Microsoft Foundry | Opus 4.6 | Sonnet 4.5 |
 
-The **account default** is Opus 5 on Max, Team Premium, Enterprise, the Anthropic API, Claude Platform on AWS, Bedrock, and Agent Platform. It is Sonnet 5 on Pro and Team Standard, and Sonnet 4.5 on Foundry. An admin-set organization default model replaces it. Fable is never a default: choose it with `/model fable` or `claude --model fable`, and Fable 5 by ID (`/model claude-fable-5`). On some plans Fable bills to usage credits, and the picker then marks it "Requires usage credits" and asks for consent once. To pin exact versions on cloud providers, use `ANTHROPIC_DEFAULT_OPUS_MODEL`, `ANTHROPIC_DEFAULT_SONNET_MODEL`, `ANTHROPIC_DEFAULT_HAIKU_MODEL`, and `ANTHROPIC_DEFAULT_FABLE_MODEL` (see [[cloud-providers]]). Allowlists (`availableModels`) are an admin topic in [[enterprise-admin]].
+The **account default** is Opus 5 on Max, Team Premium, Enterprise, the Anthropic API, Claude Platform on AWS, Bedrock, and Agent Platform. It is Sonnet 5 on Pro and Team Standard, and Sonnet 4.5 on Foundry. An admin-set organization default model replaces it. Fable is never a default: choose it with `/model fable` or `claude --model fable`, and Fable 5 by ID (`/model claude-fable-5`). On the Anthropic API it always appears in `/model`, greyed out only when your organization's settings disable it. On some plans Fable bills to usage credits, and the picker then marks it "Requires usage credits" and asks for consent once. To pin exact versions on cloud providers, use `ANTHROPIC_DEFAULT_OPUS_MODEL`, `ANTHROPIC_DEFAULT_SONNET_MODEL`, `ANTHROPIC_DEFAULT_HAIKU_MODEL`, and `ANTHROPIC_DEFAULT_FABLE_MODEL` (see [[cloud-providers]]). Allowlists (`availableModels`) are an admin topic in [[enterprise-admin]].
 
 ## Setting the model
 

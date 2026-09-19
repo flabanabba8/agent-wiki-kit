@@ -9,9 +9,9 @@ sources:
   - raw/docs/official/cli-reference.md
 related: ["[[subagents]]", "[[agent-teams]]", "[[workflows]]", "[[sessions-and-checkpoints]]", "[[hooks]]"]
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-15
+last_verified: 2026-09-19
 aliases: [git-worktrees, agent-view, claude-agents, background-sessions, parallel-sessions]
 valid_until: 2027-03-15
 ---
@@ -29,7 +29,7 @@ Pick the approach by who coordinates the work:
 | [[agent-teams]] | Claude should split a project, assign pieces and keep workers in sync (experimental, off by default) |
 | [[workflows]] | A script should hold the plan: dozens to hundreds of agents, cross-checked results |
 
-Worktrees support all of these. `/batch` is a skill that splits one large change into 5 to 30 worktree-isolated subagents, each opening a pull request. Running many sessions multiplies token usage.
+Worktrees support all of these. `/batch` is a skill that splits one large change into 5 to 30 worktree-isolated subagents, each opening a pull request. Running many sessions multiplies token usage. To have Claude start and track the parallel sessions for you in the cloud instead, from one conversation, see [[claude-projects]].
 
 ## Worktrees
 
@@ -91,6 +91,9 @@ For SVN, Perforce or Mercurial, configure `WorktreeCreate` and `WorktreeRemove` 
 | Git LFS files show up as pointer files | The repository's own filter drivers (for example from `git lfs install --local`) are skipped during creation. Run `git lfs pull` in the worktree |
 | `Refusing to use <path> as an isolation worktree` | Follow the message's ending. The common case, `launch from the parent checkout`, means you should launch from the main checkout |
 | Creation fails on a symlinked path | `.claude`, `.claude/worktrees` or the target is a symlink. Remove the symlink |
+| `Git was not run: the repository's own git config sets <key>` | The key points Git LFS at a program to run, such as `lfs.customtransfer.<name>.path`. Move it to your global config if it is yours, or remove it from the repository's config if you don't recognize it |
+
+Claude Code creates no worktree at all when it can't tell which filter drivers the repository's config defines — a conditional `includeIf` in `.git/config` is one cause — or when it finds a setting there it can't switch off. In stream-json output, `startup_failure_reason` is `worktree_unverified` for `could not verify worktree` and `worktree_resume_refused` when a resume into a worktree is refused, so a script can branch on it instead of the error text.
 
 ## Background sessions and agent view
 

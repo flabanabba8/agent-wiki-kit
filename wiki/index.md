@@ -1,6 +1,6 @@
 ---
 title: Wiki Index
-updated: 2026-09-18
+updated: 2026-09-19
 ---
 
 # Wiki Index
@@ -19,7 +19,7 @@ Install Claude Code and learn how it works.
 
 Day-to-day work: prompting, memory, context, permissions, models, cost.
 
-- [[claude-md-and-memory]] — CLAUDE.md, rules, imports, auto memory
+- [[claude-md-and-memory]] — CLAUDE.md, AGENTS.md, rules, auto memory
 - [[context-window]] — What fills context, compaction, caching
 - [[costs-and-usage]] — Track spend, limits, and cut token use
 - [[interface]] — Shortcuts, styles, status line, voice, a11y
@@ -27,7 +27,7 @@ Day-to-day work: prompting, memory, context, permissions, models, cost.
 - [[permissions-and-modes]] — Permission modes, rules, auto mode, trust
 - [[prompting-and-workflows]] — Verify, plan first, prompt precisely
 - [[sandboxing-and-security]] — Bash sandbox, isolation choices, security model
-- [[sessions-and-checkpoints]] — Resume, name, branch, rewind, transcripts
+- [[sessions-and-checkpoints]] — Resume, branch, rewind to undo edits, transcripts
 
 ## Extending
 
@@ -46,6 +46,7 @@ Background work, workflows, schedules, channels, artifacts and headless runs.
 
 - [[artifacts]] — Publish live, shareable pages from a session
 - [[channels]] — Push chat and webhook events into a session
+- [[claude-projects]] — One conversation coordinating cloud threads
 - [[headless-mode]] — Run Claude Code non-interactively in scripts
 - [[routines-and-scheduling]] — Routines, /schedule, /loop, cron tools
 - [[workflows]] — Script-orchestrated subagents at scale
@@ -141,4 +142,4 @@ How the harness works and how it runs from four agents.
 - `hot.md` — recent decisions, fixes and gotchas, newest first.
 - `log.md` — append-only record of changes to this wiki.
 
-74 pages.
+75 pages.

@@ -10,9 +10,9 @@ sources:
   - raw/docs/official/llm-gateway-connect.md
 related: ["[[enterprise-admin]]", "[[permissions-and-modes]]", "[[environment-variables]]", "[[hooks]]", "[[troubleshooting]]"]
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-15
+last_verified: 2026-09-19
 aliases: [settings-json, settings-precedence, settings-scopes, claude-config-files, settings-local-json]
 ---
 
@@ -77,12 +77,12 @@ Environment variables are not a level in this stack. Each variable/key pair deci
 | `isolatePeerMachines` | `true` from any scope |
 | `remoteControlAtStartup` | `false` from project or local |
 | `crossSessionInbound` | A stricter value (`accept` < `hold` < `refuse`) from project or local |
-| `useAutoModeDuringPlan`, `syncClaudeAiSkills` | `false` from managed, `--settings`, user or local |
+| `useAutoModeDuringPlan`, `syncClaudeAiSkills`, `syncClaudeAiPlugins` | `false` from managed, `--settings`, user or local |
 | `maxEffortLevel` | The lowest cap from any scope |
 
 ### Keys that don't apply from a repository file
 
-- Keys whose Scope is `User or managed`, `User, local, or managed`, `Managed` or `Global config` in the settings index never apply from `.claude/settings.json`.
+- Keys whose Scope is `User or managed`, `User, local, or managed`, `Managed` or `Global config` in the settings index never apply from `.claude/settings.json`. A few of them a repository file can still switch *off*; each such key says so on its Scope line.
 - `permissions.defaultMode` values `auto` and `bypassPermissions` don't take effect from project or local files.
 - `permissions.allow`, `permissions.additionalDirectories`, `extraKnownMarketplaces` and most `env` values wait until each teammate trusts the folder. `deny` and `ask` rules apply immediately.
 - A project `env` block applies only after first-run setup and the trust prompt, so a gateway credential placed there doesn't stop the login screen.
@@ -91,10 +91,10 @@ Environment variables are not a level in this stack. Each variable/key pair deci
 
 Cloud sessions on [[claude-code-on-the-web]] run on a fresh clone:
 
-- They read the committed `.claude/settings.json`.
+- A session with one repository reads its committed `.claude/settings.json`, because the session starts inside the clone. A session with several repositories starts above them, and from each repository's file it loads only the plugins and marketplaces the file declares — not permission rules, hooks, `env` or any other key.
 - They don't read user or local files.
-- They receive only server-managed settings.
-- On the web, `/config` opens claude.ai settings. To change a value, set environment variables on the cloud environment or commit the key.
+- They receive only server-managed settings; a self-hosted environment also reads the managed settings file in its runner image.
+- In a browser at claude.ai/code, `/config` opens claude.ai settings instead of changing a value. To change a value, set an environment variable on the cloud environment, or commit the key to a single repository's `.claude/settings.json`.
 
 ## Check what loaded
 
@@ -118,8 +118,8 @@ More symptom-driven checks are on [[troubleshooting]].
 | Interface and terminal | `theme`, `editorMode`, `statusLine`, `spinnerTipsEnabled`, `companyAnnouncements`, `voiceEnabled`, `verbose` |
 | Git and attribution | `attribution.commit`, `attribution.pr`, `includeGitInstructions`, `prUrlTemplate` |
 | Hooks and automation | `hooks`, `disableAllHooks`, `allowManagedHooksOnly`, `allowedHttpHookUrls`, `enableWorkflows` |
-| Plugins, skills, MCP | `enabledPlugins`, `extraKnownMarketplaces`, `strictKnownMarketplaces`, `allowedMcpServers`, `deniedMcpServers`, `managedMcpServers` |
-| Authentication and providers | `apiKeyHelper`, `awsAuthRefresh`, `awsCredentialExport`, `gcpAuthRefresh`, `forceLoginMethod`, `forceLoginOrgUUID`, `otelHeadersHelper` |
+| Plugins, skills, MCP | `enabledPlugins`, `extraKnownMarketplaces`, `strictKnownMarketplaces`, `syncClaudeAiSkills`, `syncClaudeAiPlugins`, `allowedMcpServers`, `deniedMcpServers`, `managedMcpServers` |
+| Authentication and providers | `apiKeyHelper`, `awsAuthRefresh`, `awsCredentialExport`, `gcpAuthRefresh`, `forceLoginMethod`, `forceLoginOrgUUID`, `forceLoginGatewayUrl`, `gatewayInternalNetworks`, `otelHeadersHelper` |
 | Updates and versioning | `autoUpdatesChannel`, `minimumVersion`, `requiredMinimumVersion`, `requiredMaximumVersion` |
 | Privacy and telemetry | `cleanupPeriodDays`, `desktopSessionCleanupPeriodDays`, `feedbackSurveyRate`, `skipWebFetchPreflight` |
 | Enterprise and managed | `managedSourcesBehavior`, `parentSettingsBehavior`, `policyHelper`, `forceRemoteSettingsRefresh`, `disableSideloadFlags`, `wslInheritsWindowsSettings` |

@@ -14,11 +14,12 @@ sources:
   - raw/docs/official/commands.md
   - raw/docs/official/common-workflows.md
   - raw/docs/official/whats-new__2026-w14.md
+  - raw/docs/changelog-2.1.275-to-2.1.278.md
 related: ["[[slash-commands]]", "[[settings]]", "[[ide-integrations]]", "[[costs-and-usage]]", "[[claude-md-and-memory]]"]
 created: 2026-09-15
-updated: 2026-09-17
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-17
+last_verified: 2026-09-19
 aliases: [keyboard-shortcuts, keybindings-json, output-style, status-line, screen-reader-mode]
 ---
 
@@ -55,6 +56,7 @@ Claude Code ships features often, and ones that would have changed how you work 
 | `Option+T` / `Alt+T` | Toggle extended thinking |
 | `Option+O` / `Alt+O` | Toggle fast mode |
 | `Ctrl+J`, or `\` then `Enter` | Newline without submitting |
+| `Ctrl+Enter`, or `Ctrl+X` `Ctrl+S` | Interrupt the current turn and send every queued message at once |
 
 Readline editing works too: `Ctrl+A`/`Ctrl+E` for start and end of line, `Ctrl+W`/`Ctrl+U`/`Ctrl+K` for deleting, `Ctrl+Y` to paste back, and `Alt+B`/`Alt+F` to move by word. On macOS, Option shortcuts need the terminal's "Use Option as Meta Key" setting; in iTerm2, set the Option keys to "Esc+". `/focus` shows only your last prompt, a one-line tool summary, and the final response. `/color` tints the prompt bar for the session.
 
@@ -109,7 +111,7 @@ An output style replaces how Claude responds (role, tone, format) on every turn.
 | Explanatory | Adds educational "Insights" while working |
 | Learning | Adds Insights and leaves `TODO(human)` pieces for you to write |
 
-Pick one in `/config` → **Output style** (saved to `.claude/settings.local.json`) or set `"outputStyle": "Explanatory"`. A change takes effect on your next message.
+Switch with `/output-style concise`, or pick one in `/config` → **Output style**; either saves to `.claude/settings.local.json`. Setting `"outputStyle": "Explanatory"` works too. `/output-style` with no argument lists the styles you can pick and marks the current one, and it also works in non-interactive mode, Agent SDK sessions, and through Remote Control, where only built-in styles are offered. A change takes effect on your next message.
 
 A custom style is a Markdown file in `~/.claude/output-styles`, `.claude/output-styles`, or a plugin's `output-styles/` directory:
 
@@ -158,7 +160,7 @@ Cost-related fields are explained in [[costs-and-usage]].
 
 `/voice` turns on speech-to-text for the prompt. Audio streams to Anthropic for transcription.
 
-- **Requirements:** a Claude.ai account (not API keys, Bedrock, Agent Platform, or Foundry) and a local microphone (not SSH or web sessions). Transcription doesn't count toward `/usage` limits.
+- **Requirements:** a claude.ai account (not API keys, Bedrock, Agent Platform, or Foundry) and a local microphone, so not SSH or cloud sessions. Transcription doesn't count toward `/usage` limits.
 - **Modes:**
   - `/voice hold` (default): hold `Space` to talk and release to stop.
   - `/voice tap`: tap `Space` to start, tap again to send; transcripts of three words or more auto-submit.

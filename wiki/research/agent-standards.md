@@ -10,9 +10,9 @@ sources:
   - raw/docs/official/skills.md
 related: ["[[skills]]", "[[mcp]]", "[[plugins]]", "[[skill-evolution]]", "[[trustworthy-agents]]"]
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-15
+last_verified: 2026-09-19
 aliases: [agent-skills-open-standard, agentskills-io, agentic-ai-foundation, aaif, skill-md-spec]
 ---
 

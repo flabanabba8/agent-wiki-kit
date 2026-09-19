@@ -10,15 +10,15 @@ sources:
   - raw/docs/official/permission-modes.md
 related: ["[[permissions-and-modes]]", "[[data-and-privacy]]", "[[enterprise-admin]]", "[[trustworthy-agents]]", "[[settings]]"]
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-15
+last_verified: 2026-09-19
 aliases: [bash-sandbox, sandbox-settings, prompt-injection, network-isolation, dev-container-isolation]
 ---
 
 # Sandboxing and Security
 
-[[permissions-and-modes]] decide *whether* a tool call runs. The Bash sandbox decides *what a running command can reach*. The operating system enforces it on every Bash command and its child processes, so the boundary holds even when an approved command does more than its name suggests. Use both layers together. This page also covers how to choose a stronger isolation boundary for unattended runs, and Claude Code's security model.
+[[permissions-and-modes]] decide *whether* a tool call runs. The Bash sandbox decides *what a running command can reach*. The operating system enforces it on every Bash, PowerShell, and Monitor command and its child processes, so the boundary holds even when an approved command does more than its name suggests. Use both layers together. This page also covers how to choose a stronger isolation boundary for unattended runs, and Claude Code's security model.
 
 ## The built-in Bash sandbox
 
@@ -47,10 +47,10 @@ If the sandbox can't start, Claude Code warns and runs commands unsandboxed. Set
 
 ### Sandbox modes
 
-- **Auto-allow:** commands that can run sandboxed are approved without a prompt, even in Manual mode. A bare `Bash` ask rule is skipped for those commands. Deny rules, content-scoped ask rules such as `Bash(git push *)`, and critical-path `rm` still apply. In plan mode, auto-allow doesn't widen approvals.
-- **Regular permissions:** every Bash command goes through the normal permission flow, sandboxed or not.
+- **Auto-allow:** commands that can run sandboxed are approved without a prompt, even in Manual mode. A bare `Bash` ask rule is skipped for those commands. Deny rules, content-scoped ask rules such as `Bash(git push *)`, and critical-path `rm` still apply. Two exceptions: in plan mode auto-allow doesn't widen approvals, and in auto mode a command carrying per-command allowed domains (below) goes to the classifier instead.
+- **Regular permissions:** every command goes through the normal permission flow, sandboxed or not.
 
-Auto-allow is not the same as auto mode. Auto-allow trusts the OS boundary; auto mode trusts a classifier. They combine.
+Auto-allow is not the same as auto mode. Auto-allow trusts the OS boundary; auto mode trusts a classifier. They combine, with those two exceptions.
 
 **Escape hatch.** When a command fails because of the sandbox, Claude may retry it with `dangerouslyDisableSandbox`, which goes through the normal permission flow (prompt in Manual, classifier in auto). The prompt is titled "Bash command (unsandboxed)".
 
@@ -62,8 +62,8 @@ Auto-allow is not the same as auto mode. Auto-allow trusts the OS boundary; auto
 
 - **Writes:** allowed in the working directory, directories added with `--add-dir`/`/add-dir`/`additionalDirectories`, and the session temp directory that `$TMPDIR` points to.
 - **Reads:** the whole machine except denied paths. This includes `~/.aws/credentials` and `~/.ssh/` unless you block them.
-- **Network:** no domains are pre-allowed. The first connection to a host prompts, or goes to the classifier in auto mode. **Yes, and don't ask again** saves a `WebFetch(domain:...)` allow rule, and those rules also feed the sandbox allowlist.
-- **Always denied inside writable areas:** `.claude` settings files and the `.claude/skills`, `agents`, `commands`, and `hooks` directories; `.mcp.json`; shell startup files; `.gitconfig`; `.git/hooks` and `.git/config`; and most of `~/.claude` plus `~/.claude.json`. No `allowWrite` entry lifts this.
+- **Network:** no domains are pre-allowed. The first connection to a host prompts; in auto mode Claude instead names the hosts on the command itself (below). **Yes, and don't ask again** saves a `WebFetch(domain:...)` allow rule, and those rules also feed the sandbox allowlist.
+- **Always denied inside writable areas:** `.claude` settings files and the `.claude/skills`, `agents`, `commands`, and `hooks` directories; `.mcp.json`; shell startup files; `.gitconfig`; `.git/hooks` and `.git/config`; and most of `~/.claude` plus `~/.claude.json`. No `allowWrite` entry lifts this. A top-level `HEAD`, `objects`, or `refs` is denied because it would make the directory a bare git repository, as are top-level `config` and `hooks` when a `HEAD` sits beside them; a file named `config` is denied with or without one.
 
 ### Configure paths and domains
 
@@ -82,9 +82,18 @@ Auto-allow is not the same as auto mode. Auto-allow trusts the OS boundary; auto
 ```
 
 - **Path prefixes:** `/tmp/build` is absolute, `~/` is home, and `./` or a bare path is relative to the project root in project settings or to `~/.claude` in user settings. Permission rules differ: there, `//path` is absolute and `/path` is relative to the settings source.
-- **Merging and overlap:** filesystem arrays merge across scopes, and when read rules overlap the more specific path wins.
-- **Other network keys:** `deniedDomains` blocks hosts inside a wider allow. `strictAllowlist: true` (user, managed, or `--settings` only) denies unlisted hosts instead of prompting.
+- **Merging and overlap:** filesystem arrays merge across scopes, and when read rules overlap the rule with the narrower path applies.
+- **Other network keys:** `deniedDomains` blocks hosts inside a wider allow. `strictAllowlist: true` (user, managed, or `--settings` only) denies unlisted hosts instead of prompting, and `allowManagedDomainsOnly` narrows the allowlist to the managed entries.
 - **Filesystem layer off:** `sandbox.filesystem.disabled: true` keeps network isolation but removes filesystem isolation. A sandboxed command could then write shell startup files or settings that widen its own access, and project settings can't set this key.
+
+### Per-command allowed domains in auto mode
+
+In auto mode with sandboxing on, Claude names the hosts a command needs on the command itself instead of triggering a network approval per connection. Each sandboxed Bash, PowerShell, or Monitor command can carry hosts beyond the sandbox allowlist — a domain such as `registry.npmjs.org`, a wildcard such as `*.pythonhosted.org`, or an IP address, each with an optional `:port` — and the classifier reviews them together with the command.
+
+- An approved list opens those hosts for that one command, for as long as it runs. Nothing is added to the session's allowed hosts or your settings; the next command names its own.
+- A command carrying hosts goes to the classifier rather than being approved by a permission rule or auto-allow. If an ask rule forces a prompt, the dialog lists the hosts beside the command and approving covers both.
+- A per-command list only widens what the sandbox denies by default: `deniedDomains` still blocks, and Claude Code refuses per-command lists while `strictAllowlist` or `allowManagedDomainsOnly` locks the allowlist.
+- While per-command lists apply, a connection to a host no approved command listed is refused outright, with no prompt or classifier check. The refusal names the host in the command's result, and Claude re-runs the command with it added.
 
 ### Protect credentials
 
@@ -119,7 +128,7 @@ Auto-allow is not the same as auto mode. Auto-allow trusts the OS boundary; auto
 
 ### Organization enforcement
 
-Deliver these keys through managed settings (see [[enterprise-admin]]):
+Deliver these keys through managed settings — an MDM-managed file or server-managed settings on claude.ai ([[enterprise-admin]]):
 
 ```json
 { "sandbox": { "enabled": true, "failIfUnavailable": true, "allowUnsandboxedCommands": false } }
@@ -131,25 +140,25 @@ Boolean keys use the managed value. Array keys merge, so developers can append e
 
 - **No content inspection:** the proxy filters by hostname without inspecting TLS, so broad domains such as `github.com` allow exfiltration and domain fronting. For inspection, use a custom proxy via `httpProxyPort`/`socksProxyPort`.
 - **Unix sockets:** `allowUnixSockets` can expose host services; `/var/run/docker.sock` effectively gives host access.
-- **Bash only:** Read, Edit, and Write use permission rules instead. MCP servers and command hooks run unconstrained on the host. Computer use acts on your real desktop.
+- **Shell commands only:** Read, Edit, and Write use permission rules instead. MCP servers and command hooks run unconstrained on the host. Computer use acts on your real desktop.
 - **Both layers matter:** without network isolation, readable secrets can leak; without filesystem isolation, a compromised command can backdoor the system.
 
 ## Choosing an isolation boundary
 
 | Approach | Isolates | Docker | Use when |
 |:--|:--|:--|:--|
-| Sandboxed Bash tool | Bash commands and children | No | Fewer prompts on your own machine |
+| Sandboxed Bash tool | Bash, PowerShell and Monitor commands and their children | No | Fewer prompts on your own machine |
 | Sandbox runtime (`npx @anthropic-ai/sandbox-runtime claude`) | Whole Claude Code process, including file tools, MCP servers, and hooks | No | Isolating MCP and hooks without Docker (beta) |
 | Dev container | Full dev environment | Yes | Team standard; default-deny firewall supports unattended runs |
 | Custom container | Full dev environment | Yes | Existing container or CI infrastructure |
 | Virtual machine | Full OS | No | Untrusted repositories, kernel-level separation |
-| Claude Code on the web | Anthropic-managed VM | No | Full isolation without provisioning ([[claude-code-on-the-web]]) |
+| Cloud session | Anthropic-managed VM | No | Full isolation without provisioning ([[claude-code-on-the-web]]) |
 
-Always run `--dangerously-skip-permissions` inside a container, VM, or the sandbox runtime, as a non-root user. For auto mode, isolation adds defense in depth but isn't required. The Bash sandbox alone is not enough for fully unattended runs. The sandbox runtime reads `~/.srt-settings.json` and, with no valid settings, starts with network blocked, so a clean start doesn't prove your settings loaded.
+A cloud session needs a Claude subscription, plus a connected GitHub account unless you launch it with `claude --cloud`, which can upload your local repository instead. Always run `--dangerously-skip-permissions` inside a container, VM, or the sandbox runtime, as a non-root user. For auto mode, isolation adds defense in depth but isn't required. The Bash sandbox alone constrains only shell commands, so it is not enough for fully unattended runs. The sandbox runtime reads `~/.srt-settings.json` and, with no valid settings, starts with network blocked, so a clean start doesn't prove your settings loaded.
 
 ## Security model and prompt injection
 
-- **Permission-based:** Manual mode starts read-only, asks before edits and non-read-only commands, and writes only inside the launch directory.
+- **Permission-based:** Manual mode starts read-only, asks before edits and non-read-only commands, and writes only inside the launch directory. Sandboxing restricts shell commands' filesystem and network access; permission rules cover every tool ([[permissions-and-modes]]).
 - **Injection defenses:**
   - Web fetches run in a separate context window.
   - `curl` and `wget` aren't auto-approved.

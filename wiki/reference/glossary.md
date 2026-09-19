@@ -17,11 +17,12 @@ sources:
   - raw/docs/official/self-hosted-environments.md
   - raw/docs/official/claude-tag.md
   - raw/docs/official/chrome.md
+  - raw/docs/official/claude-projects.md
 related: ["[[overview]]", "[[how-claude-code-works]]", "[[slash-commands]]", "[[whats-new]]", "[[troubleshooting]]"]
 created: 2026-09-15
-updated: 2026-09-17
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-17
+last_verified: 2026-09-19
 aliases: [claude-code-terminology, what-is-a-subagent, define-claude-code-terms, jargon]
 ---
 
@@ -32,6 +33,8 @@ Definitions only. Each term names the page that owns the detail — configuratio
 ## A
 
 **Advisor tool** — A stronger second model Claude consults mid-task; it receives the whole conversation and returns guidance. See [[models-and-effort]].
+
+**AGENTS.md** — Project instructions written for AI coding agents; Claude reads a repository's file when it has no CLAUDE.md, and the **Project instructions** setting in `/config` chooses which of the two load. See [[claude-md-and-memory]].
 
 **Agent teams** — Several independent sessions coordinated by a team lead, with a shared task list and peer-to-peer messaging; each teammate has its own context window and you can talk to any of them. See [[agent-teams]].
 
@@ -69,7 +72,7 @@ Definitions only. Each term names the page that owns the detail — configuratio
 
 **Claude Tag** — A Slack integration that runs `@Claude` in your team's channels under your organization's shared identity. See [[slack-and-claude-tag]].
 
-**Cloud session** — A session that runs somewhere other than your machine, started from claude.ai, the apps, `claude --cloud` or a routine. See [[claude-code-on-the-web]].
+**Cloud session** — A session that runs on cloud infrastructure instead of your machine, so it keeps working after you close the laptop; started from claude.ai, the apps, `claude --cloud` or a routine. See [[claude-code-on-the-web]].
 
 **Command** — A reusable instruction you invoke by typing `/name`. Unrelated senses: `claude` CLI subcommands, and the `command` field of a stdio MCP server entry. See [[slash-commands]].
 
@@ -140,6 +143,8 @@ Definitions only. Each term names the page that owns the detail — configuratio
 **Plugin** — An installable bundle of skills, hooks, subagents and MCP servers; plugin skills are namespaced `plugin-name:skill-name`. See [[plugins]].
 
 **Powerup** — Quick interactive lessons with animated demos that teach Claude Code features in the terminal, opened with `/powerup`. See [[interface]].
+
+**Project** — One coordinating conversation that turns a stream of related work into parallel cloud-session threads sharing its repositories, instructions and memory. See [[claude-projects]].
 
 **Project trust** — The dialog that accepts a directory before Claude Code loads its configuration; until you accept, some repository-supplied content is held back. See [[permissions-and-modes]].
 

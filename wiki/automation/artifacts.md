@@ -9,9 +9,9 @@ sources:
   - raw/docs/changelog-2.1.273-to-2.1.274.md
 related: ["[[mcp]]", "[[permissions-and-modes]]", "[[enterprise-admin]]", "[[data-and-privacy]]", "[[settings]]"]
 created: 2026-09-15
-updated: 2026-09-17
+updated: 2026-09-19
 confidence: high
-last_verified: 2026-09-17
+last_verified: 2026-09-19
 aliases: [claude-artifacts, publish-artifact, share-session-output, artifact-connectors, design-canvas]
 valid_until: 2027-03-15
 ---
@@ -31,7 +31,7 @@ Make an artifact that walks through this PR with the diff annotated inline.
 Build a dashboard artifact of last week's deploy failures by service and keep it updated as you investigate.
 ```
 
-Claude writes an HTML or Markdown file (in a temporary directory unless you name a location) and publishes it. The first publish goes through your permission mode (see [[permissions-and-modes]]):
+Claude writes an HTML or Markdown file (in a temporary directory unless you name a location) and publishes it, naming a one-word tab icon on a first publish. That first publish goes through your permission mode (see [[permissions-and-modes]]):
 - **Auto mode:** the classifier reviews it and there is no prompt.
 - **Manual / Accept edits:** Claude Code asks you to approve the upload to claude.ai.
 

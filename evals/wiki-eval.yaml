@@ -112,3 +112,10 @@ questions:
     expect: [opencode]
   - q: "Where does Hermes Agent keep MCP servers and how do its shell hooks block a tool"
     expect: [hermes-agent]
+  - q: "Let Claude coordinate several parallel cloud sessions that share repositories, instructions and memory"
+    expect: [claude-projects]
+  - q: "Does Claude Code read AGENTS.md, and what happens when the repo also has a CLAUDE.md"
+    expect: [claude-md-and-memory, cross-agent-setup]
+    hard: true
+  - q: "Run a coding task in the cloud so it keeps going after I close my laptop"
+    expect: [claude-code-on-the-web, claude-projects]

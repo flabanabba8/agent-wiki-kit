@@ -71,7 +71,7 @@ Open problems the post names: memory poisoning through CLAUDE.md files and persi
 
 ## Sandboxing design
 
-Claude Code's sandbox needs **both** filesystem and network isolation. Without network isolation, a compromised agent can exfiltrate SSH keys. Without filesystem isolation, it can escape the sandbox and reach the network. The runtime uses bubblewrap on Linux and Seatbelt on macOS, and the rules also apply to any subprocesses a command spawns. Writes are allowed inside the working directory, and network traffic goes through a proxy outside the sandbox that enforces a domain allowlist. Internally this cut permission prompts by 84%. The runtime is open source, and `/sandbox` turns it on. Claude Code on the web keeps git credentials outside the sandbox and routes pushes through a proxy that checks the branch and repository.
+Claude Code's sandbox needs **both** filesystem and network isolation. Without network isolation, a compromised agent can exfiltrate SSH keys. Without filesystem isolation, it can escape the sandbox and reach the network. The runtime uses bubblewrap on Linux and Seatbelt on macOS, and the rules also apply to any subprocesses a command spawns. Writes are allowed inside the working directory, and network traffic goes through a proxy outside the sandbox that enforces a domain allowlist. Internally this cut permission prompts by 84%. The runtime is open source, and `/sandbox` turns it on. A cloud session keeps git credentials outside the sandbox and routes pushes through a proxy that checks the branch and repository.
 
 ## Auto mode design
 

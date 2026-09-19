@@ -34,8 +34,8 @@ sources:
   - raw/docs/official/plugins.md
 related: ["[[openai-codex]]", "[[skills]]", "[[hooks]]", "[[mcp]]", "[[subagents]]", "[[agent-standards]]"]
 created: 2026-09-17
-updated: 2026-09-17
-last_verified: 2026-09-17
+updated: 2026-09-19
+last_verified: 2026-09-19
 confidence: high
 aliases: [hermes-agent, nous-research-hermes, hermes-vs-claude-code, hermes-config-yaml, moving-a-claude-code-setup-to-hermes]
 valid_until: 2027-03-15
@@ -43,7 +43,7 @@ valid_until: 2027-03-15
 
 # Hermes Agent
 
-Hermes Agent is Nous Research's agent harness. The same agent runs as a terminal REPL (`hermes chat`), a TUI, a desktop app, a web dashboard, cron jobs, and a messaging gateway (Telegram, Discord, Slack, Teams). All state lives in a per-user profile home — `~/.hermes` by default, `HERMES_HOME` elsewhere, picked with `hermes -p <name>`. Read this page if you work with both: every familiar piece is here, but configuration is per user rather than per repo, and a repo must be trusted before it contributes anything.
+Hermes Agent is Nous Research's agent harness. The same agent runs as a terminal REPL (`hermes chat`), a TUI, a desktop app, a web dashboard, cron jobs, and a messaging gateway (Telegram, Discord, Slack, Teams). All state lives in a per-user profile home — `~/.hermes` by default, `HERMES_HOME` elsewhere, picked with `hermes -p <name>`. Read this page if you work with both: every familiar piece is here, but configuration is per user rather than per repo, and a repo must be trusted first.
 
 ## Context files
 
@@ -74,7 +74,7 @@ Skills follow the open Agent Skills standard ([[agent-standards]], [[skills]]); 
 
 A repo can vendor skills in `<root>/.hermes/skills/` or `<root>/.agents/skills/`, the root being the nearest ancestor holding `.git`. They stay dormant until you trust the repo once with `hermes skills trust` (`untrust` revokes; trusted roots live in `skills.trusted_project_dirs`, and `skills.project_discovery: false` disables the scan). Because a `git pull` can outrun that one-time decision, every project skill is re-scanned as its content changes and a `dangerous` verdict quarantines it. Precedence is project → profile-local → external dirs, first name wins.
 
-Only `name` and `description` are required and validated, and a new skill's description must fit the 60-character system-prompt budget. Also recognized: `version`, `author`, `license`, `platforms`, `environments`, `required_environment_variables`, `required_credential_files`, and a `metadata.hermes` block (`tags`, `related_skills`, `category`, `requires_tools`/`requires_toolsets`, `fallback_for_tools`/`fallback_for_toolsets`, `session_platforms`, `config`, `blueprint`). Unknown fields are ignored, so a SKILL.md written for another harness loads unchanged. An advisory linter runs on `skill_manage` creates and `references/` writes. It warns — never blocks — about description length and marketing adjectives, a `name` that does not match its directory, missing `version`/`author`/`license`/`metadata.hermes.tags`, a missing "When to Use" section, shell-utility names in prose instead of native tools, dangling `references/` links, ungated POSIX-only scripts and reference sprawl.
+Only `name` and `description` are required and validated, and a new skill's description must fit the 60-character system-prompt budget. Also recognized: `version`, `author`, `license`, `platforms`, `environments`, `required_environment_variables`, `required_credential_files`, and a `metadata.hermes` block (`tags`, `related_skills`, `category`, `requires_tools`/`requires_toolsets`, `fallback_for_tools`/`fallback_for_toolsets`, `session_platforms`, `config`, `blueprint`). Unknown fields are ignored, so a SKILL.md written for another harness loads unchanged. An advisory linter runs on `skill_manage` creates and `references/` writes. It warns — never blocks — about description length, marketing adjectives, a `name` not matching its directory, missing `version`/`author`/`license`/`metadata.hermes.tags`, a missing "When to Use" section, shell-utility names in prose instead of native tools, dangling `references/` links, ungated POSIX-only scripts and reference sprawl.
 
 ## MCP servers
 
@@ -134,7 +134,7 @@ There is no custom subagent definition format — no per-agent Markdown or TOML 
 
 | Area | Hermes Agent | Claude Code |
 |---|---|---|
-| Instruction files | First match of `.hermes.md`, `AGENTS.override.md`, `AGENTS.md`, `CLAUDE.md`, `.cursorrules`, plus global `SOUL.md`; injection-scanned | `CLAUDE.md`, `CLAUDE.local.md`, `~/.claude/CLAUDE.md`, merged ([[claude-md-and-memory]]) |
+| Instruction files | First match of `.hermes.md`, `AGENTS.override.md`, `AGENTS.md`, `CLAUDE.md`, `.cursorrules`, plus global `SOUL.md`; injection-scanned | `CLAUDE.md`, `CLAUDE.local.md`, `~/.claude/CLAUDE.md` merged, or `AGENTS.md` when no `CLAUDE.md` is present ([[claude-md-and-memory]]) |
 | Config | Per profile: `config.yaml` + `.env`; no project file | User, project, local and managed `settings.json` ([[settings]]) |
 | Skills | `~/.hermes/skills/`, `skills.external_dirs`, project dirs after `hermes skills trust` | `.claude/skills/`, `~/.claude/skills/`, plugin skills ([[skills]]) |
 | MCP | `mcp_servers` in `config.yaml`; `hermes mcp add` | `.mcp.json`, `~/.claude.json`; `claude mcp add` ([[mcp]]) |
