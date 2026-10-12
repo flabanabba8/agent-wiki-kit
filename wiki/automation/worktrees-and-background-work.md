@@ -8,9 +8,10 @@ sources:
   - raw/docs/official/agents.md
   - raw/docs/official/cli-reference.md
   - raw/docs/changelog-2.1.275-to-2.1.282.md
+  - raw/docs/changelog-2.1.283-to-2.1.296.md
 related: ["[[subagents]]", "[[agent-teams]]", "[[workflows]]", "[[sessions-and-checkpoints]]", "[[hooks]]"]
 created: 2026-09-15
-updated: 2026-09-25
+updated: 2026-10-11
 confidence: high
 last_verified: 2026-09-25
 aliases: [git-worktrees, agent-view, claude-agents, background-sessions, parallel-sessions]
@@ -108,6 +109,8 @@ In stream-json output, `startup_failure_reason` is `worktree_unverified` or `wor
 | Inside a session | `/background` or `/bg` (optionally followed by a prompt), or `←` on an empty prompt |
 | Copy of a session | `/fork` copies the conversation into a new background session while the original keeps going. `/subtask` starts a forked subagent instead |
 | Agent view | Type a prompt and press `Enter`. Each prompt starts a new session |
+
+Pressing `←` moves the session to the background and stops a turn or `!` command started while it moves, instead of letting it finish out of sight. Background Bash and PowerShell commands stop at their `timeout` (default 30 minutes, at most 2 hours) in unattended sessions only: `-p`, the Agent SDK, CI and cloud. Terminal, desktop and VS Code sessions have no limit.
 
 Each background session is its own Claude Code process, run by a **supervisor** service. Sessions keep running after you close agent view or your shell, and they survive sleep. Shutting the machine down stops them. When you background a session, in-flight shell commands, background subagents, dynamic workflows and `/loop` tasks move with it. A running monitor can't move, so Claude Code shows a `Background this session?` dialog.
 

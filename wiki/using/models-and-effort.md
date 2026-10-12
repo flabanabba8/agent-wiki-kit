@@ -13,9 +13,10 @@ sources:
   - raw/articles/anthropic-claude-opus-5-5.md
   - raw/articles/what-a-task-costs-on-opus-5-5.md
   - raw/articles/getting-the-most-out-of-opus-5-5.md
+  - raw/docs/changelog-2.1.283-to-2.1.296.md
 related: ["[[claude-models]]", "[[costs-and-usage]]", "[[subagents]]", "[[context-window]]", "[[cloud-providers]]", "[[workflows]]"]
 created: 2026-09-15
-updated: 2026-09-25
+updated: 2026-10-11
 confidence: high
 last_verified: 2026-09-25
 aliases: [model-selection, effort-level, fast-mode, advisor-tool, opusplan, which-model-to-use, flagged-message-model-switch]
@@ -96,7 +97,7 @@ An unsupported level falls back to the next one below (`xhigh` runs as `high` on
 
 **Resolution order:** an explicit choice (env var, `--effort`, or `/effort`), then your settings, then the model default. A level saved before `/effort` became per-model doesn't apply to newly released models such as Opus 5.5; they start at their default until you pick a level. `maxEffortLevel` or an organization cap limits every source.
 
-**Ultracode.** `ultracode` in `/effort` (or `claude --effort ultracode`, or the `ultracode` setting) sends `xhigh` and has Claude orchestrate dynamic workflows for substantive tasks ([[workflows]]). It needs workflows on and a model with `xhigh`.
+**Ultracode.** `ultracode` in `/effort` (or `claude --effort ultracode`, or the `ultracode` setting) is its own toggle in `/effort` (press `Tab`, or `/effort ultracode [on|off]`), stays on at any effort level, and has Claude orchestrate dynamic workflows for substantive tasks ([[workflows]]). It needs workflows on and a model with `xhigh`.
 
 **ultrathink.** Put `ultrathink` anywhere in a prompt to request deeper reasoning for that turn only. The effort sent to the API doesn't change. Other phrases such as "think hard" are ordinary text, and on Opus 5.5 they are unnecessary ([[prompting-and-workflows]]).
 
@@ -110,7 +111,7 @@ An unsupported level falls back to the next one below (`xhigh` runs as `high` on
 
 ## Extended context
 
-On the Anthropic API, Fable 5.1, Fable 5, Sonnet 5, and Opus 4.7 and later run with a 1M-token window on every plan, including Pro, with no `[1m]` variant or usage credits needed. Opus 4.6 and Sonnet 4.6 reach 1M only through `[1m]`: Opus 4.6 1M is included on Max, Team, and Enterprise, and Sonnet 4.6 1M needs usage credits on every subscription plan. `opusplan` runs both phases at 1M when both models do. The 1M window uses standard pricing with no long-context premium. Append `[1m]` to an alias or ID (`/model opus[1m]`) to select it, or set `CLAUDE_CODE_DISABLE_1M_CONTEXT=1` to hold sessions to 200K. Compaction thresholds are covered in [[context-window]].
+On the Anthropic API, Fable 5.1, Fable 5, Sonnet 5, and Opus 4.7 and later run with a 1M-token window on every plan, including Pro, with no `[1m]` variant or usage credits needed. Opus 4.6 and Sonnet 4.6 reach 1M only through `[1m]`: Opus 4.6 1M is included on Max, Team, and Enterprise, and Sonnet 4.6 1M needs usage credits on every subscription plan. `opusplan` runs both phases at 1M when both models do. The 1M window uses standard pricing with no long-context premium. Append `[1m]` to an alias or ID (`/model opus[1m]`) to select it, or set `CLAUDE_CODE_DISABLE_1M_CONTEXT=1` to hold sessions to 200K. On Bedrock, Vertex, Foundry and the Claude apps gateway, Opus 4.7 and later and Fable use 1M by default with no `[1m]` suffix, and behind a custom `ANTHROPIC_BASE_URL` any model with a 1M window uses it; run `/autocompact 200k` if your gateway stops at 200K. Compaction thresholds are covered in [[context-window]].
 
 ## Fast mode
 

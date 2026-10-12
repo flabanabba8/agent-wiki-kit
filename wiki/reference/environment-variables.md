@@ -6,9 +6,10 @@ sources:
   - raw/docs/official/env-vars.md
   - raw/docs/changelog-2.1.273-to-2.1.274.md
   - raw/docs/changelog-2.1.275-to-2.1.282.md
+  - raw/docs/changelog-2.1.283-to-2.1.296.md
 related: ["[[settings]]", "[[cloud-providers]]", "[[llm-gateways]]", "[[enterprise-admin]]", "[[cli-reference]]", "[[troubleshooting]]"]
 created: 2026-09-15
-updated: 2026-09-25
+updated: 2026-10-11
 confidence: high
 last_verified: 2026-09-25
 aliases: [env-vars, claude-code-env, environment-variable-list, anthropic-env-vars]
@@ -58,6 +59,7 @@ Many variables also have a settings key ([[settings]]) or CLI flag ([[cli-refere
 | `CLAUDE_CODE_MAX_CONTEXT_TOKENS`, `CLAUDE_CODE_DISABLE_UNKNOWN_MODEL_WINDOW_ENFORCEMENT`, `CLAUDE_CODE_ALWAYS_ENABLE_EFFORT` | For gateway or custom model IDs Claude Code doesn't recognize |
 | `CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST` | Set by embedding hosts; settings can't override their provider routing |
 | `CLAUDE_CODE_GATEWAY_HINT_HEADERS`, `CLAUDE_GATEWAY_DRAIN_TIMEOUT_MS`, `CLAUDE_GATEWAY_PROXY_IS_EGRESS_BOUNDARY` | `1` sends the gateway routing-hint request headers; Claude apps gateway drain window on `SIGTERM`; hostname-only egress through a forward proxy |
+| `CLAUDE_CODE_DISABLE_STRUCTURED_OUTPUTS` | Stop sending structured-output requests (session titles, memory recall, prompt hooks) to a gateway or Mantle deployment that rejects them |
 
 Setup: [[cloud-providers]], [[llm-gateways]].
 
@@ -72,6 +74,9 @@ Setup: [[cloud-providers]], [[llm-gateways]].
 | `CLAUDE_ENABLE_STREAM_WATCHDOG`, `CLAUDE_ENABLE_BYTE_WATCHDOG` | Force the stream watchdogs on (`1`) or off (`0`) |
 | `CLAUDE_CODE_MAX_RETRIES` | Retry count, default 10 |
 | `CLAUDE_CODE_RETRY_WATCHDOG` | Unattended runs: retry `429`/`529` indefinitely, other transient errors up to 300 times |
+| `CLAUDE_CODE_RETRY_WATCHDOG_MAX_WAIT_MS` | Cap how long unattended retry mode waits out `429` and `529` errors |
+| `CLAUDE_CODE_OVERLOADED_RETRY_BASE_DELAY_MS`, `CLAUDE_CODE_OVERLOADED_RETRY_MAX_DELAY_MS` | Longer base and maximum backoff delay when retrying an overloaded (`529`) request |
+| `CLAUDE_CODE_NONSTREAMING_TIMEOUT_RETRIES` | Cap re-sends of a non-streaming fallback request that timed out |
 | `CLAUDE_CODE_DISABLE_NONSTREAMING_FALLBACK` | No non-streaming fallback (proxies that duplicate tool calls) |
 
 ## Models, effort, thinking
@@ -82,6 +87,7 @@ Setup: [[cloud-providers]], [[llm-gateways]].
 | `ANTHROPIC_DEFAULT_OPUS_MODEL`, `ANTHROPIC_DEFAULT_SONNET_MODEL`, `ANTHROPIC_DEFAULT_HAIKU_MODEL`, `ANTHROPIC_DEFAULT_FABLE_MODEL` | What each alias resolves to (Haiku also runs background work); each has `_NAME`, `_DESCRIPTION`, `_SUPPORTED_CAPABILITIES` variants |
 | `ANTHROPIC_CUSTOM_MODEL_OPTION` | Add a custom `/model` entry (same variants) |
 | `CLAUDE_CODE_SUBAGENT_MODEL`, `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` | Default model for subagents, teammates and workflow agents; `_FORCE=1` imposes it |
+| `CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL` | Run every workflow agent on one model while other subagents keep theirs |
 | `CLAUDE_CODE_EFFORT_LEVEL` | `low` to `max` or `auto`; beats `--effort`, `/effort` and settings, subject to `maxEffortLevel` |
 | `MAX_THINKING_TOKENS`, `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING` | Fixed thinking budget (`0` disables thinking except on Opus 5.5 and Fable); use it on Opus 4.6 and Sonnet 4.6 |
 | `CLAUDE_CODE_MAX_OUTPUT_TOKENS` | Max output tokens (raising it shrinks usable context) |
@@ -103,7 +109,7 @@ Setup: [[cloud-providers]], [[llm-gateways]].
 | `ENABLE_PROMPT_CACHING_1H`, `CLAUDE_CODE_PROMPT_CACHE_TTL`, `CLAUDE_CODE_SUBAGENT_PROMPT_CACHE_TTL`, `FORCE_PROMPT_CACHING_5M` | Cache TTL choice (`5m` or `1h`); `FORCE_PROMPT_CACHING_5M` wins |
 | `CLAUDE_CODE_DISABLE_CLAUDE_MDS`, `CLAUDE_CODE_DISABLE_AUTO_MEMORY`, `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD` | Skip CLAUDE.md files; toggle auto memory; load memory files from `--add-dir` directories |
 | `CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS`, `CLAUDE_CODE_SIMPLE_SYSTEM_PROMPT` | Drop built-in git instructions; shorter system prompt |
-| `CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS`, `CLAUDE_CODE_DISABLE_ATTACHMENTS` | Larger file reads; send `@` mentions as plain text |
+| `CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS`, `CLAUDE_CODE_DISABLE_ATTACHMENTS` | Larger file reads; send `@` mentions as plain text (a repository's settings files can't set the second) |
 
 ## Tools and shell
 
@@ -117,6 +123,8 @@ Setup: [[cloud-providers]], [[llm-gateways]].
 | `CLAUDE_CODE_GLOB_HIDDEN`, `CLAUDE_CODE_GLOB_NO_IGNORE`, `CLAUDE_CODE_GLOB_TIMEOUT_SECONDS` | Glob dotfiles, `.gitignore`, timeout |
 | `USE_BUILTIN_RIPGREP`, `CLAUDE_CODE_USE_NATIVE_FILE_SEARCH` | `0` uses system `rg`; Node file APIs for discovery |
 | `CLAUDE_CODE_WEBFETCH_CACHE_TTL_MS`, `CLAUDE_CODE_WEBFETCH_DEADLINE_MS`, `CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION` | WebFetch cache (900000) and download deadline (300000); WebSearch cap, default 200 |
+| `CLAUDE_CODE_DISABLE_WEB_FETCH` | Turn off the WebFetch tool |
+| `CLAUDE_CODE_WEB_SEARCH_REFILLS_PER_HOUR` | Interactive WebSearch budget refill rate (default 100 an hour); `0` turns refilling off |
 | `CLAUDE_CODE_ENABLE_TODO_TOOLS`, `CLAUDE_CODE_ENABLE_TASKS`, `CLAUDE_CODE_TASK_LIST_ID` | Task-tracking tools on every model; `0` selects `TodoWrite`; shared task list |
 | `CLAUDE_CODE_DISABLE_SUBSTITUTION_RM_PROMPT`, `CLAUDE_CODE_DISABLE_DANGEROUS_RM_TIMEOUT` | Skip the `rm -rf "$(...)"` prompt; stop the dangerous-`rm` prompt auto-denying after 2 minutes |
 | `CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY` | Parallel read-only tools and subagents, default 10 |
@@ -152,7 +160,7 @@ Tool behavior: [[tools-reference]].
 | `MCP_CONNECTION_NONBLOCKING`, `MCP_CONNECT_TIMEOUT_MS`, `MCP_SERVER_CONNECTION_BATCH_SIZE`, `MCP_REMOTE_SERVER_CONNECTION_BATCH_SIZE`, `CLAUDE_CODE_MCP_STARTUP_WAIT_MS` | Startup connection behavior, including how long a non-interactive first turn waits for connecting servers |
 | `ENABLE_CLAUDEAI_MCP_SERVERS`, `CLAUDE_CODE_MCP_ALLOWLIST_ENV`, `CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS` | claude.ai connectors; minimal stdio env; background long calls |
 | `MCP_CLIENT_SECRET`, `MCP_OAUTH_CALLBACK_PORT`, `MCP_DISCOVERY_CACHE` | OAuth and discovery cache |
-| `MCP_SDK_GENERATION`, `MCP_PROTOCOL_NEGOTIATION` | Opt out of the v2 MCP client and current protocol negotiation ([[mcp]]) |
+| `MCP_SDK_GENERATION`, `MCP_PROTOCOL_NEGOTIATION` | Opt out of the v2 MCP client; `MCP_PROTOCOL_NEGOTIATION=legacy` opts out of protocol 2026-07-28 negotiation, which stdio and claude.ai connectors use by default ([[mcp]]) |
 | `CLAUDE_CODE_MCP_STARTUP_WAIT_MS` | How long a non-interactive first turn waits for connecting servers |
 | `CLAUDE_CODE_MAX_MCP_DESCRIPTION_LENGTH` | Cap on MCP tool descriptions and server instructions, default 2,048 characters |
 | `CLAUDE_CODE_PLUGIN_CACHE_DIR`, `CLAUDE_CODE_PLUGIN_SEED_DIR`, `CLAUDE_CODE_PLUGIN_GIT_TIMEOUT_MS`, `CLAUDE_CODE_PLUGIN_PREFER_HTTPS`, `CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE` | Plugin storage, container seeding, git behavior |

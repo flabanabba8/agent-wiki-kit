@@ -8,9 +8,10 @@ sources:
   - raw/docs/official/auto-mode-config.md
   - raw/docs/changelog-2.1.273-to-2.1.274.md
   - raw/docs/changelog-2.1.275-to-2.1.282.md
+  - raw/docs/changelog-2.1.283-to-2.1.296.md
 related: ["[[sandboxing-and-security]]", "[[settings]]", "[[hooks]]", "[[headless-mode]]", "[[enterprise-admin]]", "[[trustworthy-agents]]"]
 created: 2026-09-15
-updated: 2026-09-25
+updated: 2026-10-11
 confidence: high
 last_verified: 2026-09-25
 aliases: [permission-modes, auto-mode, allow-ask-deny-rules, bypass-permissions, plan-mode]
@@ -39,7 +40,7 @@ A terminal session takes the first of these that applies:
 
 1. `--permission-mode <mode>` or `--dangerously-skip-permissions`
 2. `permissions.defaultMode` in a settings file. `"auto"` and `"bypassPermissions"` don't take effect from a project's `.claude/settings.json` or `.claude/settings.local.json`; put them in `~/.claude/settings.json`, `--settings`, or managed settings.
-3. The built-in default: `auto` on Pro, Max, and Team plans in a terminal or the VS Code extension. It is `default` for `claude -p`, the Agent SDK, Enterprise, Console API keys, cloud providers and Claude apps gateway sessions, and when `disableAutoMode` is `"disable"` or feature-flag fetching is off.
+3. The built-in default: `auto` in a terminal or the VS Code extension on every plan and provider, and for `claude -p` and Python Agent SDK sessions on third-party providers or with telemetry off. Other `claude -p` and Agent SDK sessions start in `default`, as does any session when `disableAutoMode` is `"disable"` or feature-flag fetching is off.
 
 If `auto` is selected but unavailable, the session starts in Manual.
 
@@ -67,6 +68,7 @@ A classifier reviews each action before it runs, blocking actions that escalate 
 
 1. Allow, ask, and deny rules resolve immediately, except: protected-path writes, critical-path removals, and commands carrying per-command sandbox domains go to the classifier; `requiresUserInteraction` MCP tools and content-scoped ask rules such as `Bash(git push *)` prompt.
 2. Reads and working-directory edits are auto-approved, except protected paths. The first Read, Grep, or Glob outside the working directories asks whether to keep allowing such reads.
+   The prompt for a read outside the working directories also offers **Yes, but ask again next time**, which allows that one read and keeps asking about later ones.
 3. Everything else goes to the classifier. Claude Code's own classifier requests carry user messages, tool calls, and CLAUDE.md but not tool results.
 4. On a block, Claude gets the matched rule name, such as `[Data Exfiltration]`, and tries another approach.
 

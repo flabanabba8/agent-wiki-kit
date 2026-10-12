@@ -12,9 +12,10 @@ sources:
   - raw/docs/official/third-party-integrations.md
   - raw/docs/changelog-2.1.273-to-2.1.274.md
   - raw/docs/changelog-2.1.275-to-2.1.282.md
+  - raw/docs/changelog-2.1.283-to-2.1.296.md
 related: ["[[settings]]", "[[cloud-providers]]", "[[llm-gateways]]", "[[data-and-privacy]]", "[[plugins]]", "[[mcp]]"]
 created: 2026-09-15
-updated: 2026-09-25
+updated: 2026-10-11
 confidence: high
 last_verified: 2026-09-25
 aliases: [managed-settings, server-managed-settings, mdm-policy, opentelemetry-monitoring, claude-code-analytics]
@@ -85,7 +86,7 @@ Minimal file:
 | claude.ai skill and plugin sync | `syncClaudeAiSkills`, `syncClaudeAiPlugins` (each honors only `false`) |
 | Login | `forceLoginMethod`, `forceLoginOrgUUID` (these block `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN` and `apiKeyHelper` sessions) |
 | Background agents | `disableAgentView`, or `processWrapper` for a corporate launcher |
-| Models and effort | `availableModels`, `enforceAvailableModels`, `maxEffortLevel` |
+| Models and effort | `availableModels`, `availableModelsMatch` (`"exact"` allows only the version an entry names), `deniedModels`, `enforceAvailableModels`, `maxEffortLevel`, `allowedProviders` (limits which API providers a machine may use) |
 | Versions | `minimumVersion` (blocks downgrades), `requiredMinimumVersion`/`requiredMaximumVersion` (refuses to start outside the range) |
 | Telemetry to Anthropic | `env` with `DISABLE_TELEMETRY` or `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` ([[data-and-privacy]]) |
 

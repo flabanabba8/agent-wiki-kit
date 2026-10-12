@@ -5,9 +5,10 @@ tldr: "Every built-in / command, grouped by task"
 sources:
   - raw/docs/official/commands.md
   - raw/docs/changelog-2.1.275-to-2.1.282.md
+  - raw/docs/changelog-2.1.283-to-2.1.296.md
 related: ["[[cli-reference]]", "[[skills]]", "[[context-window]]", "[[sessions-and-checkpoints]]", "[[models-and-effort]]", "[[troubleshooting]]"]
 created: 2026-09-15
-updated: 2026-09-25
+updated: 2026-10-11
 confidence: high
 last_verified: 2026-09-25
 aliases: [slash-command-list, claude-commands, in-session-commands, built-in-commands]
@@ -90,7 +91,7 @@ See [[permissions-and-modes]], [[settings]] and [[claude-md-and-memory]].
 | `/skill-doctor` | Per-skill context cost and usage, to find skills to turn off |
 | `/plugin [subcommand]` | Plugin menu, or `list`, `install`, `enable`, `disable` directly |
 | `/reload-plugins [--force]` | Apply plugin changes without restarting; `--force` accepts a prompt-cache reset |
-| `/mcp [reconnect <server>\|enable\|disable [<server>\|all]]` | Manage MCP connections and OAuth |
+| `/mcp [reconnect <server>\|all\|enable\|disable [<server>\|all]]` | Manage MCP connections and OAuth |
 | `/agents` | Not in the menu; typed, it points you to asking Claude or editing `.claude/agents/` |
 | `/list-agents` | Subagents, teammates and sessions Claude can message. Alias `/peers` |
 | `/workflows` | Watch, pause, resume or save workflows |
@@ -121,7 +122,7 @@ See [[worktrees-and-background-work]], [[workflows]] and [[routines-and-scheduli
 | Command | Purpose |
 | :--- | :--- |
 | `/diff` | Review working-tree changes, including Claude's edits |
-| `/code-review [low\|medium\|high\|xhigh\|max\|ultra] [--fix] [--comment] [pr#\|branch\|path]` | (S) Find correctness bugs (plus cleanups, depending on model and effort); `--fix` applies them, `--comment` posts to the PR or MR, `ultra` runs a cloud review. Alias `/review` |
+| `/code-review [low\|medium\|high\|xhigh\|max\|ultra] [--fix] [--comment] [--max-findings <n>\|all] [pr#\|branch\|path]` | (S) Find correctness bugs (plus cleanups, depending on model and effort); `--fix` applies them, `--comment` posts to the PR or MR, `ultra` runs a cloud review. Alias `/review` |
 | `/ultrareview [PR or branch]` | Alias of `/code-review ultra` |
 | `/simplify [target]` | (S) Four parallel agents review reuse, simplification, efficiency and abstraction, then apply fixes |
 | `/security-review` | Review the branch diff against origin's default branch for vulnerabilities (needs an `origin` remote) |
@@ -153,7 +154,7 @@ See [[troubleshooting]].
 | `/login`, `/logout` | Sign in to or out of your Anthropic account |
 | `/usage` | Session cost, plan limits and activity. Aliases `/cost`, `/stats` |
 | `/usage-credits` | Configure usage credits, or request them from an admin |
-| `/rate-limit-options` | (Hidden) Options when a claude.ai limit blocks a request |
+| `/rate-limit-options` | Options when a claude.ai limit blocks a request; listed in `/help` for claude.ai subscribers |
 | `/upgrade` | Open the plan upgrade page |
 | `/passes` | Share a free week of Claude Code (eligible accounts) |
 | `/setup-bedrock` | (Hidden until `CLAUDE_CODE_USE_BEDROCK=1`) Amazon Bedrock setup wizard |

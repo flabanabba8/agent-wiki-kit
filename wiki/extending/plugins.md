@@ -17,9 +17,10 @@ sources:
   - raw/docs/official/plugins__troubleshooting.md
   - raw/docs/official/plugin-evals.md
   - raw/docs/changelog-2.1.275-to-2.1.282.md
+  - raw/docs/changelog-2.1.283-to-2.1.296.md
 related: ["[[plugin-marketplaces]]", "[[skills]]", "[[subagents]]", "[[hooks]]", "[[mcp]]", "[[enterprise-admin]]", "[[settings]]"]
 created: 2026-09-15
-updated: 2026-09-25
+updated: 2026-10-11
 confidence: high
 last_verified: 2026-09-25
 aliases: [claude-plugins, plugin-json, claude-plugin-eval, plugin-dir, install-plugin, plugin-scopes, synced-plugins]
@@ -36,6 +37,8 @@ A plugin runs code with your user privileges. Hooks and MCP servers run outside 
 - Claude Code adds the official marketplace, `claude-plugins-official`, on the first interactive terminal session unless policy or `CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL` blocks it. Others are added with `/plugin marketplace add <source>` (see [[plugin-marketplaces]]).
 - `/plugin install commit-commands@claude-plugins-official` opens the plugin's details (**Will install**, and for official plugins a **Context cost** estimate) and asks for a scope. The summary says `Plugin is now active.` or `Run /reload-plugins to activate.`
 - `/plugin install deploy-helper --marketplace your-org/plugins` adds the marketplace after confirmation and then installs.
+- `claude plugin install <plugin> --marketplace <source>` does the same from the shell under the same policy checks as `claude plugin marketplace add`. `claude plugin configure <plugin>` shows a plugin's options and which are unset, or saves new values from stdin with `--values-stdin`. A bundled `.mcpb` server's own settings go in with `--config <server>.<key>=<value>` at install time.
+- Plugins can also act as **Claude Mods**, changing deeper behavior of the interface and tool calls (hooks on events such as `prompt.submit` and `tool.check`, panes and bands, notifications through `$.ui.notify`). The built-in `You should know` mod runs a side agent that flags what you or Claude might miss; turn it on with `/plugin enable cc-plugin-you-should-know@builtin`.
 - `/plugin` has **Discover**, **Installed**, **Marketplaces** and **Errors** tabs, plus **Stats** for the usage report. **Installed** groups plugins under **Not used recently** and shows **Last used**.
 - From the shell, `claude plugin install formatter@your-org --scope project` installs without a session; `--yes` accepts a `command`-source prompt and `--config key=value` sets options. On a fresh machine, run `claude plugin marketplace add anthropics/claude-plugins-official` first.
 - `claude plugin enable|disable|uninstall|update <plugin>@<marketplace>`, `claude plugin list` and `claude plugin details <name>` manage installs. `details` prints an `Always-on` token figure and a per-component breakdown. On install, enable, disable, uninstall and update, `--json` prints one result object for scripts.

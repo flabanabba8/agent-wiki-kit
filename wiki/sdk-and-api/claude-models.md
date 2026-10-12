@@ -15,9 +15,10 @@ sources:
   - raw/articles/anthropic-claude-fable-5-1.md
   - raw/articles/claude-opus-5-system-card-agentic-coding.md
   - raw/articles/claude-sonnet-5-system-card-agentic-coding.md
+  - raw/docs/changelog-2.1.283-to-2.1.296.md
 related: ["[[models-and-effort]]", "[[prompting-claude-models]]", "[[cloud-providers]]", "[[costs-and-usage]]", "[[trustworthy-agents]]", "[[agent-evals]]"]
 created: 2026-09-15
-updated: 2026-09-25
+updated: 2026-10-11
 confidence: high
 last_verified: 2026-09-25
 valid_until: 2026-11-15
@@ -43,7 +44,7 @@ This page lists the Claude models on the Claude API, with IDs, limits, prices, l
 | Reliable knowledge cutoff | Jun 2026 | Not stated | May 2026 | Jan 2026 | Feb 2025 |
 
 - **Which to pick.** Opus 5.5, the first Claude 5.5 model, performs at Fable 5.1's level on most work and costs about 40% less than Opus 5 on typical workloads. Anthropic suggests a small model for lookups, Opus 5.5 for supervised work, and Fable 5.1 for the hardest tasks.
-- **Coming models.** Anthropic says Claude Sonnet 5.5 and Claude Haiku 5.5 will follow in the coming weeks.
+- **Sonnet 5.5 and Haiku 5.5.** Claude Code 2.1.284 added Claude Sonnet 5.5 (`claude-sonnet-5-5`) and 2.1.293 added Claude Haiku 5.5 (`claude-haiku-5-5`), each now the default of its family on the Anthropic API with a 1M context window. Per MTok, Sonnet 5.5 is $2 input / $10 output with $0.20 cache reads, which Claude Code's cost figures price at $0.10 from 2.1.296; Haiku 5.5 is $0.10 / $0.50, or $0.50 / $2.50 for prompts over 100K. The pricing table below predates both.
 - **Capabilities.** All models accept text and image input and support tool use. The Models API returns `max_input_tokens`, `max_tokens` and a `capabilities` object for each model.
 - **Mythos.** Claude Mythos 5.1 is the same model as Fable 5.1 with different safeguards, at the same specs and prices, available only through Project Glasswing and Anthropic's trusted-access programs. `claude-mythos-preview` is deprecated, replaced by `claude-mythos-5`.
 

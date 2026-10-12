@@ -9,9 +9,10 @@ sources:
   - raw/docs/official/vs-code.md
   - raw/docs/official/cli-reference.md
   - raw/docs/changelog-2.1.275-to-2.1.278.md
+  - raw/docs/changelog-2.1.283-to-2.1.296.md
 related: ["[[desktop-app]]", "[[ide-integrations]]", "[[mcp]]", "[[sandboxing-and-security]]", "[[permissions-and-modes]]"]
 created: 2026-09-15
-updated: 2026-09-25
+updated: 2026-10-11
 confidence: high
 last_verified: 2026-09-25
 aliases: [claude-in-chrome, browser-automation, computer-use, screen-control, chrome-extension]
@@ -66,7 +67,7 @@ The first launch shows a one-time intro dialog. After that, ask for a browser ta
   - **Enabled by default** loads browser tools in every session, which costs context. `--no-chrome` turns the integration off for one session.
 - **Install prompt**: if Claude needs a browser and finds no extension, an interactive session offers **Install extension**, **Not now** or **Don't ask again**. The prompt is suppressed when `deniedMcpServers` blocks the `claude-in-chrome` server.
 - **VS Code**: no flag is needed. Type `@browser` followed by the task; `/chrome` or **Claude in Chrome** in the Customize menu checks and manages the connection, with a claude.ai sign-in ([[ide-integrations]]).
-- **Permissions**: site permissions come from the Chrome extension's own settings. In plan mode, recording a GIF, opening a new tab or running a shortcut also prompts first ([[permissions-and-modes]]).
+- **Permissions**: a project's settings files can't turn Claude in Chrome on; use `--chrome`, `/chrome` or user settings. Site permissions come from the Chrome extension's own settings. In plan mode, recording a GIF, opening a new tab or running a shortcut also prompts first ([[permissions-and-modes]]).
 - **Tool list**: run `/mcp`, select `claude-in-chrome`, then **View tools**.
 
 ### How it behaves

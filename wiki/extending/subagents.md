@@ -8,9 +8,10 @@ sources:
   - raw/docs/official/features-overview.md
   - raw/docs/official/hooks.md
   - raw/docs/changelog-2.1.275-to-2.1.282.md
+  - raw/docs/changelog-2.1.283-to-2.1.296.md
 related: ["[[agent-teams]]", "[[skills]]", "[[hooks]]", "[[models-and-effort]]", "[[workflows]]", "[[permissions-and-modes]]"]
 created: 2026-09-15
-updated: 2026-09-25
+updated: 2026-10-11
 confidence: high
 last_verified: 2026-09-25
 aliases: [custom-agents, agent-tool, forked-subagent, claude-agents-directory]
@@ -88,13 +89,14 @@ Only `name` and `description` are required. Names are camelCase and must match e
 | `model` | `sonnet`, `opus`, `haiku`, `fable`, a full model ID, or `inherit` |
 | `permissionMode` | `default` (alias `manual`), `acceptEdits`, `auto`, `dontAsk`, `bypassPermissions` or `plan` |
 | `maxTurns` | Turn cap; output at the cap is marked partial and the subagent can be resumed |
-| `skills` | Skills whose full content is preloaded at startup |
+| `skills` | Skills whose full content is preloaded at startup, at most 32, each once |
 | `mcpServers` | Server names to reuse, or inline server definitions scoped to this subagent |
 | `hooks` | Hooks active only while this subagent runs; `Stop` becomes `SubagentStop` |
 | `memory` | Persistent memory scope: `user`, `project` or `local` |
 | `background` | `true` keeps it in the background even when Claude asks for the foreground |
 | `omitClaudeMd` | `true` skips user, project and local CLAUDE.md files |
-| `effort` | `low`, `medium`, `high`, `xhigh` or `max` |
+| `effort` | `low`, `medium`, `high`, `xhigh` or `max`; the Agent tool's `effort` parameter sets it per call |
+| `autoCompactWindow` | Auto-compact earlier than the main conversation's window |
 | `isolation` | `worktree` runs it in a temporary git worktree branched from your default branch, removed if unchanged |
 | `color` | Display color, such as `red` or `cyan` |
 | `initialPrompt` | First user turn, auto-submitted when the agent runs as the main session (ignored for plugin agents) |

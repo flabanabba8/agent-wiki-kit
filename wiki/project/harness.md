@@ -45,9 +45,9 @@ sources:
   - scripts/sources.py
 related: ["[[mem0]]", "[[camoufox]]", "[[hooks]]", "[[agent-evals]]", "[[settings]]"]
 created: 2026-09-15
-updated: 2026-10-09
+updated: 2026-10-11
 confidence: high
-last_verified: 2026-09-18
+last_verified: 2026-10-11
 aliases: [wiki-harness, doctor-sh, wiki-lint, weekly-maintenance, wiki-ci]
 ---
 
@@ -112,7 +112,7 @@ The same scripts enforce these rules in Codex, OpenCode and Hermes through thin 
 6. Thin pages under 100 words
 7. `confidence: low`
 8. `last_verified` older than 90 days
-9. A cited raw file whose hash changed after `last_verified` (hashes kept in `outputs/.source-hashes.tsv`)
+9. A cited raw file whose hash changed on a day after `last_verified` (hashes kept in `outputs/.source-hashes.tsv`; a source fetched on the verification day itself is not flagged)
 10. `hot.md` or `overview.md` not updated for 7 days
 11. Weak links, where neither page mentions the other (a sample of 20)
 12. Page size distribution

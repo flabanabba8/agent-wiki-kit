@@ -6,9 +6,10 @@ sources:
   - raw/docs/official/tools-reference.md
   - raw/docs/official/env-vars.md
   - raw/docs/changelog-2.1.275-to-2.1.282.md
+  - raw/docs/changelog-2.1.283-to-2.1.296.md
 related: ["[[permissions-and-modes]]", "[[how-claude-code-works]]", "[[subagents]]", "[[hooks]]", "[[mcp]]", "[[environment-variables]]"]
 created: 2026-09-15
-updated: 2026-09-25
+updated: 2026-10-11
 confidence: high
 last_verified: 2026-09-25
 aliases: [built-in-tools, tool-names, claude-code-tools, tool-permissions]
@@ -100,7 +101,7 @@ Other tools take only the bare name. An `Edit(...)` allow rule also grants read 
 - **Edit** replaces `old_string` with `new_string` exactly: no regex or fuzzy matching, and the match must be unique unless `replace_all: true`. Claude Opus 4.6, Claude Haiku 4.5 and older models must read the file first; newer models can edit an unread file when reading it wouldn't prompt. A file changed on disk is still editable when `old_string` matches its current content unambiguously.
 - Viewing a single file with `cat`, `nl`, `bat`, `batcat`, `head`, `tail`, `sed -n 'X,Yp'`, `grep`, `egrep`, `fgrep` or `rg` (no pipes or redirects) satisfies read-before-edit without changing permissions.
 - **Write** overwrites the whole file. Existing files follow the same read rules as Edit, except notebooks and partially read files, which always need a read.
-- **Read** returns numbered lines from an absolute path, and doesn't list directories. Oversized whole-file reads return a first page with a `PARTIAL view` notice; `offset` and `limit` fetch more. Images are resized to model limits. PDFs over 10 pages are read in `pages` ranges of up to 20. Notebooks return cells with outputs, refusing files over 100 MB.
+- **Read** returns numbered lines from an absolute path, and doesn't list directories. Oversized whole-file reads return a first page with a `PARTIAL view` notice; `offset` and `limit` fetch more, and `allow_large` reads a text file past the usual size limits in one call when the context has room. Images are resized to model limits. PDFs over 10 pages are read in `pages` ranges of up to 20. Notebooks return cells with outputs, refusing files over 100 MB.
 - **NotebookEdit** targets one cell by `cell_id` in `replace` (default), `insert` (needs `cell_type`) or `delete` mode, under `Edit(...)` rules.
 
 ## Glob and Grep
@@ -113,8 +114,9 @@ On macOS, Linux and WSL both are left out by default; Claude searches with `find
 ## WebFetch and WebSearch
 
 - **WebFetch** converts HTML to Markdown and runs your prompt over the page with a small, fast model, so results are lossy. HTTP is upgraded to HTTPS. Responses are cached 15 minutes (`CLAUDE_CODE_WEBFETCH_CACHE_TTL_MS`), downloads fail after five minutes (`CLAUDE_CODE_WEBFETCH_DEADLINE_MS`), a cross-host redirect is returned to Claude instead of followed, and `localhost` or any dotless hostname is refused in favor of `curl` through Bash.
+- WebFetch says how much of a page past 100,000 characters went unread and takes an `offset` to read on. `CLAUDE_CODE_DISABLE_WEB_FETCH` turns the tool off.
 - In Manual and `acceptEdits` modes WebFetch prompts, except for domains your rules decide and a built-in set of documentation domains. **Yes, and don't ask again** saves a `WebFetch(domain:...)` rule to `.claude/settings.local.json`. Sandboxed commands don't inherit the preapproved domains.
-- **WebSearch** makes up to eight backend searches per call and accepts `allowed_domains` or `blocked_domains` (not both). A session allows 200 searches across all subagents (`CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION`); `/clear` resets the count. It is unavailable on Amazon Bedrock and needs an Anthropic-hosted deployment on Foundry.
+- **WebSearch** makes up to eight backend searches per call and accepts `allowed_domains` or `blocked_domains` (not both). A non-interactive session allows 200 searches across all subagents (`CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION`); `/clear` resets the count. An interactive session's budget refills over time instead, at 100 calls an hour (`CLAUDE_CODE_WEB_SEARCH_REFILLS_PER_HOUR`; `0` turns refilling off). It is unavailable on Amazon Bedrock and needs an Anthropic-hosted deployment on Foundry.
 
 ## Agent
 

@@ -10,9 +10,10 @@ sources:
   - raw/articles/opus-5-5-longer-coding-sessions.md
   - raw/articles/anthropic-claude-opus-5-5.md
   - raw/docs/changelog-2.1.275-to-2.1.282.md
+  - raw/docs/changelog-2.1.283-to-2.1.296.md
 related: ["[[models-and-effort]]", "[[context-window]]", "[[claude-models]]", "[[enterprise-admin]]", "[[headless-mode]]", "[[agent-teams]]"]
 created: 2026-09-15
-updated: 2026-09-25
+updated: 2026-10-11
 confidence: high
 last_verified: 2026-09-25
 aliases: [usage-limits, token-costs, cost-command, reduce-token-usage, usage-credits, cost-per-task, prompt-audit]
@@ -46,6 +47,7 @@ Anthropic estimates Opus 5.5 costs about 40% less than Opus 5 on typical token-b
 `/usage` is the main view; `/cost` and `/stats` are aliases (`/stats` opens on the Stats tab).
 
 - **Session block:** total cost, API and wall-clock duration, lines changed, and tokens per model with cache read and write. The dollar figure is a local estimate at list price and resets on `/clear`. For API accounts, the Console Usage page is authoritative. Subscribers can ignore the dollar figure for billing.
+- Cost figures in `/cost`, the status line, `--max-budget-usd` and the SDK price Sonnet 5.5 cache reads at $0.10 per MTok.
 - **`Prompt cache (main)` line:** request count, the share of input served from cache, misses (with a likely cause when known), and whether the cache is warm.
 - **Plan usage breakdown** (subscriptions): recent usage attributed to skills, subagents, plugins, and individual MCP servers; flags for behaviors such as long context or cache misses that account for 10% or more; and the heaviest `/loop` or scheduled tasks. Press `d` or `w` to switch between 24 hours and 7 days. The breakdown is computed from local history on this machine.
 - **Usage-credits row:** this month's usage-credits spend against your spend limit, when credits are on.

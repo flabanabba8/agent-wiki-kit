@@ -32,9 +32,10 @@ sources:
   - raw/docs/claude-tag/users__memory.md
   - raw/docs/claude-tag/users__models.md
   - raw/docs/claude-tag/users__proactivity.md
+  - raw/docs/changelog-2.1.283-to-2.1.296.md
 related: ["[[claude-code-on-the-web]]", "[[claude-projects]]", "[[ci-cd-and-code-review]]", "[[channels]]", "[[enterprise-admin]]", "[[slash-commands]]"]
 created: 2026-09-15
-updated: 2026-09-25
+updated: 2026-10-11
 confidence: high
 last_verified: 2026-09-25
 aliases: [claude-code-in-slack, claude-tag, slack-app-setup, at-claude-in-slack]
@@ -83,7 +84,7 @@ On Enterprise, an Owner names **channel managers** per channel, who set its defa
 
 Claude works only in channels it was added to, so `/invite @Claude` is a user's whole setup. A mention guarantees a reply; Claude also answers untagged messages it judges warrant one, and follows every reply in a thread it joined. Each thread binds to its own persistent session in an ephemeral sandbox that anyone in the channel can steer by replying, and a channel carries one more session for its top level. Threads show Slack's native Working indicator and Stop button. Results come back as a reply, a file or chart, a page kept current, or a hosted page; code work lands as a draft pull request from the Claude GitHub App linked to the thread.
 
-Exact bang words after the mention run fixed actions instead of a turn: `!help`, `!configure`, `!restart`, `!status`, `!mute` and `!unmute` must stand alone, while `!feedback`, `!routines` and `!fork` accept text. A 👎 reaction mutes that thread, and per channel **Respond automatically** switches unprompted replies off.
+Exact bang words after the mention run fixed actions instead of a turn: `!help`, `!configure`, `!restart`, `!status`, `!mute` and `!unmute` must stand alone, while `!fast` (with `!fast off` to switch back; it moves the thread to Opus if needed), `!feedback`, `!routines` and `!fork` accept text. A 👎 reaction mutes that thread, and per channel **Respond automatically** switches unprompted replies off.
 
 **Routines** are standing work anyone sets up in plain language — a schedule, a channel watch, or a subscription to one pull request. They run with the channel's connections rather than the creator's, schedule in UTC, and outlast their creator leaving; asked in a thread, Claude lists that thread's own scheduled tasks. **Memory** belongs to the channel: public channels share workspace memory, private channels read it but write only their own store, and anyone can correct it. Models are chosen in words, per thread or as the channel default, from the list the organization allows; each reply's footer names the model used, and a newly connected workspace follows the current default model.
 

@@ -9,9 +9,10 @@ sources:
   - raw/docs/official/debug-your-config.md
   - raw/docs/official/llm-gateway-connect.md
   - raw/docs/changelog-2.1.275-to-2.1.282.md
+  - raw/docs/changelog-2.1.283-to-2.1.296.md
 related: ["[[enterprise-admin]]", "[[permissions-and-modes]]", "[[environment-variables]]", "[[hooks]]", "[[troubleshooting]]"]
 created: 2026-09-15
-updated: 2026-09-25
+updated: 2026-10-11
 confidence: high
 last_verified: 2026-09-25
 aliases: [settings-json, settings-precedence, settings-scopes, claude-config-files, settings-local-json]
@@ -113,7 +114,7 @@ More symptom-driven checks are on [[troubleshooting]].
 
 | Group | Examples |
 |---|---|
-| Model and responses | `model`, `availableModels`, `enforceAvailableModels`, `fallbackModel`, `modelOverrides`, `modelPicker`, `effortLevel`, `maxEffortLevel`, `fastMode`, `advisorModel`, `outputStyle`, `promptCacheTtl` |
+| Model and responses | `model`, `availableModels`, `availableModelsMatch`, `deniedModels`, `enforceAvailableModels`, `fallbackModel`, `modelOverrides`, `modelPicker`, `effortLevel`, `maxEffortLevel`, `fastMode`, `advisorModel`, `outputStyle`, `promptCacheTtl` |
 | Permissions | `permissions.allow`/`ask`/`deny`, `permissions.defaultMode`, `permissions.additionalDirectories`, `permissions.disableBypassPermissionsMode`, `autoMode`, `disableAutoMode`, `allowManagedPermissionRulesOnly` |
 | Sandbox | `sandbox.enabled`, `sandbox.filesystem.*`, `sandbox.network.allowedDomains`, `sandbox.credentials` |
 | Memory and context | `autoCompactEnabled`, `autoCompactWindow`, `autoMemoryEnabled`, `claudeMd`, `claudeMdExcludes`, `env`, `fileCheckpointingEnabled` |
@@ -121,7 +122,7 @@ More symptom-driven checks are on [[troubleshooting]].
 | Git and attribution | `attribution.commit`, `attribution.pr` (`"attribution": false` hides all commit and PR attribution, but older CLI versions skip a file holding it, so keep the object form in shared files), `includeGitInstructions`, `prUrlTemplate` |
 | Hooks and automation | `hooks`, `bashEditDiffEnabled` (record files a Bash command changed, for the diff and PostToolUse hooks), `disableAllHooks`, `allowManagedHooksOnly`, `allowedHttpHookUrls`, `enableWorkflows` |
 | Plugins, skills, MCP | `syncClaudeAiSkills`, `syncClaudeAiPlugins` (`false` stops syncing the skills or plugins enabled on your claude.ai account), `enabledPlugins`, `extraKnownMarketplaces`, `strictKnownMarketplaces`, `allowedMcpServers`, `deniedMcpServers`, `managedMcpServers` |
-| Authentication and providers | `apiKeyHelper`, `awsAuthRefresh`, `awsCredentialExport`, `gcpAuthRefresh`, `forceLoginMethod`, `forceLoginOrgUUID`, `gatewayInternalNetworks`, `otelHeadersHelper` |
+| Authentication and providers | `allowedProviders`, `forceLoginGatewayUrl`, `apiKeyHelper`, `awsAuthRefresh`, `awsCredentialExport`, `gcpAuthRefresh`, `forceLoginMethod`, `forceLoginOrgUUID`, `gatewayInternalNetworks`, `otelHeadersHelper` |
 | Updates and versioning | `autoUpdatesChannel`, `minimumVersion`, `requiredMinimumVersion`, `requiredMaximumVersion` |
 | Privacy and telemetry | `cleanupPeriodDays`, `desktopSessionCleanupPeriodDays`, `feedbackSurveyRate`, `skipWebFetchPreflight` |
 | Enterprise and managed | `managedSourcesBehavior`, `parentSettingsBehavior`, `policyHelper`, `forceRemoteSettingsRefresh`, `disableSideloadFlags`, `wslInheritsWindowsSettings` |

@@ -15,9 +15,10 @@ sources:
   - raw/docs/official/output-styles.md
   - raw/docs/official/keybindings.md
   - raw/docs/official/settings-reference.md
+  - raw/docs/changelog-2.1.283-to-2.1.296.md
 related: ["[[overview]]", "[[glossary]]", "[[models-and-effort]]", "[[cli-reference]]", "[[troubleshooting]]"]
 created: 2026-09-15
-updated: 2026-09-25
+updated: 2026-10-11
 confidence: high
 last_verified: 2026-09-25
 aliases: [claude-code-release-timeline, new-features-2026, weekly-digest, feature-history]
@@ -27,6 +28,25 @@ valid_until: 2027-03-15
 # What's New in 2026
 
 Current features by the month they landed, newest first; each line links the page that owns the detail.
+
+## October 2026
+
+- Claude Sonnet 5.5 (`claude-sonnet-5-5`) and Claude Haiku 5.5 (`claude-haiku-5-5`) are the default Sonnet and Haiku models on the Anthropic API, each with a 1M window — [[claude-models]]
+- Terminal and VS Code sessions start in auto mode on every plan and provider when no mode is configured — [[permissions-and-modes]]
+- Ultracode is its own toggle in `/effort` and stays on at any effort level — [[models-and-effort]]
+- Opus 4.7 and later and Fable default to a 1M window on Bedrock, Vertex, Foundry and the Claude apps gateway — [[models-and-effort]]
+- Claude Mods let plugins change deeper behavior, and the built-in `You should know` mod flags what you might miss — [[plugins]]
+- `allowedProviders`, `availableModelsMatch` and `deniedModels` managed settings limit providers and models — [[enterprise-admin]]
+- `onFailure: "block"` makes a command or HTTP hook that fails block the action — [[hooks]]
+- Subagents take `autoCompactWindow`, the Agent tool takes `effort`, and `CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL` pins workflow agents — [[subagents]]
+- `claude purge` replaces `claude project purge`, and `claude --desktop` opens the desktop app on a directory — [[cli-reference]]
+- `/doctor prompt-audit`, `/mcp reconnect all` and `/code-review --max-findings` — [[slash-commands]]
+- Claude apps gateway upstreams take a `models:` list and `timeouts.upstream_ttfb_ms`, a `mantle` provider is added, and PostgreSQL 11 is the minimum — [[llm-gateways]]
+- An interactive session's WebSearch budget refills at 100 calls an hour; WebFetch takes `offset` and Read takes `allow_large` — [[tools-reference]]
+- MCP tool descriptions and server instructions are capped at 4,096 characters up front — [[mcp]]
+- Background Bash and PowerShell commands stop at their timeout only in unattended sessions — [[worktrees-and-background-work]]
+- Claude in Chrome can't be turned on from a project's settings files — [[chrome-and-computer-use]]
+- `!fast` switches a Claude Tag thread to fast mode — [[slack-and-claude-tag]]
 
 ## September 2026
 

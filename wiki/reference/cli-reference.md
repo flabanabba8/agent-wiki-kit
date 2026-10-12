@@ -5,9 +5,10 @@ tldr: "Every claude subcommand and launch flag"
 sources:
   - raw/docs/official/cli-reference.md
   - raw/docs/official/env-vars.md
+  - raw/docs/changelog-2.1.283-to-2.1.296.md
 related: ["[[headless-mode]]", "[[slash-commands]]", "[[environment-variables]]", "[[permissions-and-modes]]", "[[worktrees-and-background-work]]", "[[settings]]"]
 created: 2026-09-15
-updated: 2026-09-25
+updated: 2026-10-11
 confidence: high
 last_verified: 2026-09-25
 aliases: [claude-flags, claude-command-line, cli-options, claude-subcommands]
@@ -45,7 +46,7 @@ aliases: [claude-flags, claude-command-line, cli-options, claude-subcommands]
 | Command | Purpose |
 |---|---|
 | `claude agents` | Agent view. `--cwd <path>` filters by directory; `--json` lists active sessions, `--json --all` adds completed. `--permission-mode`, `--model`, `--effort` and `--agent` set defaults for dispatched sessions; `--settings`, `--add-dir`, `--plugin-dir` and `--mcp-config` work as on `claude` |
-| `claude attach <id>`, `claude logs <id>`, `claude respawn <id>` | Attach to a background session in this terminal; print its recent output; restart a running or stopped session with its conversation intact, where `--all` restarts every running session, for example after an update |
+| `claude attach <id>`, `claude logs <id>`, `claude respawn <id>` (part of a session name works in place of the id for attach and logs) | Attach to a background session in this terminal; print its recent output; restart a running or stopped session with its conversation intact, where `--all` restarts every running session, for example after an update |
 | `claude stop <id>`, `claude rm <id>` | Stop a background session, also accepted as `claude kill`; remove a session from the list, keeping its transcript on disk. When a worktree blocks removal, the refusal prints the flag to pass: `--discard-unpushed <commit>@<worktree-id>` or `--force-remove-worktree <worktree-id>` |
 | `claude daemon status`, `claude daemon stop --any` | Supervisor state, version, socket directory and worker count, exiting 1 when the supervisor isn't running; stop the supervisor and its sessions, where `--keep-workers` leaves sessions running for the next supervisor |
 
@@ -68,7 +69,7 @@ Only a leading `--dangerously-skip-permissions` or `--allow-dangerously-skip-per
 | `claude gateway`, `claude self-hosted-runner` | Run the self-hosted Claude apps gateway (SSO and policy in front of Bedrock, Agent Platform or Foundry), which requires `--config gateway.yaml`; register this machine as a runner for a self-hosted cloud environment, with subcommands `setup`, `doctor`, `orchestrator` |
 | `claude remote-control` | Start a Remote Control server with no local interactive session (`--name`) |
 | `claude ultrareview [target]` | Run ultrareview non-interactively. `--json` for raw output, `--timeout <minutes>` (default 45), `--post` posts findings to a github.com PR (`--no-post` is the default). Exit 0 on success, 1 otherwise |
-| `claude project purge [path]` | Delete a project's local state: transcripts, task lists, debug logs, edit and prompt history, its `~/.claude.json` entry. `--dry-run`, `-y`/`--yes`, `-i`/`--interactive`, `--all` |
+| `claude purge [path]` (older name `claude project purge`) | Delete a project's local state: transcripts, task lists, debug logs, edit and prompt history, its `~/.claude.json` entry. `--dry-run`, `-y`/`--yes`, `-i`/`--interactive`, `--all` |
 
 ## Flags
 
@@ -154,6 +155,7 @@ The built prompt is recorded on a conversation's first request and reused, inclu
 - `--chrome`, `--no-chrome`: enable or disable Claude in Chrome.
 - `--ax-screen-reader`: flat, screen-reader friendly output.
 - `--debug`, `--debug-file <path>`: debug mode, where category filters bind only in `=` form, e.g. `--debug='mcp,startup'`; write debug logs to a file, which implies debug mode.
+- `--desktop`: open the Claude desktop app on the current directory, or on a session with `--continue` or `--resume <id>`.
 - `--version`, `-v`: print the version.
 
 ## Examples

@@ -15,9 +15,10 @@ sources:
   - raw/articles/opus-5-5-longer-coding-sessions.md
   - raw/articles/what-a-task-costs-on-opus-5-5.md
   - raw/docs/changelog-2.1.275-to-2.1.282.md
+  - raw/docs/changelog-2.1.283-to-2.1.296.md
 related: ["[[claude-md-and-memory]]", "[[costs-and-usage]]", "[[subagents]]", "[[models-and-effort]]", "[[context-engineering]]"]
 created: 2026-09-15
-updated: 2026-09-25
+updated: 2026-10-11
 confidence: high
 last_verified: 2026-09-25
 aliases: [compaction, auto-compact, prompt-caching, context-management, slash-context, session-length, cache-hit-rate]
@@ -91,7 +92,7 @@ Extended-context availability and `[1m]` variants are in [[models-and-effort]].
 
 | Where | How | Notes |
 |---|---|---|
-| Saved setting | `/autocompact 500k` (or `200000`, `1M`, `200`). `/autocompact auto` resets | Writes `autoCompactWindow` to user settings. A managed setting can override it |
+| Saved setting | `/autocompact 500k` (or `200000`, `1M`, `200`). `/autocompact auto` resets | Writes `autoCompactWindow` to user settings, kept per model. A managed setting can override it |
 | One launch | `claude --autocompact 500k` | Not preempted by managed settings |
 | Scripts and cloud | `CLAUDE_CODE_AUTO_COMPACT_WINDOW=500000` | Plain token count only. Beats everything else |
 

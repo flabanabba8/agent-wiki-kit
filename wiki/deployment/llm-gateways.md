@@ -15,9 +15,10 @@ sources:
   - raw/docs/official/amazon-bedrock.md
   - raw/docs/changelog-2.1.273-to-2.1.274.md
   - raw/docs/changelog-2.1.275-to-2.1.282.md
+  - raw/docs/changelog-2.1.283-to-2.1.296.md
 related: ["[[cloud-providers]]", "[[enterprise-admin]]", "[[settings]]", "[[data-and-privacy]]", "[[open-models]]"]
 created: 2026-09-15
-updated: 2026-09-25
+updated: 2026-10-11
 confidence: high
 last_verified: 2026-09-25
 aliases: [llm-gateway, anthropic-base-url, claude-apps-gateway, gateway-setup, api-key-helper]
@@ -152,12 +153,12 @@ An `ANTHROPIC_BASE_URL` gateway receives Anthropic IDs, the full beta set, and a
 Going back: return `content-type: text/event-stream` on streamed Anthropic-format responses and relay `application/vnd.amazon.eventstream` untouched on Bedrock-format ones; write `retry-after` as integer seconds, not an HTTP date, since above 60 it stops the retries and surfaces the error at once; pass `x-should-retry` through so retry decisions match the upstream's, and `anthropic-ratelimit-unified-*` so plan limits and spend caps display. A `400` naming a thinking block `bound to a different conversation` is the API's preserved-thinking check, which a gateway that rewrites `system`, `tools` or earlier message content trips itself.
 
 - An OIDC IdP (Okta, Entra ID, Google Workspace, Keycloak, Dex and others; no SAML or LDAP).
-- PostgreSQL 14 or later.
+- PostgreSQL 11 or later.
 - HTTPS on a hostname that resolves only to private addresses. If your internal network uses public IPv4 space you own, list up to four non-overlapping blocks (`/8` to `/32`) in the managed `gatewayInternalNetworks` setting; `/login` then accepts a gateway in a listed block only when the client connects directly from inside the same block. An invalid list refuses every new gateway sign-in on that machine. Set the gateway's `access_control.allow_cidrs` to the same blocks.
 - A native Linux host.
 - Claude Code v2.1.195 or later on the server and on clients.
 
-Run it with `claude gateway --config gateway.yaml`. It needs an OIDC IdP (Okta, Entra ID, Google Workspace, Keycloak, Dex; no SAML or LDAP), PostgreSQL 14 or later, HTTPS on a hostname that resolves only to private addresses, and a native Linux host. Upstreams can be Bedrock (not Mantle), Claude Platform on AWS, Agent Platform, Foundry or the Anthropic API. Failover runs in order and keeps no state, so a down upstream is tried again on every request that reaches it.
+Run it with `claude gateway --config gateway.yaml`. It needs an OIDC IdP (Okta, Entra ID, Google Workspace, Keycloak, Dex; no SAML or LDAP), PostgreSQL 11 or later, HTTPS on a hostname that resolves only to private addresses, and a native Linux host. Upstreams can be Bedrock (not Mantle), Claude Platform on AWS, Agent Platform, Foundry or the Anthropic API. Failover runs in order and keeps no state, so a down upstream is tried again on every request that reaches it.
 
 Connect developers with these keys in the device's managed settings file:
 
@@ -188,6 +189,9 @@ The gateway enforces model access server-side, delivers per-group managed settin
 - `access_control.allow_cidrs` restricts which client addresses the gateway serves; an empty list serves everyone and logs a warning.
 - `CLAUDE_GATEWAY_PROXY_IS_EGRESS_BOUNDARY=1` suits a gateway whose only egress is the forward proxy in `HTTPS_PROXY`: outbound requests hand the proxy a hostname instead of a locally resolved IP, moving the SSRF check onto the proxy's allowlist. It stays off unless `NO_PROXY` and `no_proxy` are empty and `CLAUDE_GATEWAY_ALLOW_LOOPBACK` is unset.
 - A `headers:` map on an upstream sends fixed headers to a proxy in front of a provider, with `${VAR}` or `${file:/path}` expansion. `authorization`, `x-api-key`, `host`, `content-type`, `user-agent` and any `anthropic-`, `x-goog-`, `x-amz-` or `x-amzn-` name are reserved.
+- An upstream's optional `models:` list sends it only those models, failover included; one `*` in an entry is a wildcard. `timeouts.upstream_ttfb_ms` limits how long a stream may take to start on Bedrock, Vertex, Foundry and other cloud upstreams, after which the request fails over or returns 502. A `mantle` provider serves Amazon Bedrock's Mantle endpoint.
+- Inference responses carry a `request-id` header that matches `request_id` in Claude Code telemetry, and the `inference` audit event records `upstream_request_id`. An opt-in `load_test_mode` block builds and signs requests but returns a canned reply instead of calling upstream.
+- A managed policy's `code` key holds the same settings as `cli` and also applies in Claude Desktop's Code tab; beside `desktop`, it turns on Desktop's gateway mode. `forceLoginMethod: "gateway"` with `forceLoginGatewayUrl` also works in user settings on a machine with no managed settings.
 - Relayed Claude Desktop and Cowork telemetry carries `enduser.sub`, the IdP subject.
 
 Gateway sessions have no server-side web search, no `/design-sync` or `/import`, no 1-hour cache TTL and no first-party-only optimizations.

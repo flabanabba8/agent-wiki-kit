@@ -8,9 +8,10 @@ sources:
   - raw/docs/official/features-overview.md
   - raw/docs/official/sub-agents.md
   - raw/docs/changelog-2.1.275-to-2.1.282.md
+  - raw/docs/changelog-2.1.283-to-2.1.296.md
 related: ["[[settings]]", "[[permissions-and-modes]]", "[[subagents]]", "[[skills]]", "[[plugins]]", "[[mcp]]"]
 created: 2026-09-15
-updated: 2026-09-25
+updated: 2026-10-11
 confidence: high
 last_verified: 2026-09-25
 aliases: [claude-code-hooks, pretooluse-hook, hook-events, settings-json-hooks, block-destructive-shell-command, stop-a-command-before-it-runs]
@@ -92,7 +93,7 @@ A hook config has three levels: an event, a matcher group, and one or more handl
 
 ## Handler types
 
-Common fields: `type`, `if`, `timeout` (seconds), `statusMessage`, and `once` (skill frontmatter only).
+Common fields: `type`, `if`, `timeout` (seconds), `statusMessage`, and `once` (skill frontmatter only). On `command` and `http` hooks, `onFailure: "block"` blocks the action when the hook can't start, times out or exits with an unexpected code, instead of letting it through.
 
 - **`command`**: `command`, optional `args`, `async`, `asyncRewake`, `shell` (`bash` or `powershell`). With `args` it runs exec-form — no shell, each element verbatim — so prefer it for path placeholders; without `args` it runs through `sh -c`.
 - **`http`**: `url`, `headers`, `allowedEnvVars`. The input is POSTed as JSON and a 2xx JSON body is read like stdout; status codes alone can't block. `allowedHttpHookUrls` and `httpHookAllowedEnvVars` restrict URLs and header variables.

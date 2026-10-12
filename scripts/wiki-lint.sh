@@ -163,7 +163,8 @@ for f in "${PAGES[@]}"; do
         verified=$(grep "^last_verified:" "$f" 2>/dev/null | head -1 | sed 's/last_verified: *//')
         if [[ -n "$verified" ]]; then
           verified_epoch=$(date -d "$verified" +%s 2>/dev/null || date -j -f "%Y-%m-%d" "$verified" +%s 2>/dev/null || echo 0)
-          if [[ $src_mtime -gt $verified_epoch ]]; then
+          # last_verified is a date, so a source fetched later the same day counts as verified.
+          if [[ $src_mtime -ge $((verified_epoch + 86400)) ]]; then
             HASH_STALE+=("$f (source: $src changed)")
           fi
         fi

@@ -9,9 +9,10 @@ sources:
   - raw/docs/official/features-overview.md
   - raw/docs/changelog-2.1.273-to-2.1.274.md
   - raw/docs/changelog-2.1.275-to-2.1.282.md
+  - raw/docs/changelog-2.1.283-to-2.1.296.md
 related: ["[[plugins]]", "[[enterprise-admin]]", "[[channels]]", "[[advanced-tool-use]]", "[[hooks]]", "[[agent-standards]]"]
 created: 2026-09-15
-updated: 2026-09-25
+updated: 2026-10-11
 confidence: high
 last_verified: 2026-09-25
 aliases: [mcp-servers, mcp-json, claude-mcp-add, managed-mcp, mcp-tool-search]
@@ -97,7 +98,7 @@ An `enableAllProjectMcpServers` or `enabledMcpjsonServers` approval committed in
 
 ## Tool search and context
 
-Tool search is on by default: only tool names and server instructions load at start, and Claude discovers full schemas on demand, so adding servers barely affects context. Tool descriptions and server instructions are truncated at 2,048 characters each; `CLAUDE_CODE_MAX_MCP_DESCRIPTION_LENGTH` changes the cap for every server in the session. Tool search is off when `ANTHROPIC_BASE_URL` points at a non-first-party host, and it requires Claude Sonnet 4.5, Haiku 4.5, Opus 4.5 or later. It is unavailable on Microsoft Foundry deployments hosted on Azure.
+Tool search is on by default: only tool names and server instructions load at start, and Claude discovers full schemas on demand, so adding servers barely affects context. Tool descriptions and server instructions are truncated at 4,096 characters each up front, and at 16,384 when tool search loads a tool's description; `CLAUDE_CODE_MAX_MCP_DESCRIPTION_LENGTH` changes the cap for every server in the session. Tool search is off when `ANTHROPIC_BASE_URL` points at a non-first-party host, and it requires Claude Sonnet 4.5, Haiku 4.5, Opus 4.5 or later. It is unavailable on Microsoft Foundry deployments hosted on Azure.
 
 | `ENABLE_TOOL_SEARCH` | Behavior |
 | :-- | :-- |
@@ -106,7 +107,7 @@ Tool search is on by default: only tool names and server instructions load at st
 | `auto` / `auto:N` | Load upfront until definitions reach 10% (or N%) of the context window, then defer |
 | `false` | Load all tools upfront |
 
-Set `"alwaysLoad": true` on a server, or `"anthropic/alwaysLoad": true` in a tool's `_meta`, to skip deferral for tools Claude needs every turn. Deny `ToolSearch` in permissions to disable the tool. `/context all` shows per-tool token cost ([[context-window]]). The API-level mechanics are on [[advanced-tool-use]].
+Set `"alwaysLoad": true` on a server, or `"anthropic/alwaysLoad": true` in a tool's `_meta`, to skip deferral for tools Claude needs every turn; `"alwaysLoad": false` defers all of that server's tools behind tool search, except a tool whose own `_meta` says otherwise. Deny `ToolSearch` in permissions to disable the tool. `/context all` shows per-tool token cost ([[context-window]]). The API-level mechanics are on [[advanced-tool-use]].
 
 ## Timeouts and output limits
 
