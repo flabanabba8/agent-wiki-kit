@@ -13,3 +13,7 @@ You write pages for a source-backed Claude Code wiki. Read CLAUDE.md first.
 - Every env var, slash command and `claude --flag` must appear in a cited raw file; run `python3 scripts/lint_identifiers.py` before finishing.
 - Frontmatter per CLAUDE.md; tldr under 50 chars; 3+ related links that resolve.
 - Afterwards: add new pages to `wiki/index.md`, append `wiki/log.md`, and add a `wiki/hot.md` line.
+
+## Task contract
+
+Work only on the assigned topics and source files. Treat missing evidence as a research dependency; do not fill it from memory or broaden your assignment. Return changed page paths, the claims each source supports, checks actually run and their results, and remaining gaps. Writing a file is not proof its claims or links passed verification.

@@ -7,11 +7,12 @@ sources:
   - raw/docs/official/commands.md
   - raw/docs/official/whats-new__2026-w34.md
   - raw/docs/changelog-2.1.273-to-2.1.274.md
+  - raw/docs/changelog-2.1.275-to-2.1.282.md
 related: ["[[mcp]]", "[[permissions-and-modes]]", "[[enterprise-admin]]", "[[data-and-privacy]]", "[[settings]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
+last_verified: 2026-09-25
 aliases: [claude-artifacts, publish-artifact, share-session-output, artifact-connectors, design-canvas]
 valid_until: 2027-03-15
 ---
@@ -35,7 +36,7 @@ Claude writes an HTML or Markdown file (in a temporary directory unless you name
 - **Auto mode:** the classifier reviews it and there is no prompt.
 - **Manual / Accept edits:** Claude Code asks you to approve the upload to claude.ai.
 
-Republishing an approved artifact doesn't ask again, except when Claude declares a new runtime capability (connectors or downloads), when the artifact is shared publicly, or when it is shared with people and set to always show the latest version.
+Republishing an approved artifact doesn't ask again, except when Claude declares a new runtime capability (connectors or downloads), when the artifact is shared publicly, or when it is shared with people and set to always show the latest version. Scheduled and **Run now** routine runs save data to and republish an artifact you can edit without asking; public artifacts, first publishes and deletes still ask.
 
 After publishing:
 - Your browser opens to the page. Set `CLAUDE_CODE_ARTIFACT_AUTO_OPEN=0` to stop that, and press `Ctrl+]` to reopen the most recent artifact.
@@ -43,7 +44,7 @@ After publishing:
 - In a local session, a version published elsewhere doesn't start a turn; Claude learns of it from a later Artifact tool result.
 - To update from a different session, give Claude the artifact URL or attach the artifact with `/artifacts`. Without one of those, a new session creates a new artifact.
 
-`/artifacts` lists artifacts you own and ones shared with you. Press `o` to open, `c` to copy the link, or `Enter` to attach to the current session.
+`/artifacts` lists this session's artifacts first, then others you own and ones shared with you; the `⧉ name` or `⧉ N` pill under the prompt opens it. Press `o` to open, `c` to copy the link, or `Enter` to attach to the current session.
 
 ## Sharing
 
@@ -56,7 +57,7 @@ A new artifact is private. The gallery is at claude.ai/code/artifacts.
 
 - On Team and Enterprise, you can change someone from **viewer** to **editor**. Editors publish new versions by giving Claude the URL.
 - Public viewers who are not signed in, or are outside your organization, see `Content is user-generated and unverified.` instead of your name.
-- When Claude reads someone else's artifact, it works like WebFetch: Claude gets a summary and is warned about instructions in the page, and the full source is saved locally.
+- Claude reads claude.ai artifact links with the Artifact tool rather than WebFetch when that tool is available. Reading someone else's artifact works like WebFetch: Claude gets a summary and is warned about instructions in the page, and the full source is saved locally.
 
 ### Comments
 
@@ -93,15 +94,15 @@ The viewer blocks downloads the page starts itself, including `data:`/`blob:` li
 
 ### Draft a design canvas with `/design`
 
-Use `/design` to **mock up** a UI, a screen flow, a landing page or a poster instead of building a working page. Claude drafts the design as artboards laid out on one canvas and publishes that canvas as an artifact running a research preview of Claude Design's editor. The brief is the argument:
+Use `/design` to **mock up** a UI, a screen flow, a landing page or a poster instead of building a working page. Claude drafts the design as artboards laid out on one canvas and publishes that canvas as a Design artifact. The brief is the argument:
 
 ```text
 /design a settings screen for a mobile banking app
 ```
 
-Open the published artifact to review the artboards. Where saving is enabled for your account, select an element on an artboard, change it, and save to publish a new version; otherwise you view the draft and export it as PNG or PDF. Then ask Claude to implement the artboard you picked.
+Open the published artifact in a desktop browser to review the artboards. Select an element on an artboard and change it; edits save automatically. Each artboard exports as PNG or PDF. Then ask Claude to implement the artboard you picked.
 
-`/design` needs a session where artifacts are available (see Availability below), so it runs on the Anthropic API only and does not appear on Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry or Claude Platform on AWS.
+`/design` needs Claude Code v2.1.265 or later and a session where artifacts are available (see Availability below), so it runs on the Anthropic API only and does not appear on Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry or Claude Platform on AWS.
 
 To make drafts use your real components, `/design-sync` converts your repo's React design system and uploads it to Claude Design, optionally named (`/design-sync Acme DS`); a first-time sync verifies every component and can take a few hours on a large repo. `/design-login` authorizes that access with your claude.ai account. Both need claude.ai, so neither is available on those four providers.
 
@@ -109,7 +110,7 @@ To make drafts use your real components, `/design-sync` converts your repo's Rea
 
 | Constraint | Effect |
 |---|---|
-| External requests | Scripts only from cdnjs, the Tailwind CDN, the jQuery CDN and some jsDelivr paths such as `/npm/`. Fonts only from Google Fonts. Fetch, XHR and WebSocket reach only the page's origin and the Google Fonts hosts. External images are blocked |
+| External requests | Scripts only from cdnjs, unpkg.com, the Tailwind CDN, the jQuery CDN and some jsDelivr paths such as `/npm/`. Fonts only from Google Fonts. Fetch, XHR and WebSocket reach only the page's origin and the Google Fonts hosts. External images are blocked |
 | No backend | The page is static and can't authenticate viewers |
 | Single page | Relative links don't resolve. Use in-page anchors |
 | File types | `.html`, `.htm` or `.md`, encoded as UTF-8 or UTF-16LE with a BOM. Markdown renders as a styled document |
@@ -124,7 +125,8 @@ Every condition must hold, or Claude writes a local file or says it can't publis
 - **Authentication:** a claude.ai login via `/login`. API key, gateway token and cloud-provider sessions can't publish.
 - **Provider:** the Anthropic API. Not Bedrock, Google Cloud's Agent Platform or Foundry.
 - **Organization:** no CMEK, HIPAA or Zero Data Retention (see [[data-and-privacy]]).
-- **Surface:** the Claude Code CLI, the desktop app, or Claude Tag. Off by default in the Agent SDK, GitHub Action and MCP-server contexts, and when `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` is set.
+- **Policy:** your organization's policy, loaded from `api.anthropic.com`, must load and allow artifacts. If a proxy or filter blocks it, Claude says why; Claude Code keeps retrying in the background.
+- **Surface:** the Claude Code CLI, the desktop app (1.13576.0 or later), or Claude Tag. Off by default in the Agent SDK, GitHub Action and MCP-server contexts, and when `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` is set.
 
 ## Disable
 

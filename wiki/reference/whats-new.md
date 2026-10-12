@@ -5,10 +5,10 @@ tldr: "2026 timeline of current features"
 sources:
   - raw/docs/official/whats-new__index.md
   - raw/docs/official/whats-new__2026-w37.md
+  - raw/docs/official/changelog.md
   - raw/docs/changelog-2.1.271-to-2.1.272.md
   - raw/docs/changelog-2.1.273-to-2.1.274.md
-  - raw/docs/changelog-2.1.275-to-2.1.278.md
-  - raw/docs/official/claude-projects.md
+  - raw/docs/changelog-2.1.275-to-2.1.282.md
   - raw/docs/official/commands.md
   - raw/docs/official/model-config.md
   - raw/docs/official/fast-mode.md
@@ -17,37 +17,49 @@ sources:
   - raw/docs/official/settings-reference.md
 related: ["[[overview]]", "[[glossary]]", "[[models-and-effort]]", "[[cli-reference]]", "[[troubleshooting]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
+last_verified: 2026-09-25
 aliases: [claude-code-release-timeline, new-features-2026, weekly-digest, feature-history]
 valid_until: 2027-03-15
 ---
 
 # What's New in 2026
 
-Features that exist today, grouped by the month they landed, newest first. Each line points at the page that owns the detail; for flag and command spellings see [[cli-reference]] and [[slash-commands]].
+Current features by the month they landed, newest first; each line links the page that owns the detail.
 
 ## September 2026
 
-- Projects coordinate parallel cloud sessions from one conversation; every thread starts with the project's repositories, instructions and memory — [[claude-projects]]
-- A project with no CLAUDE.md takes its instructions from AGENTS.md; **Project instructions** in `/config` picks the file — [[claude-md-and-memory]]
-- Auto mode defaults to the server-side classifier, which bills no overhead, for Claude API and Enterprise users and on Bedrock, Agent Platform, Foundry and gateways, where `CLAUDE_CODE_AUTO_MODE_SERVER=0` opts out; `/status` has an `Auto mode server` row — [[permissions-and-modes]]
-- `CLAUDE_CODE_MCP_STARTUP_WAIT_MS` bounds how long a non-interactive first turn waits for connecting MCP servers; Bedrock, Agent Platform, Foundry and telemetry-disabled installs use the v2 MCP client with 2026-07-28 negotiation and skip `"type": "sdk"` entries with a warning — [[mcp]]
-- `CLAUDE_CODE_GATEWAY_HINT_HEADERS=1` sends request-class, agent-type, tool-duration and compaction hint headers to an LLM gateway, and `CLAUDE_GATEWAY_PROXY_IS_EGRESS_BOUNDARY=1` hands hostnames to a gateway's forward proxy instead of resolving them — [[llm-gateways]]
-- The Claude apps gateway takes `store.connect_timeout_seconds`, a `headers:` map of static headers per upstream, and drains in-flight requests for 25 seconds on SIGTERM (`CLAUDE_GATEWAY_DRAIN_TIMEOUT_MS`); its `pricing` block and the `modelPricing` managed setting accept a multiplier above 1, up to 10, for internal chargeback — [[llm-gateways]]
-- The `claude_code.managed_settings_resolved` OTel event reports managed-settings sources, redacted values under `OTEL_LOG_MANAGED_SETTINGS=1`; the `claude_code.llm_request` span carries `effort`, and `OTEL_LOG_TOOL_DETAILS=1` names agents, skills, plugins and MCP servers on cost metrics — [[enterprise-admin]]
-- Remote Control forks a session from the Claude app into a background session on your computer; a cloud session's diff view compares its changes against any branch with **Compare against**, and `claude self-hosted-runner --drain-marker-file` reports a SIGTERM exit as a host drain — [[claude-code-on-the-web]]
-- VS Code carries on the step a window reload interrupted, adds Memory and Instructions to Customize, takes `claudeCode.lockEditorGroups`, opens an agent map from the agent count, and edits hooks and permission rules there — [[ide-integrations]]
+- Claude Opus 5.5 (`claude-opus-5-5`) is the default model on every plan: 1M context, $4/$20 per MTok, `medium` default effort — [[claude-models]]
+- The auto mode classifier runs server-side by default on the Claude API, Enterprise, cloud providers and gateways, with no charge for its overhead; `CLAUDE_CODE_AUTO_MODE_SERVER=0` opts out — [[permissions-and-modes]]
+- Claude Code reads `AGENTS.md` in a project with no CLAUDE.md — [[claude-md-and-memory]]
+- Terminal sessions sync the skills and plugins enabled on your claude.ai account — [[skills]]
+- Send now (`Ctrl+Enter`) sends queued messages at once and moves running tools to the background — [[interface]]
+- `maxProseWidth` caps prose width, and `"attribution": false` hides all commit and PR attribution — [[settings]]
+- MCP servers open browser flows through URL-mode elicitation; `CLAUDE_CODE_MAX_MCP_DESCRIPTION_LENGTH` sets the description cap — [[mcp]]
+- The TaskOutput tool is removed; Claude reads background output files with `Read` — [[tools-reference]]
+- Claude apps gateway Bedrock upstreams take `assume_role` and a Bedrock `guardrail` — [[llm-gateways]]
+- VS Code opens typed `/status`, `/sandbox`, `/chrome`, `/export`, `/skills` and `/plan` as dialogs — [[ide-integrations]]
+- `CLAUDE_CODE_MCP_STARTUP_WAIT_MS` bounds a non-interactive first turn's wait for connecting MCP servers — [[mcp]]
+- Every install uses the v2 MCP client with 2026-07-28 protocol negotiation — [[mcp]]
+- `CLAUDE_CODE_GATEWAY_HINT_HEADERS=1` sends routing-hint headers to an LLM gateway — [[llm-gateways]]
+- The `claude_code.managed_settings_resolved` OTel event reports managed-settings sources, and spans carry `effort` — [[enterprise-admin]]
+- A Remote Control session forks from the Claude app into a background session on your own computer — [[claude-code-on-the-web]]
+- A cloud session's diff view compares its changes against any branch with **Compare against** — [[claude-code-on-the-web]]
+- VS Code carries on the step a window reload interrupted — [[ide-integrations]]
 - A **Guests** setting in Claude Tag's Add channel and Add workspace forms sets guest access up front — [[slack-and-claude-tag]]
-- `claude plugin eval` scores a plugin against a suite of test cases and reruns each without the plugin; `claude plugin eval init` drafts the cases and graders — [[plugins]]
-- `--json` on `claude plugin install`, `uninstall`, `update`, `enable` and `disable` prints one JSON object on the last line of stdout; `--accept-command` accepts exactly the command a previous `--json` run showed; `--plugin-dir` pointed at a folder loads every immediate subfolder with a manifest, and `/plugin install <plugin> --marketplace <source>` offers to add the marketplace first — [[plugins]]
-- Terminal sessions signed in to claude.ai sync the skills and plugins enabled there, unless `syncClaudeAiSkills` or `syncClaudeAiPlugins` is `false` — [[skills]] and [[plugins]]
-- `maxEffortLevel`, at the top level or per model under `modelSettings`, caps the effort level on every provider; fast mode works in Claude Code Remote sessions your organization allows, and Fable always appears in `/model` on the Anthropic API, greyed out only where organization settings disable it — [[models-and-effort]]
-- WebFetch fails with a deadline error if a page hasn't downloaded in five minutes (`CLAUDE_CODE_WEBFETCH_DEADLINE_MS` changes or removes it); Monitor watches always carry a deadline (30 minutes, 10 in `-p` runs) and notify Claude to re-arm; Claude reads a background task's output file with Read — [[tools-reference]]
-- Desktop panes pop out into their own windows and dock back — [[desktop-app]]
-- Typing `/` mid-prompt lists matching commands, and a plugin skill matches without its prefix; the `/config` panel takes mouse input in fullscreen rendering; a send-now key (`Ctrl+Enter`, or `Ctrl+X Ctrl+S`) interrupts the turn and sends every queued message at once — [[interface]]
-- Claude picks a browser-tab icon for each artifact it publishes, and scheduled or Run now routine runs republish an artifact you can edit without asking; public artifacts, first publishes and deletes still ask — [[artifacts]]
+- `claude plugin eval` scores a plugin against test cases, with and without it — [[plugins]]
+- `--json` on `claude plugin install`, `uninstall`, `update`, `enable` and `disable` prints one JSON result — [[plugins]]
+- `--plugin-dir` pointed at a folder loads every immediate subfolder that has a manifest — [[plugins]]
+- `maxEffortLevel`, at the top level or per model under `modelSettings`, caps the effort level on every provider — [[models-and-effort]]
+- Fast mode works in cloud sessions, including self-hosted runners, with `/fast on` — [[models-and-effort]]
+- WebFetch has a five-minute download deadline (`CLAUDE_CODE_WEBFETCH_DEADLINE_MS`) — [[tools-reference]]
+- Monitor watches always carry a deadline (30 minutes, 10 in `-p` runs) and notify Claude to re-arm — [[tools-reference]]
+- Desktop panes pop out into their own windows and dock back later — [[desktop-app]]
+- Typing `/` mid-prompt opens a list of matching commands; a plugin skill matches without its prefix — [[interface]]
+- The `/config` panel takes mouse input in fullscreen rendering — [[interface]]
+- In VS Code, the agent count opens an agent map, and the command menu's Customize section edits hooks and permission rules — [[ide-integrations]]
+- Claude picks a browser-tab icon for each artifact it publishes — [[artifacts]]
 - Per-command `allowed_domains` in auto mode with sandboxing opens only the hosts a command needs, for that command alone — [[sandboxing-and-security]]
 - `omitClaudeMd` in agent frontmatter and `--agents` JSON runs a subagent without user, project and local CLAUDE.md, and a subagent's result arrives indented under a subagent-output header, so its text can't pass as session instructions — [[subagents]]
 
@@ -71,7 +83,8 @@ Features that exist today, grouped by the month they landed, newest first. Each 
 
 ## July 2026
 
-- Claude Opus 5 is the default Opus model, with a 1M-token context window and fast mode at $10/$50 per MTok; Claude Sonnet 5 is the default for Pro and Team Standard seats, with a native 1M-token context window and adaptive thinking on — [[claude-models]]
+- Claude Opus 5 arrives with a 1M-token context window and fast mode at $10/$50 per MTok — [[claude-models]]
+- Claude Sonnet 5 arrives with a native 1M-token context window and adaptive thinking on by default — [[claude-models]]
 - Auto mode runs on Amazon Bedrock, Google Cloud's Agent Platform and Microsoft Foundry with no opt-in variable — [[cloud-providers]]
 - Auto mode blocks transcript tampering and asks before `rm -rf` on unresolved variables — [[permissions-and-modes]]
 - Subagents run in the background by default, and agent view rows show a state word with a classifier-written headline — [[subagents]]

@@ -5,11 +5,12 @@ tldr: "Run Claude Code non-interactively in scripts"
 sources:
   - raw/docs/official/headless.md
   - raw/docs/official/cli-reference.md
+  - raw/docs/changelog-2.1.275-to-2.1.282.md
 related: ["[[agent-sdk]]", "[[cli-reference]]", "[[permissions-and-modes]]", "[[ci-cd-and-code-review]]", "[[agent-sdk-control]]", "[[hooks]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
+last_verified: 2026-09-25
 aliases: [claude-p, print-mode, non-interactive-mode, bare-mode, json-output]
 ---
 
@@ -32,7 +33,7 @@ claude -p "Find and fix the bug in auth.py" --allowedTools "Read,Edit,Bash"
 
 ## Bare mode
 
-`--bare` skips auto-discovery of hooks, skills, custom commands, subagents, plugins, MCP servers, auto memory and CLAUDE.md. It is the recommended mode for scripted and SDK calls because the result doesn't depend on what is in a teammate's `~/.claude` or the repository. The docs say it will become the default for `-p` in a future release.
+`--bare` skips auto-discovery of hooks, skills, custom commands, subagents, installed plugins, MCP servers, auto memory and CLAUDE.md. It is the recommended mode for scripted and SDK calls because the result doesn't depend on what is in a teammate's `~/.claude` or the repository. The docs say it will become the default for `-p` in a future release.
 
 ```bash
 claude --bare -p "Summarize README.md" --allowedTools "Read"
@@ -58,7 +59,7 @@ claude --bare -p "Summarize README.md" --allowedTools "Read"
 | `--output-format` | Output |
 |---|---|
 | `text` (default) | Plain text |
-| `json` | A single object with `result`, `session_id`, usage metadata, `total_cost_usd` and a per-model cost breakdown (costs are client-side estimates) |
+| `json` | A single object with `result`, `session_id`, usage metadata, `total_cost_usd` and a per-model cost breakdown (client-side estimates; with `--continue`/`--resume` they include earlier runs' spend) |
 | `stream-json` | Newline-delimited JSON events. The last line is a `result` message |
 
 ```bash
@@ -88,7 +89,7 @@ claude -p "Write a poem" --output-format stream-json --verbose --include-partial
 Useful events and fields:
 - **`system/init`** comes first, after any `plugin_install` or hook events. It lists the model, tools, `mcp_servers`, `plugins`, and a `capabilities` array for feature detection. **Fail CI on a non-empty `plugin_errors` or `mcp_server_errors`.** An `--mcp-config` entry that fails validation is skipped and the run still exits cleanly. With `-p`, Claude Code waits up to `MCP_TIMEOUT` (30 seconds by default) for pending MCP servers.
 - **`system/api_retry`** reports `attempt`, `max_retries`, `retry_delay_ms`, `error_status` and an `error` category such as `rate_limit`, `overloaded` or `authentication_failed`.
-- **Subagent messages** carry the spawning tool call's ID in `parent_tool_use_id`, which is `null` for the main conversation. By default only their `tool_use`/`tool_result` blocks appear. Add `--forward-subagent-text` or `CLAUDE_CODE_FORWARD_SUBAGENT_TEXT` to include text and thinking at every nesting depth.
+- **Subagent messages** (including forked skills) carry the ID of the Agent or Skill tool call that started them in `parent_tool_use_id`, which is `null` for the main conversation. By default only their `tool_use`/`tool_result` blocks appear. Add `--forward-subagent-text` or `CLAUDE_CODE_FORWARD_SUBAGENT_TEXT` to include text and thinking at every nesting depth.
 - **`system/plugin_install`** events are emitted when `CLAUDE_CODE_SYNC_PLUGIN_INSTALL` is set.
 - If stdin is `stream-json`, use `--input-format stream-json`. `--replay-user-messages` echoes user messages back and needs both formats set to `stream-json`.
 
@@ -96,7 +97,7 @@ Useful events and fields:
 
 | Flag | Effect |
 |---|---|
-| `--max-budget-usd 5.00` | Stops once API spend reaches the cap. Subagent spend counts. At the cap, spawning a subagent fails with `Budget limit reached` and running background subagents are stopped |
+| `--max-budget-usd 5.00` | Stops once API spend reaches the cap. Subagent spend counts; totals restored by `--continue`/`--resume` don't. At the cap, spawning a subagent fails with `Budget limit reached` and running background subagents are stopped |
 | `--max-turns 3` | Limits agentic turns and exits with an error at the limit. There is no limit by default |
 
 Both apply in print mode only. For cost tracking in general, see [[costs-and-usage]].
@@ -142,10 +143,13 @@ gh pr diff "$1" | claude -p \
   --output-format json
 ```
 
+In a `--system-prompt` that contains a `__SYSTEM_PROMPT_DYNAMIC_BOUNDARY__` line, the text above the line is cached globally, as the SDK's array form is. `--system-prompt-file` and `--append-system-prompt-file` read the text from a file instead of the command line.
+
 ## Process lifecycle
 
 - **Background Bash tasks** that Claude started (dev servers, watchers) are killed about 5 seconds after the final result, once stdin has closed.
 - **Background subagents and workflows** keep `-p` open until they finish, up to 10 minutes of continuous idle waiting. Change that with `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS` (`0` means no ceiling). **Monitor** watches are waited on until they time out, which is 5 minutes by default.
+- **Internal errors** make `-p` and SDK sessions report the error and exit with code 1.
 - **SIGTERM** exits with code 143 and leaves the current turn unfinished. Claude Code kills running Bash process trees, runs `SessionEnd` hooks and exits. A later resume continues the unfinished turn. To end a turn cleanly, send SIGINT (or call the SDK's `interrupt()`) first.
 - `claude -p --worktree` skips the workspace trust check and never cleans up its worktree (see [[worktrees-and-background-work]]).
 

@@ -37,9 +37,9 @@ sources:
   - raw/docs/official/headless.md
 related: ["[[openai-codex]]", "[[skills]]", "[[mcp]]", "[[permissions-and-modes]]", "[[hooks]]", "[[agent-standards]]"]
 created: 2026-09-17
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
+last_verified: 2026-09-25
 aliases: [opencode, opencode-vs-claude-code, opencode-config, opencode-plugin-hooks, opencode-skills]
 valid_until: 2027-03-15
 ---
@@ -173,7 +173,7 @@ Built-in tool names and the argument keys those hooks see: `bash` (`command`), `
 
 | Area | OpenCode | Claude Code |
 |---|---|---|
-| Instruction file | `AGENTS.md`, falling back to `CLAUDE.md`; first match wins, one layer only | `CLAUDE.md`, `CLAUDE.local.md`, `~/.claude/CLAUDE.md`, all levels concatenated, `@path` imports; `AGENTS.md` when no `CLAUDE.md` is present ([[claude-md-and-memory]]) |
+| Instruction file | `AGENTS.md`, falling back to `CLAUDE.md`; first match wins, one layer only | `CLAUDE.md`, `CLAUDE.local.md`, `~/.claude/CLAUDE.md`, all levels concatenated, `@path` imports; `AGENTS.md` when no CLAUDE.md exists ([[claude-md-and-memory]]) |
 | Config format | JSON/JSONC `opencode.json`, `~/.config/opencode/opencode.json`, merged; `.opencode/` dirs | JSON `.claude/settings.json`, `~/.claude/settings.json`, `.claude/settings.local.json`, managed settings |
 | Extra instruction files | `instructions` array of paths, globs and URLs | `@imports` inside CLAUDE.md |
 | Autonomy controls | `permission` rules (`allow`/`ask`/`deny`), last match wins, `--auto` | Permission modes `default` (Manual), `acceptEdits`, `plan`, `auto`, `dontAsk`, `bypassPermissions` plus allow/ask/deny rules ([[permissions-and-modes]]) |
@@ -181,7 +181,7 @@ Built-in tool names and the argument keys those hooks see: `bash` (`command`), `
 | Skills | `.opencode/skills/`, `.claude/skills/`, `.agents/skills/` (project and global); `skill` tool | `.claude/skills/<name>/SKILL.md`, `~/.claude/skills/` ([[skills]]) |
 | MCP config | `mcp` key in config; one `command` array; `cwd`, `environment`, `timeout` | `.mcp.json` with separate `command` and `args`; `claude mcp add` ([[mcp]]) |
 | Subagents | Markdown in `.opencode/agents/`; built-ins build, plan, general, explore, scout | Markdown in `.claude/agents/`, `~/.claude/agents/` ([[subagents]]) |
-| Hooks | TypeScript/JavaScript plugins returning hook functions; throw to block | Shell or HTTP handlers wired to events with matchers in settings ([[hooks]]) |
+| Hooks | TypeScript/JavaScript plugins returning hook functions; throw to block | Command, HTTP, MCP tool, prompt or agent handlers wired to events with matchers in settings ([[hooks]]) |
 | Custom tools | `.opencode/tools/*.ts` with a Zod schema | MCP servers or skills |
 | Non-interactive | `opencode run` | `claude -p` ([[headless-mode]]) |
 | Model naming | `provider/model-id` across many providers | Anthropic models plus gateways ([[models-and-effort]]) |

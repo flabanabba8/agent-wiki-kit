@@ -8,9 +8,9 @@ sources:
   - raw/docs/changelog-2.1.275-to-2.1.278.md
 related: ["[[subagents]]", "[[agent-teams]]", "[[skills]]", "[[models-and-effort]]", "[[costs-and-usage]]", "[[worktrees-and-background-work]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
+last_verified: 2026-09-25
 aliases: [dynamic-workflows, workflow-tool, ultracode, deep-research, orchestrate-subagents]
 valid_until: 2027-03-15
 ---
@@ -111,7 +111,8 @@ return audits.filter(Boolean)
 ```
 
 - `agent()` spawns one subagent, `pipeline()` runs one per item, and `parallel()` runs a set of tasks at once. `phase()` groups agents under a title in the progress view, and `log()` prints a message above the phases.
-- `agent()` resolves to `null` when stopped, when it hits an unrecoverable API error, or when auto mode's classifier blocks it. That is why the example ends with `.filter(Boolean)`.
+- `agent()` resolves to `null` when stopped or when it hits an unrecoverable API error. That is why the example ends with `.filter(Boolean)`.
+- In auto mode, the prompt a script passes to `agent()` doesn't count as a request from you when the classifier reviews that subagent's actions, because it is marked as script-computed text.
 - A `schema` makes the subagent return JSON. Validation retries 5 times by default (`MAX_STRUCTURED_OUTPUT_RETRIES`), and Claude Code rejects a schema that contradicts itself before the agent starts.
 - `meta` must be the first statement and a plain literal, or `/<name>` disappears from autocomplete.
 - `Date.now()`, `Math.random()` and a no-argument `new Date()` throw, which keeps replays deterministic. Pass timestamps through `args`.
@@ -124,7 +125,7 @@ Before editing a saved script, run the `/workflow-authoring` bundled skill. Afte
 
 | Constraint | Value |
 |---|---|
-| Concurrent agents | 16 by default, fewer with fewer CPUs available. `CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS` takes 1 to 256 |
+| Concurrent agents | Up to 16 by default (fewer with fewer CPUs); `CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS` sets 1 to 256 |
 | Items per `parallel()`/`pipeline()` call | 4,096 (longer lists are rejected with an error) |
 | Agents per run | 1,000 |
 | Mid-run user input | None, apart from agent permission prompts and usage-limit waits |

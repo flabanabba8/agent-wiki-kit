@@ -31,11 +31,11 @@ sources:
   - raw/docs/official/mcp.md
   - raw/docs/official/hooks.md
   - raw/docs/official/sub-agents.md
-  - raw/docs/official/plugins.md
+  - raw/docs/official/plugins__overview.md
 related: ["[[openai-codex]]", "[[skills]]", "[[hooks]]", "[[mcp]]", "[[subagents]]", "[[agent-standards]]"]
 created: 2026-09-17
-updated: 2026-09-19
-last_verified: 2026-09-19
+updated: 2026-09-25
+last_verified: 2026-09-25
 confidence: high
 aliases: [hermes-agent, nous-research-hermes, hermes-vs-claude-code, hermes-config-yaml, moving-a-claude-code-setup-to-hermes]
 valid_until: 2027-03-15
@@ -43,7 +43,7 @@ valid_until: 2027-03-15
 
 # Hermes Agent
 
-Hermes Agent is Nous Research's agent harness. The same agent runs as a terminal REPL (`hermes chat`), a TUI, a desktop app, a web dashboard, cron jobs, and a messaging gateway (Telegram, Discord, Slack, Teams). All state lives in a per-user profile home — `~/.hermes` by default, `HERMES_HOME` elsewhere, picked with `hermes -p <name>`. Read this page if you work with both: every familiar piece is here, but configuration is per user rather than per repo, and a repo must be trusted first.
+Hermes Agent is Nous Research's agent harness. The same agent runs as a terminal REPL (`hermes chat`), a TUI, a desktop app, a web dashboard, cron jobs, and a messaging gateway (Telegram, Discord, Slack, Teams). All state lives in a per-user profile home — `~/.hermes` by default, `HERMES_HOME` elsewhere, picked with `hermes -p <name>`. Configuration is per user rather than per repo, and a repo must be trusted before it contributes anything.
 
 ## Context files
 
@@ -60,9 +60,9 @@ Only **one** project context type loads per session, first match wins: `.hermes.
 
 Discovery scope differs by file type. Inside a git repository the `AGENTS.md` chain from the git root down to the working directory is merged root-first, duplicates dropped, so the deepest file wins; outside one only the working directory is read, so an `AGENTS.md` planted in `/tmp` or `$HOME` cannot leak into unrelated sessions. Mid-session, file paths in tool arguments trigger progressive discovery: the directory and up to five parents are checked once each, and the first `AGENTS.md`, `CLAUDE.md` or `.cursorrules` found is appended to that tool result rather than the system prompt, keeping the cached prompt stable. Claude Code merges its memory files up the tree instead ([[claude-md-and-memory]]).
 
-Startup files are capped at `context_file_max_chars` when set, otherwise a cap scaling with the model's context window (floor 20,000 chars, ceiling 500,000); an oversized file keeps 70% head plus 20% tail with a marker between. Progressive hints use a fixed 32,000-char preview cap. A file slower than `context_file_read_timeout` (default 5 seconds) is skipped.
+Startup files are capped at `context_file_max_chars`, or a cap scaling with the context window (20,000 to 500,000 chars); an oversized file keeps 70% head plus 20% tail. Progressive hints cap at 32,000 chars.
 
-Every project context file, startup or progressive, is scanned for prompt injection (instruction overrides, hidden HTML, credential exfiltration, invisible characters), and a hit **blocks the file** — nothing loads and the prompt says so. Your own `SOUL.md` is exempt, warning instead and flagged in `/context`, unless a profile distribution owns it.
+Every project context file is scanned for prompt injection (instruction overrides, hidden HTML, exfiltration, invisible characters), and a hit **blocks the file**. Your own `SOUL.md` is exempt, warning instead and flagged in `/context`, unless a profile distribution owns it.
 
 ## Configuration
 
@@ -74,13 +74,13 @@ Skills follow the open Agent Skills standard ([[agent-standards]], [[skills]]); 
 
 A repo can vendor skills in `<root>/.hermes/skills/` or `<root>/.agents/skills/`, the root being the nearest ancestor holding `.git`. They stay dormant until you trust the repo once with `hermes skills trust` (`untrust` revokes; trusted roots live in `skills.trusted_project_dirs`, and `skills.project_discovery: false` disables the scan). Because a `git pull` can outrun that one-time decision, every project skill is re-scanned as its content changes and a `dangerous` verdict quarantines it. Precedence is project → profile-local → external dirs, first name wins.
 
-Only `name` and `description` are required and validated, and a new skill's description must fit the 60-character system-prompt budget. Also recognized: `version`, `author`, `license`, `platforms`, `environments`, `required_environment_variables`, `required_credential_files`, and a `metadata.hermes` block (`tags`, `related_skills`, `category`, `requires_tools`/`requires_toolsets`, `fallback_for_tools`/`fallback_for_toolsets`, `session_platforms`, `config`, `blueprint`). Unknown fields are ignored, so a SKILL.md written for another harness loads unchanged. An advisory linter runs on `skill_manage` creates and `references/` writes. It warns — never blocks — about description length, marketing adjectives, a `name` not matching its directory, missing `version`/`author`/`license`/`metadata.hermes.tags`, a missing "When to Use" section, shell-utility names in prose instead of native tools, dangling `references/` links, ungated POSIX-only scripts and reference sprawl.
+Only `name` and `description` are required and validated, and a new skill's description must fit the 60-character system-prompt budget. Also recognized: `version`, `author`, `license`, `platforms`, `environments`, `required_environment_variables`, `required_credential_files`, and a `metadata.hermes` block (`tags`, `category`, `requires_tools`, `fallback_for_tools` and more). Unknown fields are ignored, so a SKILL.md written for another harness loads unchanged. An advisory linter on `skill_manage` creates and `references/` writes warns, never blocks, about description length, name/directory mismatch, missing metadata and dangling `references/` links.
 
 ## MCP servers
 
-Servers are declared under `mcp_servers` in `config.yaml` ([[mcp]] covers Claude Code's `.mcp.json`). A stdio entry takes `command`, `args`, `env` and an optional `cwd`; an HTTP server takes `url` and `headers`. Both accept `enabled`, `timeout`, `connect_timeout`, `lazy`, `supports_parallel_tool_calls`, `trust: untrusted` (approve every write-capable call), `auth: oauth`, TLS settings, `sampling`, `elicitation`, and a `tools` block whose `include`/`exclude` lists accept exact names or fnmatch globs (`include` wins over `exclude`) while `resources` and `prompts` toggle the utility wrappers. `hermes mcp add <name> --command <cmd> --args …` (or `--url <url>`) writes an entry, with `--env KEY=VALUE`, `--auth oauth|header` and `--preset`; `/reload-mcp` applies edits mid-session.
+Servers are declared under `mcp_servers` in `config.yaml` ([[mcp]] covers Claude Code's `.mcp.json`). A stdio entry takes `command`, `args`, `env` and an optional `cwd`; an HTTP server takes `url` and `headers`. Both accept `enabled`, `timeout`, `lazy`, `trust: untrusted` (approve every write-capable call), `auth: oauth`, TLS, `sampling`, `elicitation`, and a `tools` block whose `include`/`exclude` lists accept exact names or fnmatch globs (`include` wins over `exclude`) while `resources` and `prompts` toggle the utility wrappers. `hermes mcp add <name> --command <cmd> --args …` (or `--url <url>`) writes an entry, with `--env KEY=VALUE`, `--auth oauth|header` and `--preset`; `/reload-mcp` applies edits mid-session.
 
-Any string in an entry interpolates `${VAR}` or Cursor's `${env:VAR}` from the profile's secret scope, plus `${userHome}`, `${workspaceFolder}`, `${workspaceFolderBasename}` and `${pathSeparator}`; an unset variable keeps its literal placeholder. A bare `command` is resolved on the subprocess `PATH`, but one containing a path separator is passed through untouched, so a relative command resolves against the subprocess working directory — the entry's `cwd` when set, otherwise the directory Hermes itself runs in.
+Any string in an entry interpolates `${VAR}` or Cursor's `${env:VAR}` from the profile's secret scope, plus `${userHome}` and `${workspaceFolder}`; an unset variable stays literal. A bare `command` is resolved on the subprocess `PATH`, but one containing a path separator is passed through untouched, so a relative command resolves against the subprocess working directory — the entry's `cwd` when set, otherwise the directory Hermes itself runs in.
 
 > [!contradiction] Two official pages disagree on the registered tool-name prefix: the MCP config reference documents `mcp__<server>__<tool>` (double underscores, "matches the convention used by Claude Code, Codex, and OpenCode"), the MCP feature page `mcp_<server>_<tool>` (`mcp_filesystem_read_file`). Both agree non-alphanumeric characters become underscores and filters use the original names.
 
@@ -97,13 +97,13 @@ Hermes has four hook systems where Claude Code has one ([[hooks]]):
 
 A shell hook entry takes `matcher` (a regex, honored on tool-scoped events only), `command` (shlex-split, `shell=False`), `timeout` (default 60 seconds, clamped at 300) and `fail_closed`. Each firing pipes JSON to stdin — `hook_event_name`, `tool_name`, `tool_input`, `session_id`, `cwd`, `profile`, and an `extra` dict of event-specific fields (the tool fields are null on non-tool events) — and parses stdout as JSON. A `pre_tool_call` hook blocks with either accepted shape, `{"decision": "block", "reason": …}` (the Claude Code spelling) or `{"action": "block", "message": …}`, or by exiting with code **2** and writing the reason to stderr; `{"action": "modify", "args": {…}}` rewrites the arguments instead. Hooks fail open by default — a spawn error, timeout or unparseable stdout warns and the action proceeds — while `fail_closed: true` (also spelled `failClosed`) turns each into a block, on `pre_tool_call` only.
 
-Each `(event, command)` pair is approved once, recorded in `~/.hermes/shell-hooks-allowlist.json`. Three bypasses skip the prompt, any one sufficient: `--accept-hooks`, `HERMES_ACCEPT_HOOKS=1`, `hooks_auto_accept: true`; non-TTY surfaces need one or new hooks silently stay unregistered. The allowlist keys on the command string, not a hash, so editing the script keeps its consent — `hermes hooks doctor` flags mtime drift.
+Each `(event, command)` pair is approved once, recorded in `~/.hermes/shell-hooks-allowlist.json`. Three bypasses skip the prompt, any one sufficient: `--accept-hooks`, `HERMES_ACCEPT_HOOKS=1`, `hooks_auto_accept: true`; non-TTY surfaces need one or new hooks silently stay unregistered. The allowlist keys on the command string, not a hash, so editing the script keeps its consent.
 
 `post_tool_call` output is ignored: you cannot fix up a result there. Rewriting one needs the plugin hook `transform_tool_result`, whose first string return replaces the result before the model sees it. Context injection goes through `pre_llm_call`, once per turn: a `{"context": …}` return, or a plain string, is appended to that turn's user message and never to the system prompt, so the prompt cache survives.
 
 ## Plugins
 
-A plugin is a directory with a `plugin.yaml` manifest and a `register(ctx)` entry point adding tools, hooks, slash commands, CLI subcommands, bundled skills or whole backends. User plugins live in `~/.hermes/plugins/`; project plugins in `./.hermes/plugins/` are off unless Hermes starts with `HERMES_ENABLE_PROJECT_PLUGINS=true`. General plugins are discovered but load nothing until their name is in `plugins.enabled` (`plugins.disabled` wins); bundled platforms, backends, memory and context engines are exceptions, activated by their own config keys. Unknown `plugin.yaml` fields are ignored by design, and `hermes plugins doctor [path] [--ci]` replays discovery, manifest parsing and `register(ctx)` to report invalid hook names, callbacks without `**kwargs`, and declared-versus-registered drift. Compare [[plugins]].
+A plugin is a directory with a `plugin.yaml` manifest and a `register(ctx)` entry point adding tools, hooks, slash commands, CLI subcommands, bundled skills or whole backends. User plugins live in `~/.hermes/plugins/`; project plugins in `./.hermes/plugins/` are off unless Hermes starts with `HERMES_ENABLE_PROJECT_PLUGINS=true`. General plugins are discovered but load nothing until their name is in `plugins.enabled` (`plugins.disabled` wins); bundled platforms, backends, memory and context engines are exceptions, activated by their own config keys. `hermes plugins doctor [path] [--ci]` replays discovery and `register(ctx)` to report invalid hooks and declared-versus-registered drift. Compare [[plugins]].
 
 ## Path protection
 
@@ -134,11 +134,11 @@ There is no custom subagent definition format — no per-agent Markdown or TOML 
 
 | Area | Hermes Agent | Claude Code |
 |---|---|---|
-| Instruction files | First match of `.hermes.md`, `AGENTS.override.md`, `AGENTS.md`, `CLAUDE.md`, `.cursorrules`, plus global `SOUL.md`; injection-scanned | `CLAUDE.md`, `CLAUDE.local.md`, `~/.claude/CLAUDE.md` merged, or `AGENTS.md` when no `CLAUDE.md` is present ([[claude-md-and-memory]]) |
+| Instruction files | First match of `.hermes.md`, `AGENTS.override.md`, `AGENTS.md`, `CLAUDE.md`, `.cursorrules`, plus global `SOUL.md`; injection-scanned | `CLAUDE.md`, `CLAUDE.local.md`, `~/.claude/CLAUDE.md`, merged; `AGENTS.md` when no CLAUDE.md exists ([[claude-md-and-memory]]) |
 | Config | Per profile: `config.yaml` + `.env`; no project file | User, project, local and managed `settings.json` ([[settings]]) |
 | Skills | `~/.hermes/skills/`, `skills.external_dirs`, project dirs after `hermes skills trust` | `.claude/skills/`, `~/.claude/skills/`, plugin skills ([[skills]]) |
 | MCP | `mcp_servers` in `config.yaml`; `hermes mcp add` | `.mcp.json`, `~/.claude.json`; `claude mcp add` ([[mcp]]) |
 | Hooks | Four systems; shell hooks consented per `(event, command)` | One: `hooks` in settings files and plugins ([[hooks]]) |
-| Plugins | `~/.hermes/plugins/`, `plugin.yaml` + `register(ctx)`, opt-in | Marketplace plugins bundling commands, agents, skills, hooks ([[plugins]]) |
+| Plugins | `~/.hermes/plugins/`, `plugin.yaml` + `register(ctx)`, opt-in | Marketplace plugins bundling skills, agents, hooks, MCP servers ([[plugins]]) |
 | Subagents | `delegate_task` only; global `delegation:` settings | Markdown agents in `.claude/agents/`, own model and tools ([[subagents]]) |
 | Write protection | Fixed protected paths plus a `HERMES_WRITE_SAFE_ROOT` allowlist | allow/ask/deny rules including `Edit(...)` paths ([[permissions-and-modes]]) |

@@ -11,18 +11,20 @@ sources:
   - raw/articles/prompt-injection-defenses.md
   - raw/articles/claude-opus-5-system-card-agentic-coding.md
   - raw/articles/claude-sonnet-5-system-card-agentic-coding.md
+  - raw/articles/anthropic-claude-opus-5-5.md
+  - raw/docs/prompting-claude-opus-5-5.md
 related: ["[[permissions-and-modes]]", "[[sandboxing-and-security]]", "[[claude-models]]", "[[multi-agent-systems]]", "[[mcp]]"]
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-15
+last_verified: 2026-09-25
 aliases: [agent-safety-framework, prompt-injection-results, containment-tiers, auto-mode-classifier-design]
 valid_until: 2027-03-15
 ---
 
 # Trustworthy Agents
 
-This page collects Anthropic's published research on keeping agents safe. It covers the five-principle framework, the containment patterns behind claude.ai, Claude Code and Cowork, how the sandbox and auto mode were designed, and measured prompt-injection robustness for the Claude 5 models. For the settings and modes you actually configure, see [[permissions-and-modes]] and [[sandboxing-and-security]].
+This page collects Anthropic's published research on keeping agents safe. It covers the five-principle framework, the containment patterns behind claude.ai, Claude Code and Cowork, how the sandbox and auto mode were designed, and measured prompt-injection robustness for the Claude 5 and 5.5 models. For the settings and modes you actually configure, see [[permissions-and-modes]] and [[sandboxing-and-security]].
 
 ## The five principles
 
@@ -112,6 +114,8 @@ The Opus 5 card's browser-use prose gives 3.70% for Opus 5 where its table shows
 
 > [!contradiction]
 > The two system cards give different live bug-bounty results (both cards say 11 scenarios across tool use, coding and computer use). The Opus 5 card reports Opus 5 0.08%, Opus 4.8 0.11%, Sonnet 5 0.12% and Fable 5 0.04%. The Sonnet 5 card reports Sonnet 5 and Opus 4.8 tied at 0.19%.
+
+**Claude Opus 5.5 launch results.** Anthropic's launch post says Opus 5.5 matches or beats Opus 5 on prompt injection in every setting tested (coding, tool use, computer use and web browsing), and ties Fable 5.1 for the lowest injection success rate of any model on Gray Swan's benchmark. It scores best of any model on the automated behavioral audit (nearly 2,000 scenarios). In a new containment evaluation it tried to circumvent boundaries about 85% less often than Opus 5 or Mythos 5.1, and every attempt was low severity and self-reported. Anthropic also sees signs that it often suspects it is being evaluated. For guarding pasted text in apps, see [[prompting-claude-models]].
 
 ## What this means for Claude Code users
 

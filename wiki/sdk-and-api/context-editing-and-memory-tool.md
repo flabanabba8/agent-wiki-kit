@@ -6,11 +6,12 @@ sources:
   - raw/docs/context-editing.md
   - raw/docs/memory-tool.md
   - raw/articles/context-management.md
+  - raw/docs/whats-new-opus-5-5.md
 related: ["[[context-engineering]]", "[[context-window]]", "[[agent-memory]]", "[[long-running-agents]]", "[[managed-agents]]"]
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-15
+last_verified: 2026-09-25
 aliases: [context-editing-api, memory-tool, clear-tool-uses, compaction-control, context-management-api]
 ---
 
@@ -31,6 +32,8 @@ In Anthropic's internal agentic-search evaluation, announced alongside Claude So
 ## Server-side compaction
 
 For most long-running conversations, use server-side compaction. Pass the `compact_20260112` edit in the request's `context_management` parameter; this also works with a tool runner. The full parameter reference is at platform.claude.com/docs/en/build-with-claude/compaction, which this wiki's raw sources don't include. Use the strategies below when you need finer control over what gets cleared.
+
+**Compact on demand (beta).** With the `compact-2026-09-04` beta header, a request that sends the top-level `compaction` parameter returns a signed `compaction` block summarizing the whole conversation, which you send first in place of the summarized messages. You choose when to compact, the request can run in the background, and thinking blocks in the turns you keep can stay valid under stated conditions. That matters on Claude Opus 5.5, whose thinking blocks are tied to the conversation ([[claude-models]]). It works on the models that support compaction, Opus 5.5 included.
 
 ## Context editing
 

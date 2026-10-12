@@ -8,11 +8,12 @@ sources:
   - raw/docs/official/managed-mcp.md
   - raw/docs/official/features-overview.md
   - raw/docs/changelog-2.1.273-to-2.1.274.md
+  - raw/docs/changelog-2.1.275-to-2.1.282.md
 related: ["[[plugins]]", "[[enterprise-admin]]", "[[channels]]", "[[advanced-tool-use]]", "[[hooks]]", "[[agent-standards]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
+last_verified: 2026-09-25
 aliases: [mcp-servers, mcp-json, claude-mcp-add, managed-mcp, mcp-tool-search]
 ---
 
@@ -77,7 +78,7 @@ claude mcp add-json events-server '{"type":"ws","url":"wss://mcp.example.com/soc
 ## Manage servers
 
 - `claude mcp list`, `claude mcp get <name>` and `claude mcp remove <name> --scope <scope>` manage servers from the shell; `/mcp` manages them in a session. Removing a remote server deletes its stored OAuth tokens.
-- Statuses: `✔ Connected`, `! Needs authentication`, `✘ Failed to connect` (with the HTTP status or error detail), `⏸ Pending approval`, `⊘ Disabled for this project`. A remote server used before can show `cached`, meaning its tool list came from the discovery cache (`MCP_DISCOVERY_CACHE`) and it connects on first use.
+- Statuses: `✔ Connected`, `! Needs authentication`, `✘ Failed to connect` (with the HTTP status or error detail), `⏸ Pending approval`, `⊘ Disabled for this project`. `/mcp`, `claude mcp list` and `claude mcp get` show `${VAR}` references by name, not their values. A remote server used before can show `cached`, meaning its tool list came from the discovery cache (`MCP_DISCOVERY_CACHE`) and it connects on first use.
 - Toggling a server off in `/mcp` writes `disabledMcpServers` for that project in `~/.claude.json`. Default-off built-ins such as `computer-use` are enabled through `enabledMcpServers`.
 - Claude Code refreshes tools on `list_changed` notifications and reconnects dropped remote servers with exponential backoff, up to five attempts. Stdio servers are not reconnected. When reconnection gives up, an `MCP server "<name>" disconnected · open /mcp to reconnect` notification appears. The startup notice for servers needing sign-in names each server once and skips it at later launches until it has connected and needs signing in again; `/mcp` always lists them all.
 
@@ -90,13 +91,13 @@ An `enableAllProjectMcpServers` or `enabledMcpjsonServers` approval committed in
 ## Authentication
 
 - **OAuth:** add the server, then authenticate from `/mcp` or with `claude mcp login <name>`. Pass `--no-browser` over SSH to paste the redirect URL, and use `claude mcp logout <name>` to clear credentials. Tokens are stored securely and refreshed; a 401 triggers one refresh and retry.
-- **Pre-registered apps:** `--client-id`, `--client-secret` (masked prompt, or `MCP_CLIENT_SECRET` in CI) and `--callback-port 8080`, matching a redirect URI of `http://localhost:8080/callback`. In JSON, use the `oauth` object with `clientId`, `callbackPort`, `authServerMetadataUrl` (must be `https://`) and `scopes`, a space-separated list that pins the requested scopes. A 403 `insufficient_scope` from the server fails the call with a `needs additional permissions` message naming the scope and marks the server as needing authentication; because Claude Code only ever requests the pinned scopes, add the named one to `scopes` before authenticating again.
+- **Pre-registered apps:** `--client-id`, `--client-secret` (masked prompt, or `MCP_CLIENT_SECRET` in CI) and `--callback-port 8080`, matching a redirect URI of `http://localhost:8080/callback`. In JSON, use the `oauth` object with `clientId`, `callbackPort`, `authServerMetadataUrl` (must be `https://`) and `scopes`, a space-separated list that pins the requested scopes. A tool call that fails with `needs additional permissions` (403 `insufficient_scope`) needs that scope added to `scopes` before you re-authenticate, because Claude Code requests only the pinned set.
 - **Static tokens:** `--header "Authorization: Bearer <token>"`. A rejected configured header is reported as a failed connection, not a sign-in prompt.
 - **Dynamic headers:** `"headersHelper": "/opt/bin/get-mcp-auth-headers.sh"` must print a JSON object of string headers within 10 seconds. It runs on every connection and receives `CLAUDE_CODE_MCP_SERVER_NAME` and `CLAUDE_CODE_MCP_SERVER_URL`. Helpers from repositories or plugins run without credential-like environment variables.
 
 ## Tool search and context
 
-Tool search is on by default: only tool names and server instructions load at start, and Claude discovers full schemas on demand, so adding servers barely affects context. Tool descriptions and server instructions are truncated at 2KB each. Tool search is off when `ANTHROPIC_BASE_URL` points at a non-first-party host, and it requires Claude Sonnet 4.5, Haiku 4.5, Opus 4.5 or later. It is unavailable on Microsoft Foundry deployments hosted on Azure.
+Tool search is on by default: only tool names and server instructions load at start, and Claude discovers full schemas on demand, so adding servers barely affects context. Tool descriptions and server instructions are truncated at 2,048 characters each; `CLAUDE_CODE_MAX_MCP_DESCRIPTION_LENGTH` changes the cap for every server in the session. Tool search is off when `ANTHROPIC_BASE_URL` points at a non-first-party host, and it requires Claude Sonnet 4.5, Haiku 4.5, Opus 4.5 or later. It is unavailable on Microsoft Foundry deployments hosted on Azure.
 
 | `ENABLE_TOOL_SEARCH` | Behavior |
 | :-- | :-- |
@@ -121,9 +122,10 @@ Set `"alwaysLoad": true` on a server, or `"anthropic/alwaysLoad": true` in a too
 
 - **Plugin servers** start with the plugin. Their tools are named `mcp__plugin_<plugin-name>_<server-name>__<tool-name>`; use that full name in permission rules, `allowed-tools`, subagent `tools` and hook matchers ([[plugins]], [[hooks]]).
 - **claude.ai connectors** load automatically when you are signed in with a claude.ai subscription and no API key, `apiKeyHelper` or third-party provider is active. Turn them off with `"disableClaudeAiConnectors": true` or `ENABLE_CLAUDEAI_MCP_SERVERS=false`. Organizations can set connector tools to `ask`, which prompts on every call, or `blocked`, which hides the tool.
-- **Resources:** type `@` and reference `@github:issue://123`.
+- **Resources:** type `@` and reference `@github:issue://123`. Resource lists and `@` suggestions skip MCP Apps UI resources, which can still be read by URI.
 - **Prompts** appear in the `/` menu as `/servername:promptname (MCP)` and also run as `/mcp__github__pr_review 456`.
-- **Elicitation:** servers can request form input or open a URL mid-task; the `Elicitation` hook can answer automatically.
+- **Elicitation:** servers can request form input or, on 2026-07-28 protocol connections, open a browser-based URL flow mid-task; the `Elicitation` hook can answer automatically.
+- **Reserved names:** a server configured as `anthropic-skills` or `claude-ai` lists no skills or prompts (its tools still work); rename it to list them.
 - **Channels:** a server declaring `claude/channel` can push events into the session with `--channels` ([[channels]]).
 
 ## Managed MCP for organizations
@@ -138,7 +140,7 @@ Set `"alwaysLoad": true` on a server, or `"anthropic/alwaysLoad": true` in a too
 | Denylist | `deniedMcpServers` |
 
 - `managed-mcp.json` lives at `/Library/Application Support/ClaudeCode/managed-mcp.json` (macOS), `/etc/claude-code/managed-mcp.json` (Linux and WSL) or `C:\Program Files\ClaudeCode\managed-mcp.json` (Windows). It takes exclusive control: user, plugin and `--mcp-config` servers are blocked, and claude.ai connectors are suppressed unless `allowAllClaudeAiMcps` is set. Server-managed settings can't deliver it. Don't put credentials in it.
-- List entries match by `serverUrl` (with `*` wildcards), `serverCommand` (exact argument array) or `serverName`. A name is a user-chosen label and not a security control. The denylist always wins and merges from every scope. Without `allowManagedMcpServersOnly`, users can extend the allowlist; with it, the lock applies from every admin-controlled managed source and the managed allowlist comes from the highest-ranked source that sets one.
+- List entries match by `serverUrl` (with `*` wildcards), `serverCommand` (exact argument array) or `serverName`. A name is a user-chosen label and not a security control. The denylist always wins and merges from every scope. Without `allowManagedMcpServersOnly`, users can extend the allowlist. That lock applies from any admin source, and the managed allowlist then comes from the highest-ranked admin source that sets one.
 - Blocked servers disappear silently from `/mcp`, and `claude mcp add` fails with an enterprise-policy error, so tell users what you block. Setting `OTEL_LOG_TOOL_DETAILS=1` records server and tool names in telemetry. Managed settings delivery is on [[enterprise-admin]].
 
 ## Troubleshooting

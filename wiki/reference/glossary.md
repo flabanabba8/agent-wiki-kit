@@ -11,18 +11,19 @@ sources:
   - raw/docs/official/routines.md
   - raw/docs/official/workflows.md
   - raw/docs/official/fast-mode.md
-  - raw/docs/official/plugin-marketplaces.md
+  - raw/docs/official/plugins__overview.md
+  - raw/docs/official/memory.md
   - raw/docs/official/advisor.md
   - raw/docs/official/goal.md
   - raw/docs/official/self-hosted-environments.md
-  - raw/docs/official/claude-tag.md
+  - raw/docs/claude-tag/concepts__for-claude-code-users.md
   - raw/docs/official/chrome.md
   - raw/docs/official/claude-projects.md
 related: ["[[overview]]", "[[how-claude-code-works]]", "[[slash-commands]]", "[[whats-new]]", "[[troubleshooting]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
+last_verified: 2026-09-25
 aliases: [claude-code-terminology, what-is-a-subagent, define-claude-code-terms, jargon]
 ---
 
@@ -31,6 +32,8 @@ aliases: [claude-code-terminology, what-is-a-subagent, define-claude-code-terms,
 Definitions only. Each term names the page that owns the detail — configuration, syntax and limits live there, not here.
 
 ## A
+
+**AGENTS.md** — A project-instructions file for any coding agent; Claude Code reads it when no `CLAUDE.md` exists, or alongside it via the **Project instructions** setting. See [[claude-md-and-memory]].
 
 **Advisor tool** — A stronger second model Claude consults mid-task; it receives the whole conversation and returns guidance. See [[models-and-effort]].
 
@@ -56,7 +59,7 @@ Definitions only. Each term names the page that owns the detail — configuratio
 
 **Background session** — A full conversation that keeps running with no terminal attached; you attach, reply and leave whenever you want. See [[worktrees-and-background-work]].
 
-**Bare mode** — `claude --bare` starts a session with no hooks, skills, commands, subagents, plugins, MCP servers, auto memory or CLAUDE.md. See [[headless-mode]].
+**Bare mode** — `claude --bare` starts a session with no hooks, skills, commands, subagents, installed plugins, MCP servers, auto memory or CLAUDE.md. See [[headless-mode]].
 
 **Bundled skill** — A prompt-based playbook shipped with Claude Code, such as `/code-review` or `/loop`, that Claude orchestrates rather than fixed logic. See [[skills]].
 
@@ -70,9 +73,9 @@ Definitions only. Each term names the page that owns the detail — configuratio
 
 **CLAUDE.md** — Instructions you write, loaded at session start as a user message after the system prompt; all discovered files are concatenated broadest scope first. See [[claude-md-and-memory]].
 
-**Claude Tag** — A Slack integration that runs `@Claude` in your team's channels under your organization's shared identity. See [[slack-and-claude-tag]].
+**Claude Tag** — A Slack integration: tag `@Claude` with a task and a session starts in a sandbox your organization configures, not on your machine. See [[slack-and-claude-tag]].
 
-**Cloud session** — A session that runs on cloud infrastructure instead of your machine, so it keeps working after you close the laptop; started from claude.ai, the apps, `claude --cloud` or a routine. See [[claude-code-on-the-web]].
+**Cloud session** — A session that runs on cloud infrastructure (Anthropic-managed or self-hosted) and keeps going after you close your laptop, started from claude.ai/code, the apps, `claude --cloud` or a routine. See [[claude-code-on-the-web]].
 
 **Command** — A reusable instruction you invoke by typing `/name`. Unrelated senses: `claude` CLI subcommands, and the `command` field of a stdio MCP server entry. See [[slash-commands]].
 
@@ -103,6 +106,8 @@ Definitions only. Each term names the page that owns the detail — configuratio
 **Fast mode** — A high-speed Claude Opus configuration, up to 2.5x faster at a higher price per token, toggled with `/fast`. Same model, same quality. See [[models-and-effort]].
 
 **Forked subagent** — A subagent that inherits the full conversation instead of starting fresh, started with `/subtask`. See [[subagents]].
+
+**Frontmatter** — The YAML block between `---` lines at the top of a skill, subagent, output style or rule file; the opening `---` must be line one. See [[skills]].
 
 ## G
 

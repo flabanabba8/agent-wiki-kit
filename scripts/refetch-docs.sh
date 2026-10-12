@@ -35,6 +35,11 @@ for u in "${URLS[@]}"; do
   slug="${u#$BASE/en/}"; slug="${slug%.md}"
   f="$OUT/${slug//\//__}.md"
   body=$(curl -sL --max-time 30 "$u") && [ -n "$body" ] || { echo "  FAIL $u" >&2; FAIL=$((FAIL+1)); continue; }
+  # A bot wall (e.g. Cloudflare "Just a moment...") comes back as HTML with status 200. Keep the
+  # previous snapshot rather than overwrite a real page with it; the docs pages are always Markdown.
+  if printf '%s' "$body" | head -c 2000 | grep -qiE '^[[:space:]]*<(!doctype|html)|challenge-platform|cf_chl_opt'; then
+    echo "  FAIL $u (HTML or bot challenge, kept previous snapshot)" >&2; FAIL=$((FAIL+1)); continue
+  fi
   {
     echo "<!-- SOURCE: $u | publisher: Anthropic (code.claude.com) | fetched: $TODAY | via scripts/refetch-docs.sh -->"
     printf '%s\n' "$body"

@@ -5,17 +5,18 @@ tldr: "Built-in tools, prompts, and key behaviors"
 sources:
   - raw/docs/official/tools-reference.md
   - raw/docs/official/env-vars.md
+  - raw/docs/changelog-2.1.275-to-2.1.282.md
 related: ["[[permissions-and-modes]]", "[[how-claude-code-works]]", "[[subagents]]", "[[hooks]]", "[[mcp]]", "[[environment-variables]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
+last_verified: 2026-09-25
 aliases: [built-in-tools, tool-names, claude-code-tools, tool-permissions]
 ---
 
 # Tools Reference
 
-Built-in tools are the actions Claude takes: read and edit files, run commands, search the web, spawn subagents. The names below are the exact strings for permission rules, subagent `tools` lists, `--allowedTools`/`--disallowedTools`, skill `allowed-tools` and hook matchers. MCP servers add more ([[mcp]]); skills run through the existing `Skill` tool and add no entries.
+Built-in tools are the actions Claude takes. The tool names below are the exact strings used in permission rules, subagent `tools` lists, `--allowedTools`/`--disallowedTools`, skill `allowed-tools` and hook matchers. Add more tools through MCP servers ([[mcp]]). Skills run through the existing `Skill` tool and add no tool entries.
 
 **Reading the Prompts column.** Whether the tool asks first in Manual mode for paths inside the working directory. File tools marked No (`Read`, `Grep`, `Glob`) still prompt outside the working and additional directories. `Bash` is Yes, but a built-in set of read-only commands runs without a prompt. On Pro, Max and Team plans sessions start in auto mode, where a classifier decides most of this ([[permissions-and-modes]]).
 
@@ -41,7 +42,7 @@ Built-in tools are the actions Claude takes: read and edit files, run commands, 
 | `ListAgents` | List agents and sessions Claude can message | No |
 | `SubagentHandback` | Hand a subagent's final report to whichever conversation receives its result | No |
 | `TaskStop` | Stop a background task, teammate or named agent | No |
-| `TaskOutput` | Read a background task's output (deprecated: `Read` the output file instead) | No |
+| `SubagentHandback` | Hand back a subagent's final report in auto mode, after classifier review | No |
 | `Workflow` | Run a dynamic workflow script across many subagents | Yes |
 | `Skill` | Run a skill in the main conversation | Yes |
 | **Planning and interaction** | | |
@@ -68,7 +69,7 @@ Built-in tools are the actions Claude takes: read and edit files, run commands, 
 | `ReportFindings`, `SendFeedback` | Structured code-review findings; draft a feedback report you review before sending | No |
 | `EndConversation` | End the session in rare abuse cases or an explicit demo | No |
 
-Cloud-backed tools (`PushNotification`, `RemoteTrigger`, `SendUserFile`, `Monitor`, `SendFeedback`, `EndConversation`) are unavailable on Amazon Bedrock, Google Cloud's Agent Platform and Microsoft Foundry. To see what a session has, ask Claude `What tools do you have access to?`; `/mcp` gives exact MCP names. The advisor is a server tool with no rule name.
+Cloud-backed tools (`PushNotification`, `RemoteTrigger`, `SendUserFile`, `Monitor`, `SendFeedback`, `EndConversation`) are unavailable on Amazon Bedrock, Google Cloud's Agent Platform and Microsoft Foundry. `/mcp` gives exact MCP tool names. The advisor is a server tool with no name usable in rules.
 
 ## Rule formats
 
@@ -87,12 +88,12 @@ Other tools take only the bare name. An `Edit(...)` allow rule also grants read 
 
 ## Bash
 
-- Each command runs in a separate process. A `cd` in the main session carries over while it stays inside the project or an added directory; set `CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR=1` to reset every time; subagents never carry `cd` over.
+- Each command runs in a separate process. A main-session `cd` carries over while inside the project or an added directory; set `CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR=1` to reset every time. Subagents never carry `cd` over.
 - Exports don't persist between commands. Activate virtualenvs before launch, or set `CLAUDE_ENV_FILE` (or populate it from a SessionStart hook). Aliases and functions from `~/.zshrc`, `~/.bashrc` or `~/.profile` are captured at startup.
 - **Timeouts:** Claude passes a per-call `timeout`. `BASH_DEFAULT_TIMEOUT_MS` defaults to two minutes and `BASH_MAX_TIMEOUT_MS` caps requests at ten.
-- **Output:** a valid result arrives inline up to about 30,000 characters; beyond that Claude gets a file path plus a preview of the first 2,000 characters. A failure arrives inline up to about 10,000 characters as a head-and-tail excerpt. `BASH_MAX_OUTPUT_LENGTH` (max 150,000) sizes the read-back window; `bashOutputMaxChars` (up to 128,000) sizes the inline ceiling too. Exit code 1 counts as valid only for `grep`, `rg`, `egrep`, `fgrep`, `find`, `diff`, `test`, `[`, `git diff` and `git grep`.
-- **Background:** `run_in_background: true` starts a background task, listed and stopped in `/tasks`. A command that hits its timeout moves to the background unless it starts with `sleep`. A foreground subagent's commands stop at its final response; in `-p` runs, background commands end shortly after the final result.
-- **Memory cap (Linux, WSL):** `CLAUDE_CODE_TOOL_MEMORY_LIMIT=4G` caps Bash, PowerShell and Monitor commands together through a cgroup. The kernel kills a command that exceeds it without naming the cap.
+- **Output:** a valid result arrives inline up to about 30,000 characters; beyond that Claude gets a file path plus a preview of up to 2,000 characters. A failure arrives inline up to about 10,000 characters as a head-and-tail excerpt. `BASH_MAX_OUTPUT_LENGTH` (max 150,000) sizes the read-back window; the `bashOutputMaxChars` setting (up to 128,000) sizes the inline ceiling too. Exit code 1 counts as valid only for `grep`, `rg`, `egrep`, `fgrep`, `find`, `diff`, `test`, `[`, `git diff` and `git grep`.
+- **Background:** `run_in_background: true` starts a background task, listed and stopped in `/tasks`; Claude reads its output file with `Read`, and `taskOutputMaxChars` and `TASK_MAX_OUTPUT_LENGTH` have no effect. A command that hits its timeout moves to the background unless it starts with `sleep`. A foreground subagent's commands stop at its final response. In `-p` runs, background commands end shortly after the final result.
+- **Memory cap (Linux, WSL):** `CLAUDE_CODE_TOOL_MEMORY_LIMIT=4G` caps Bash, PowerShell and Monitor commands together through a cgroup. The kernel kills an over-limit command silently.
 
 ## Edit, Write, Read, NotebookEdit
 
@@ -111,13 +112,13 @@ On macOS, Linux and WSL both are left out by default; Claude searches with `find
 
 ## WebFetch and WebSearch
 
-- **WebFetch** converts HTML to Markdown and runs your prompt over the page with a small, fast model, so results are lossy. Refetch with a sharper prompt or use `curl` for the raw page. HTTP is upgraded to HTTPS, and `localhost` or any other hostname without a dot is refused before the request, with an error pointing Claude at `curl` through Bash. Responses are cached 15 minutes (`CLAUDE_CODE_WEBFETCH_CACHE_TTL_MS`), downloads fail after five minutes (`CLAUDE_CODE_WEBFETCH_DEADLINE_MS`), and a cross-host redirect is returned to Claude instead of followed.
-- In Manual and `acceptEdits` modes WebFetch prompts, except for domains your rules decide and a built-in documentation set. **Yes, and don't ask again** saves a `WebFetch(domain:...)` rule to `.claude/settings.local.json`. Sandboxed commands don't inherit the preapproved domains.
-- **WebSearch** makes up to eight backend searches per call and accepts `allowed_domains` or `blocked_domains` (not both). A session allows 200 searches across all subagents (`CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION`), reset by `/clear`. It is unavailable on Amazon Bedrock and needs an Anthropic-hosted deployment on Foundry.
+- **WebFetch** converts HTML to Markdown and runs your prompt over the page with a small, fast model, so results are lossy. HTTP is upgraded to HTTPS. Responses are cached 15 minutes (`CLAUDE_CODE_WEBFETCH_CACHE_TTL_MS`), downloads fail after five minutes (`CLAUDE_CODE_WEBFETCH_DEADLINE_MS`), a cross-host redirect is returned to Claude instead of followed, and `localhost` or any dotless hostname is refused in favor of `curl` through Bash.
+- In Manual and `acceptEdits` modes WebFetch prompts, except for domains your rules decide and a built-in set of documentation domains. **Yes, and don't ask again** saves a `WebFetch(domain:...)` rule to `.claude/settings.local.json`. Sandboxed commands don't inherit the preapproved domains.
+- **WebSearch** makes up to eight backend searches per call and accepts `allowed_domains` or `blocked_domains` (not both). A session allows 200 searches across all subagents (`CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION`); `/clear` resets the count. It is unavailable on Amazon Bedrock and needs an Anthropic-hosted deployment on Foundry.
 
 ## Agent
 
-A subagent works in its own context and returns its result to the parent, which never sees its intermediate calls. If the definition sets neither `tools` nor `disallowedTools`, it inherits every tool available to subagents; with both set, `disallowedTools` wins. In auto mode, a locally run subagent that isn't a fork also gets `SubagentHandback` regardless of `tools` and `disallowedTools`, and the classifier reviews its report before delivery. Launching doesn't prompt, but each tool call is checked. Background subagents raise their prompts in your main session, and `Esc` denies just that call. A subagent stopped by `maxTurns` returns partial output that Claude can resume. Details: [[subagents]].
+A subagent works in its own context and returns its result; the parent never sees its intermediate calls. If the definition sets neither `tools` nor `disallowedTools`, it inherits every tool available to subagents; with both set, `disallowedTools` wins. Launching doesn't prompt, but each tool call is checked. Background subagents raise their prompts in your main session, and `Esc` denies just that call. A subagent stopped by `maxTurns` returns partial output that Claude can resume. Details are on [[subagents]].
 
 ## Monitor and PowerShell
 

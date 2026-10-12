@@ -3,6 +3,12 @@ title: agent-wiki-kit Harness
 type: reference
 tldr: "How this wiki repo checks and maintains itself"
 sources:
+  - .claude/skills/disposable-vision/SKILL.md
+  - .claude/skills/disposable-vision/scripts/vision_inspect.py
+  - .claude/skills/disposable-vision/scripts/image_reference_generate.py
+  - .claude/skills/disposable-vision/scripts/check_environment.py
+  - scripts/agents/install-vision-skill.py
+  - tests/test_disposable_vision.py
   - scripts/doctor.sh
   - scripts/wiki-lint.sh
   - scripts/lint_identifiers.py
@@ -39,7 +45,7 @@ sources:
   - scripts/sources.py
 related: ["[[mem0]]", "[[camoufox]]", "[[hooks]]", "[[agent-evals]]", "[[settings]]"]
 created: 2026-09-15
-updated: 2026-09-18
+updated: 2026-10-09
 confidence: high
 last_verified: 2026-09-18
 aliases: [wiki-harness, doctor-sh, wiki-lint, weekly-maintenance, wiki-ci]
@@ -201,3 +207,13 @@ For eval concepts, see [[agent-evals]].
 - **`mem0-hot`** holds short-lived session notes.
 
 Details are on [[mem0]].
+
+## Disposable image workers
+
+The bundled `disposable-vision` skill keeps image payloads out of the coordinator's conversation. Inspection receives up to four compressed previews and returns text; it goes to a loopback vision server by default, or to a Codex session with `--backend codex`. Generation receives only selected references and a task, saves the output, and invokes a separate inspection before returning file paths and a PASS, FAIL, or UNCERTAIN verdict. Failed or uncertain reviews leave an unaccepted draft. Content-based inspection caching avoids repeated model requests for identical work.
+
+The scripts require Python 3.11+ and Pillow, plus an authenticated Codex CLI for generation and Codex review, even when Claude Code or Hermes coordinates them. The environment checker tests local prerequisites without a model request. The installer can copy the bundle to user skill directories and refuses to replace differing files. See the skill for commands and limits. Project discovery follows [[cross-agent-setup]].
+
+The workers suppress transcripts, use temporary attachment directories, and start fresh sessions without inheriting the parent conversation. They also disable skill discovery to avoid recursive self-delegation. This is a context-management workflow, not a security sandbox or a promise about server retention. Numeric timing and host network measurements are diagnostic observations, not exact per-request upload sizes.
+
+Offline CI covers isolation flags, text-only results, cache invalidation, failed review handling, and safe installation. Live account-dependent tests are separate from CI; discovery and structural validation alone do not prove model behavior.

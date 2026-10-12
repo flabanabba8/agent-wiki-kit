@@ -5,17 +5,18 @@ tldr: "Domain expertise matters more than coding"
 sources:
   - raw/articles/anthropic-claude-code-expertise.md
   - raw/articles/measuring-agent-autonomy.md
-related: ["[[permissions-and-modes]]", "[[prompting-and-workflows]]", "[[how-claude-code-works]]", "[[headless-mode]]", "[[enterprise-admin]]"]
+  - raw/articles/agentic-coding-straining-ci.md
+related: ["[[permissions-and-modes]]", "[[prompting-and-workflows]]", "[[how-claude-code-works]]", "[[headless-mode]]", "[[enterprise-admin]]", "[[long-running-agents]]", "[[code-modernization]]", "[[slack-and-claude-tag]]"]
 created: 2026-09-15
-updated: 2026-09-17
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-17
-aliases: [claude-code-usage-study, domain-expertise-vs-coding-skill, does-domain-knowledge-matter-more-than-coding-skill, returns-to-expertise, auto-approve-rates, agent-autonomy-study]
+last_verified: 2026-09-25
+aliases: [claude-code-usage-study, agentic-coding-ci-load, test-impact-analysis, anthropic-engineering-practice, domain-expertise-vs-coding-skill, does-domain-knowledge-matter-more-than-coding-skill, returns-to-expertise, auto-approve-rates, agent-autonomy-study]
 ---
 
 # Claude Code in Practice
 
-Two Anthropic studies measure real Claude Code usage with privacy-preserving analysis. All classifications are made by Claude reading transcripts or tool calls, so treat the numbers as model-estimated.
+Two Anthropic studies measure real Claude Code usage with privacy-preserving analysis, and Anthropic's own engineering shows what that usage does to CI. All classifications are made by Claude reading transcripts or tool calls, so treat the numbers as model-estimated.
 
 | Study | Published | Data | Scope |
 |---|---|---|---|
@@ -112,6 +113,19 @@ On the most complex tasks, **Claude asks for clarification more than twice as of
 - Design products for monitoring and simple intervention, such as real-time steering and OpenTelemetry.
 - Don't mandate approve-every-action rules, which "create friction without necessarily producing safety benefits."
 
+## Inside Anthropic: agentic coding strains CI
+
+Anthropic engineers ship on average 8x as much code per quarter as they did in 2021-2025, and Claude authors 80% of it while also reviewing and approving many PRs. With 10x more tests and few new engineers, CI jobs grew 25x in six months. Claude also prefers smaller, more granular PRs, and agents push overnight and at weekends, which raises the activity floor.
+
+The pressure point was the **test impact analysis** service, which decides which tests run on each PR. A "listener" records every CI result; a "selector" reads that history. Run as a single process, the listener fell behind: 20 minutes of lag meant tens of thousands of results missing, so selection ran on stale data. Three patches bought less time each: a bigger machine lasted 70 days, per-package sharding 29 days, daily restarts under a day. The redesign, which Claude had argued for, moved state into an in-memory data store: stateless listener workers append results to a journal, and a small consumer rolls it into per-test history every few seconds. One engineer finished it in three weeks, against roughly a quarter a year earlier, and Claude tuned journal size and worker count largely on its own. For months, a long-running Claude Tag session ([[slack-and-claude-tag]]) watched the service and pinged the engineer when lag passed 50,000 jobs.
+
+The author's lessons:
+
+- Assume 25x load within two quarters, and design v0 for 10-20x perceived scale where budget allows.
+- Give agents a specific set of valid tests instead of every test on every change, so they can self-verify.
+- Instrument services as Claude's eyes and ears; check that CI jobs in equal jobs out.
+- Keep state out of the process, and don't run a critical service as a single instance you can't measure.
+
 ## What this means for Claude Code users
 
 - **Bring the domain knowledge.** Frame directions precisely, say what "done" means, and ask Claude to verify with tests or commits ([[prompting-and-workflows]]).
@@ -119,3 +133,4 @@ On the most complex tasks, **Claude asks for clarification more than twice as of
 - **Expect questions on hard tasks.** Clarifying stops are part of how the agent loop works ([[how-claude-code-works]]).
 - **Organization-level monitoring.** OpenTelemetry and usage analytics are covered in [[enterprise-admin]].
 - **Automated runs weren't measured.** The expertise study excluded `claude -p` usage ([[headless-mode]]).
+- **Plan CI for agent volume.** More PRs and more tests arrive together; scope test selection per change. How run lengths are growing is on [[long-running-agents]].

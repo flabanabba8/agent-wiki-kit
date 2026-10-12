@@ -10,9 +10,9 @@ sources:
   - raw/docs/official/claude-projects.md
 related: ["[[install-and-setup]]", "[[how-claude-code-works]]", "[[prompting-and-workflows]]", "[[claude-md-and-memory]]", "[[cli-reference]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
+last_verified: 2026-09-25
 aliases: [what-is-claude-code, claude-code-intro, claude-code-surfaces, getting-started-with-claude-code]
 ---
 
@@ -38,7 +38,7 @@ Install steps, login, and updates are covered in [[install-and-setup]].
 | VS Code (and Cursor) | Working inside the editor | Inline diffs, @-mentions, plan review, conversation history | [[ide-integrations]] |
 | JetBrains IDEs | IntelliJ, PyCharm, WebStorm, and others | Diff viewer and selection sharing. Needs the CLI installed separately | [[ide-integrations]] |
 | Desktop app | Visual review, parallel sessions | Diff viewer, app preview, scheduled tasks. Computer use and Dispatch on Pro and Max | [[desktop-app]] |
-| Web (claude.ai/code) | Long tasks that need little steering, repos you don't have locally | Cloud sessions keep running after you disconnect | [[claude-code-on-the-web]] |
+| Web (claude.ai/code) | Long tasks that need little steering, repos you don't have locally | Cloud sessions that keep going after you disconnect. A project lets Claude coordinate many cloud sessions for one body of work | [[claude-code-on-the-web]], [[claude-projects]] |
 | Mobile (Claude app for iOS and Android) | Starting and monitoring tasks away from your desk | Thin client for cloud sessions, Remote Control, and Dispatch | [[claude-code-on-the-web]] |
 
 For a longer body of work, a **project** is one conversation in which Claude coordinates parallel cloud sessions that share repositories, instructions and memory, and reports back ([[claude-projects]]).
@@ -80,7 +80,7 @@ Claude Code follows the Unix philosophy: pipe logs into it, chain it with other 
 
 ## Customize and extend
 
-- **Instructions:** CLAUDE.md or AGENTS.md files, plus auto memory, carry project knowledge across sessions ([[claude-md-and-memory]]).
+- **Instructions:** CLAUDE.md files (or an existing AGENTS.md) and auto memory carry project knowledge across sessions ([[claude-md-and-memory]]).
 - **Skills:** package repeatable workflows such as a deploy or PR review ([[skills]]).
 - **Hooks:** run shell commands at fixed points, such as formatting after each edit ([[hooks]]).
 - **Subagents and teams:** delegate work to separate contexts ([[subagents]], [[agent-teams]]).
@@ -95,3 +95,5 @@ Claude Code follows the Unix philosophy: pipe logs into it, chain it with other 
 4. [[claude-md-and-memory]] and [[context-window]]: the two things that most affect result quality.
 5. [[permissions-and-modes]]: control what Claude can do without asking.
 6. [[troubleshooting]] when something breaks.
+
+For guided learning, Claude Academy offers free self-paced courses such as Claude Code 101 and Claude Code in Action; inside a session, `/powerup` gives interactive lessons ([[interface]]).

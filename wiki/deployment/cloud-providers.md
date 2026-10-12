@@ -11,11 +11,12 @@ sources:
   - raw/docs/official/claude-platform-on-aws.md
   - raw/docs/official/admin-setup.md
   - raw/docs/official/data-usage.md
+  - raw/docs/official/model-config.md
 related: ["[[llm-gateways]]", "[[enterprise-admin]]", "[[models-and-effort]]", "[[data-and-privacy]]", "[[settings]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
+last_verified: 2026-09-25
 aliases: [bedrock-setup, vertex-ai-setup, microsoft-foundry-setup, claude-platform-on-aws, third-party-providers]
 valid_until: 2027-03-15
 ---
@@ -60,7 +61,7 @@ export AWS_REGION=us-east-1          # optional if your profile sets a region
 - **Several versions per family:** map Anthropic IDs to application inference profile ARNs with the `modelOverrides` setting. They then show in `/model` and apply to `--model` and `ANTHROPIC_MODEL`.
 - **Service tiers:** `ANTHROPIC_BEDROCK_SERVICE_TIER` = `default`, `flex` or `priority`.
 - **Guardrails:** send `X-Amzn-Bedrock-GuardrailIdentifier` and `X-Amzn-Bedrock-GuardrailVersion` through `ANTHROPIC_CUSTOM_HEADERS` in the settings `env` block.
-- **Mantle endpoint** serves Claude through the Anthropic API shape. It uses IDs such as `anthropic.claude-haiku-4-5` (for example `claude --model anthropic.claude-haiku-4-5`) and has its own model lineup. With both `CLAUDE_CODE_USE_BEDROCK` and `CLAUDE_CODE_USE_MANTLE` set, Mantle-format IDs go to Mantle and all other IDs go to the Invoke API. List Mantle IDs in `availableModels` to show them in the picker. Override the URL with `ANTHROPIC_BEDROCK_MANTLE_BASE_URL`.
+- **Mantle endpoint** serves Claude through the Anthropic API shape. It uses IDs such as `anthropic.claude-haiku-4-5` (for example `claude --model anthropic.claude-haiku-4-5`) and has its own model lineup. With both `CLAUDE_CODE_USE_BEDROCK` and `CLAUDE_CODE_USE_MANTLE` set, Mantle-format IDs go to Mantle and all other IDs go to the Invoke API. List Mantle IDs in `availableModels` to show them in the picker. Override the URL with `ANTHROPIC_BEDROCK_MANTLE_BASE_URL`. Mantle has its own IAM actions: grant `bedrock-mantle:CreateInference` and `bedrock-mantle:CountTokens`, because the `bedrock:` actions don't cover it. A Mantle `403` that names a `bedrock-mantle:` action means a missing grant; one that names no action (with valid credentials) means the account lacks access to that model.
 - Claude Code uses the Bedrock Invoke API, not Converse. WebSearch is unavailable. "on-demand throughput isn't supported" means you should use an inference profile ID.
 
 ## Claude Platform on AWS
@@ -117,10 +118,10 @@ Pin models before rolling out to a team using `ANTHROPIC_DEFAULT_FABLE_MODEL`, `
 
 | Provider | Unpinned `opus` | Unpinned `sonnet` | Background (small/fast) tasks |
 |---|---|---|---|
-| Bedrock | Opus 5 (primary model default) | Sonnet 4.5 | Default Sonnet model |
-| Agent Platform | Opus 5 (`claude-opus-5` primary) | Sonnet 4.5 | Default Sonnet model |
+| Bedrock | Opus 5.5 (primary model default) | Sonnet 4.5 | Default Sonnet model |
+| Agent Platform | Opus 5.5 (`claude-opus-5-5` primary) | Sonnet 4.5 | Default Sonnet model |
 | Foundry | Opus 4.6 | Your deployment name | Primary model |
-| Claude Platform on AWS | Opus 5 | Claude API IDs | — |
+| Claude Platform on AWS | Opus 5.5 | Sonnet 4.6 | — |
 
 ```bash
 # Bedrock example (cross-region inference profile IDs)

@@ -2,7 +2,7 @@
 
 A knowledge wiki that maintains itself, plus the harness that keeps it honest. It ships as a working example, a source-backed wiki about Claude Code and agentic systems, and it is built to be pointed at your own subject.
 
-It currently holds **75 wiki pages** in 11 topic folders, cross-linked with **1,200+ wikilinks** and verified against **403 raw source files**. Every claim traces to a primary source, every identifier is checked against those sources, and the same rules are enforced whether you work in Claude Code, OpenAI Codex, OpenCode or Hermes Agent.
+It currently holds **78 wiki pages** in 11 topic folders, cross-linked with **1,200+ wikilinks** and verified against **442 raw source files**. Every claim traces to a primary source, every identifier is checked against those sources, and the same rules are enforced whether you work in Claude Code, OpenAI Codex, OpenCode or Hermes Agent.
 
 > [!IMPORTANT]
 > **Two things to know before you start.**
@@ -100,18 +100,49 @@ Claude Code's files are the source of truth, and the same rules hold everywhere.
 
 Edit the Claude Code file, run `./scripts/agents/sync.py`, commit both. The memory layer is safe to share: stores are opened per operation behind a lock, so agents running at the same time wait for each other instead of crashing. Details: `wiki/project/cross-agent-setup.md`.
 
+## Disposable image workers
+
+Routine image inspection sends stateless requests to a vision server you already run on loopback; image generation, and inspection when you pass `--backend codex`, use fresh Codex sessions, even when Claude Code or Hermes coordinates the job. Only text findings, verdicts, and file paths return to the main conversation. The shared project instructions select this workflow automatically for image work.
+
+This optional capability requires Python **3.11+**, Pillow, and an authenticated **Codex CLI** on PATH for generation and Codex review; local inspection also needs a loopback vision server (`VISION_LOCAL_URL`, default `http://127.0.0.1:8081`). The kit does not include a model service, and nothing falls back to another provider automatically. The rest of the wiki still supports Python 3.10.
+
+```bash
+./scripts/setup.sh --with-vision
+./.venv/bin/python .claude/skills/disposable-vision/scripts/check_environment.py
+./.venv/bin/python .claude/skills/disposable-vision/scripts/vision_inspect.py \
+  --backend codex --question "What visual defects are present?" --criteria "No clipped edges" screenshot.png
+./.venv/bin/python .claude/skills/disposable-vision/scripts/image_reference_generate.py new-art.png \
+  --prompt "Create a centered blue potion icon" --criteria "One bottle, no lettering" \
+  --reference style.png
+```
+
+Inspection caches results by image content, task, criteria and model. Generation runs a separate visual review and returns PASS, FAIL or UNCERTAIN; failed or uncertain outputs remain unaccepted drafts. Generated assets are never installed or published automatically. Image batches and temporary files are bounded; ephemeral sessions do not imply zero server retention.
+
+The skill is already available inside this clone through the existing shared skill directories. For use in other projects, install it into selected user skill directories:
+
+```bash
+python3 scripts/agents/install-vision-skill.py --agent all --dry-run
+python3 scripts/agents/install-vision-skill.py --agent all
+```
+
+The installer supports `claude`, `codex`, `hermes`, or `all`, skips identical copies, and refuses to overwrite differing skills. It does not edit global instructions or credentials. To make it the default outside this clone, add an explicit preference to your agent's global instructions to route image work through `disposable-vision`.
+
+See [.claude/skills/disposable-vision/SKILL.md](.claude/skills/disposable-vision/SKILL.md) for limits, cache controls, review criteria and metrics. Traffic counters include other applications and do not prove exact request sizes. Offline worker and installer tests run in CI without account access. Local live smoke tests exercised inspection, cache reuse, and two-reference native image generation with a separate review on Codex 0.162.0; this is not a broad model-quality benchmark. OpenCode can discover the shared skill, but its execution path has not been live-tested.
+
+The task-brief and evidence-reporting conventions draw on [Agent Personas](https://github.com/Sahil-SS9/agent-personas/tree/068a9894bb87291aab5d369404dd27047906b5e9): explicit scope and completion criteria, and separate claims for packaging, native discovery, and observed task behavior. The kit retains its existing native agent formats and imports no upstream runtime or persona catalogue.
+
 ## Wiki map
 
 | Folder | Pages | Covers |
 |---|---|---|
 | **Start** | 3 | What Claude Code is, installation, how the agentic loop works |
 | **Using** | 9 | Prompting and workflows, CLAUDE.md and memory, context, permissions, sandboxing, sessions, models, interface, costs |
-| **Extending** | 6 | Skills, subagents, agent teams, hooks, MCP, plugins |
+| **Extending** | 7 | Skills, subagents, agent teams, hooks, MCP, plugins |
 | **Automation** | 7 | Worktrees and background work, workflows, routines and scheduling, channels, artifacts, headless mode |
-| **Surfaces** | 6 | IDEs, desktop app, web and Remote Control, Chrome and computer use, Slack, CI/CD and code review |
+| **Surfaces** | 7 | IDEs, desktop app, web and Remote Control, Chrome and computer use, Slack, CI/CD and code review |
 | **Deployment** | 6 | Cloud providers, LLM gateways, settings, enterprise admin, data and privacy, network configuration |
 | **Reference** | 7 | CLI, slash commands, environment variables, tools, glossary, what's new, troubleshooting |
-| **SDK & API** | 7 | Agent SDK, Managed Agents, Claude models, advanced tool use, context editing and memory tool |
+| **SDK & API** | 8 | Agent SDK, Managed Agents, Claude models, advanced tool use, context editing and memory tool |
 | **Research** | 14 | Agentic patterns, tool design, context engineering, long-running agents, evals, multi-agent systems, trustworthy agents, self-improvement, skill evolution, agent memory |
 | **Ecosystem** | 8 | OpenAI Codex, OpenCode, Hermes Agent, open models (OpenRouter, NVIDIA NIM), Camoufox, mem0, context-compression tools, computer-use-linux |
 | **Project** | 2 | How the harness works, and how it runs from four agents |
@@ -123,7 +154,7 @@ agent-wiki-kit/
 ├── CLAUDE.md                    # the schema: page format, rules, workflows (AGENTS.md is a symlink to it)
 ├── wiki/                        # the pages, plus index.md, hot.md (session cache) and log.md (append-only)
 ├── raw/                         # primary sources: fetched locally, never committed
-│   └── docs/                    # official/ (197 code.claude.com pages), changelog, vendor docs
+│   └── docs/                    # official/ (217 code.claude.com pages), changelog, vendor docs
 ├── sources/                     # manifest.tsv and identifiers.txt: what raw/ contains, without its text
 ├── scripts/                     # setup.sh, doctor.sh, wiki-lint.sh, sources.py, freshness.py, evals,
 │   ├── mem0/                    #   the local semantic index and the scratch-memory MCP server
@@ -155,6 +186,7 @@ agent-wiki-kit/
 | `ingest` | You have a new source to add |
 | `wiki-lint` | You want a health score before committing |
 | `freshness-check` | You want to know which pages are behind their sources |
+| `audit-scheduled-jobs` | You want to know if the weekly maintenance cron actually delivered anything |
 | `autoresearch` | You want the wiki improved against a rubric, unattended |
 | `handoff` | You are ending a long session and want the next one oriented |
 | `write-a-skill` | You are adding a skill of your own |
@@ -165,12 +197,12 @@ Four subagents do the heavy lifting: `wiki-researcher` (read-only, with web acce
 
 | Metric | Value |
 |---|---|
-| Wiki pages | 75 |
-| Words | 121,000+ |
-| Wikilinks | 1,200 (71 unique) |
-| Raw sources | 403 files |
-| Official doc pages snapshotted | 197 |
-| Skills | 8 |
+| Wiki pages | 78 |
+| Words | 129,000+ |
+| Wikilinks | 1,269 (75 unique) |
+| Raw sources | 442 files |
+| Official doc pages snapshotted | 217 |
+| Skills | 11 |
 | Agents | 4 |
 | Health score | 100/100 |
 

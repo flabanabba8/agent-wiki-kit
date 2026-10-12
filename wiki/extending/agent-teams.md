@@ -10,9 +10,9 @@ sources:
   - raw/docs/official/hooks.md
 related: ["[[subagents]]", "[[hooks]]", "[[multi-agent-systems]]", "[[worktrees-and-background-work]]", "[[costs-and-usage]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
+last_verified: 2026-09-25
 aliases: [teammates, team-lead, claude-code-experimental-agent-teams, teammate-mode]
 ---
 
@@ -105,6 +105,7 @@ When Claude messages an in-process teammate that has stopped, Claude Code brings
 - **Task list.** The lead creates tasks and teammates work through them. Tasks are pending, in progress or completed, and can depend on other tasks. The lead can assign a task, or a teammate self-claims the next unassigned, unblocked one. File locking prevents double claims.
 - **Messaging.** Messages arrive automatically, so the lead doesn't poll. When a teammate stops, it notifies the lead with its final answer. Message one teammate by name; there is no broadcast, so everyone gets one message per recipient. Name teammates in your spawn prompt to reference them later.
 - **Plans.** A teammate spawned while the lead is in plan mode works read-only until its plan is ready, then sends an approval request that the lead grants automatically.
+- **Revival.** When Claude messages an in-process teammate that is no longer running, Claude Code brings it back in the same session with its saved conversation and the message as its next prompt. A definition from a project `.claude/agents/` or `--add-dir` directory is re-applied only if you trusted the folder holding that file; otherwise the teammate returns without its tools or instructions.
 - **Shutdown.** "Ask the researcher teammate to shut down." The teammate can approve or reject with an explanation. Shared team directories are cleaned up when the session ends.
 
 Teammates load CLAUDE.md, MCP servers and skills like a normal session, plus the spawn prompt, but not the lead's conversation history. Put task-specific detail in the spawn prompt.
@@ -140,7 +141,7 @@ Each session has exactly one team, named `session-` plus the first eight charact
 
 ## Limitations
 
-- `/resume` and `/rewind` don't restore in-process teammates, and after a resume Claude can't bring one back by messaging it either; spawn new ones instead.
+- `/resume` and `/rewind` don't restore in-process teammates, and messaging doesn't revive them after a resume; spawn new ones.
 - Task status can lag and block dependent tasks; check the work and update the status or nudge the teammate.
 - Shutdown waits for the current request or tool call to finish.
 - No nested teams: only the lead manages the team, and it can't hand off leadership.

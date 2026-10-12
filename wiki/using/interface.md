@@ -14,28 +14,22 @@ sources:
   - raw/docs/official/commands.md
   - raw/docs/official/common-workflows.md
   - raw/docs/official/whats-new__2026-w14.md
-  - raw/docs/changelog-2.1.275-to-2.1.278.md
+  - raw/docs/changelog-2.1.275-to-2.1.282.md
 related: ["[[slash-commands]]", "[[settings]]", "[[ide-integrations]]", "[[costs-and-usage]]", "[[claude-md-and-memory]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
+last_verified: 2026-09-25
 aliases: [keyboard-shortcuts, keybindings-json, output-style, status-line, screen-reader-mode]
 ---
 
 # Interface
 
-This page covers how to shape the terminal UI of the Claude Code CLI: default shortcuts, custom keybindings, terminal fixes, themes, output styles, the status line, voice dictation, fullscreen rendering, and accessibility. Every command mentioned here is also listed in [[slash-commands]]. Most options are settings keys, and their scopes are covered in [[settings]].
+How to shape the Claude Code terminal UI. Commands are listed in [[slash-commands]]; settings scopes are in [[settings]].
 
 ## Feature lessons
 
-`/powerup` opens quick interactive lessons that teach Claude Code features through animated demos, played in the terminal. Run it with no argument:
-
-```text
-/powerup
-```
-
-Claude Code ships features often, and ones that would have changed how you work can slip by; one pass through the lessons shows what is there. Asking Claude about its own features instead gets you documentation-based answers — `/powerup` is the hands-on version.
+`/powerup` opens quick interactive lessons that teach Claude Code features through animated demos in the terminal. It is the hands-on alternative to asking Claude about its own features.
 
 ## Everyday shortcuts
 
@@ -51,12 +45,15 @@ Claude Code ships features often, and ones that would have changed how you work 
 | `Ctrl+B` | Send running Bash commands and agents to the background |
 | `Ctrl+T` | Toggle Claude's task checklist |
 | `Ctrl+V` (`Alt+V` on Windows) | Paste an image from the clipboard |
-| `Ctrl+S` | Stash or restore the current prompt |
+| `Ctrl+S` | Stash or restore the current prompt (restores shell mode for a stashed `!` command) |
 | `Option+P` / `Alt+P` | Switch model |
 | `Option+T` / `Alt+T` | Toggle extended thinking |
 | `Option+O` / `Alt+O` | Toggle fast mode |
 | `Ctrl+J`, or `\` then `Enter` | Newline without submitting |
-| `Ctrl+Enter`, or `Ctrl+X` `Ctrl+S` | Interrupt the current turn and send every queued message at once |
+| `Ctrl+L` | Redraw a garbled screen, keeping input and conversation |
+| `Ctrl+Enter` or `Ctrl+X` `Ctrl+S` | Send queued messages now (`chat:sendNow`); see below |
+
+**Send now.** Queued messages go out in the order typed, with your draft behind them. Shell commands, subagents, and other backgroundable work move to the background and Claude reads your messages in the same turn; if Claude is only writing, the turn is interrupted instead. In shell mode the key only queues. Terminals without extended keys deliver `Ctrl+Enter` as `Enter`, so `Ctrl+X Ctrl+S` works everywhere. Queued messages show in gray until Claude starts on them.
 
 Readline editing works too: `Ctrl+A`/`Ctrl+E` for start and end of line, `Ctrl+W`/`Ctrl+U`/`Ctrl+K` for deleting, `Ctrl+Y` to paste back, and `Alt+B`/`Alt+F` to move by word. On macOS, Option shortcuts need the terminal's "Use Option as Meta Key" setting; in iTerm2, set the Option keys to "Esc+". `/focus` shows only your last prompt, a one-line tool summary, and the final response. `/color` tints the prompt bar for the session.
 
@@ -81,6 +78,8 @@ Run `/keybindings` to create or open `~/.claude/keybindings.json`. Changes apply
   - Key names are case-insensitive, so write `shift+k` for Shift and a letter.
 - **Unbinding:** `null` removes a default. To reuse a chord prefix such as `ctrl+x` as a single key, unbind every chord on it.
 - **Reserved:** `Ctrl+C`, `Ctrl+D`, `Ctrl+M`, `Ctrl+[`, `Ctrl+I`, `Ctrl+H`, and Caps Lock can't be rebound. `Ctrl+B` (tmux prefix), `Ctrl+A` (screen), and `Ctrl+Z` (suspend) may conflict with your terminal.
+- **Dialogs** accept with `Enter` and cancel with `Esc`; `y`/`n` are not bound by default. Bind them to `confirm:yes`/`confirm:no` in the `Confirmation` context for letter answers.
+- **Text fields:** a bare letter, digit, or Space you bind still types into a dialog's text field (such as the `Other` answer); keys with Ctrl, Alt, or Cmd, and non-printing keys, still run their bindings.
 - **Errors:** invalid entries produce warnings; start with `claude --debug` to see details.
 
 **Vim mode** is set in `/config` → Editor mode, or with `"editorMode": "vim"`. Vim keys can't be remapped in the keybindings file, but `vimInsertModeRemaps` maps sequences such as `jj` to Escape. In INSERT mode, `Enter` still submits.
@@ -95,23 +94,23 @@ Run `/keybindings` to create or open `~/.claude/keybindings.json`. Changes apply
 | Backspace deletes a word on Windows | `CLAUDE_CODE_BS_AS_CTRL_BACKSPACE=0` |
 | Flicker or jumping scrollback | Fullscreen rendering (below), or `CLAUDE_CODE_FORCE_SYNC_OUTPUT=1` if only the flicker bothers you |
 
-Pastes over 800 characters or three lines collapse to a `[Pasted text #1 +120 lines]` placeholder but are sent in full. For very large inputs, write a file and ask Claude to read it.
+Pastes over 800 characters or three lines collapse to a `[Pasted text #1 +120 lines]` placeholder but are sent in full. Invisible Unicode characters (tag characters, bidirectional controls, zero-width spaces) are stripped on Enter; if any were removed, that Enter sends nothing and the cleaned prompt returns for review. Prompts passed on the command line are cleaned and sent directly. Claude sees pasted text marked as pasted, and is told to follow instructions inside it only where your typed message asks. Recalled prompts resend collapsed pastes from `~/.claude/paste-cache/` until `cleanupPeriodDays` removes them. Pasted and attached images are saved where Claude can open them as files without a permission prompt.
 
 **Themes.** `/theme` offers auto (follows the terminal background), light and dark, colorblind-friendly `dark-daltonized` and `light-daltonized`, ANSI themes, and custom themes. Choose **New custom theme…** to create one; it is saved as `~/.claude/themes/<slug>.json` and selected as `custom:<slug>`.
 
 ## Output styles
 
-An output style replaces how Claude responds (role, tone, format) on every turn. It changes behavior, not project knowledge, which belongs in CLAUDE.md ([[claude-md-and-memory]]).
+An output style sets Claude's role, tone, and response format for every response in a session. It is an instruction, not a guarantee: project knowledge belongs in CLAUDE.md ([[claude-md-and-memory]]), and anything that must always happen belongs in a hook ([[hooks]]). The four non-default built-in styles keep Claude Code's engineering instructions and add their own.
 
 | Style | Behavior |
 |:--|:--|
-| Default | Standard software-engineering instructions |
-| Proactive | Acts immediately and makes reasonable assumptions; your permission mode still gates actions |
-| Concise | Leads with the result and skips narration |
-| Explanatory | Adds educational "Insights" while working |
-| Learning | Adds Insights and leaves `TODO(human)` pieces for you to write |
+| Default | No style instructions; the standard software-engineering system prompt |
+| Proactive | Starts work immediately, assumes on routine decisions, and checks before deleting data or touching shared systems; your permission mode still gates actions |
+| Concise | Leads with the result and skips narration and recaps; errors, security warnings, and requested detail stay full length |
+| Explanatory | Adds short `Insight` blocks in the conversation (not in files) explaining choices |
+| Learning | Adds Insights, leaves `TODO(human)` pieces for you to write, and waits |
 
-Switch with `/output-style concise`, or pick one in `/config` → **Output style**; either saves to `.claude/settings.local.json`. Setting `"outputStyle": "Explanatory"` works too. `/output-style` with no argument lists the styles you can pick and marks the current one, and it also works in non-interactive mode, Agent SDK sessions, and through Remote Control, where only built-in styles are offered. A change takes effect on your next message.
+Switch with `/output-style concise` (no argument lists styles; also works in `-p` mode), `/config` → **Output style**, or the VS Code `/` menu; all save to `.claude/settings.local.json`. Or set `"outputStyle": "Explanatory"`: the value is case-sensitive, and a non-matching name gives Default. Set it in `~/.claude/settings.json` for a cross-project default. A change takes effect on your next message.
 
 A custom style is a Markdown file in `~/.claude/output-styles`, `.claude/output-styles`, or a plugin's `output-styles/` directory:
 
@@ -127,7 +126,7 @@ When explaining code or data flow, start with a Mermaid diagram, then explain in
 - **`keep-coding-instructions`** defaults to `false`, which drops Claude Code's engineering guidance (scoping, comments, verification). Set it to `true` when Claude is still writing code.
 - **Plugin styles** can set `force-for-plugin` to apply automatically.
 - **Scope:** styles apply to the main conversation and forks, not to other subagents.
-- **Reloading:** style files are read at startup, so restart after editing one.
+- **Reloading:** style files are read at startup, so restart after editing one. All frontmatter fields are optional; a misspelled field is ignored, and unparseable YAML loads the style under its file name (`claude --debug` shows the error).
 
 ## Status line
 
@@ -166,7 +165,9 @@ Cost-related fields are explained in [[costs-and-usage]].
   - `/voice tap`: tap `Space` to start, tap again to send; transcripts of three words or more auto-submit.
   - `/voice off` disables it.
 - **Settings:** `"voice": { "enabled": true, "mode": "tap", "autoSubmit": true }`. The `language` setting picks the dictation language, falling back to English.
-- **Rebinding:** bind `voice:pushToTalk` to a modifier combo such as `meta+k` to skip the hold warmup.
+- **Space:** starts dictation only where it would type into the prompt, not in the transcript viewer or vim NORMAL mode.
+- **Cancel:** `Esc` or `Ctrl+C` discards the recording and restores the prompt, without interrupting Claude or counting toward exit.
+- **Rebinding:** bind `voice:pushToTalk` to a modifier combo such as `meta+k` to skip the hold warmup and dictate from anywhere.
 
 The VS Code extension supports dictation too ([[ide-integrations]]).
 
@@ -175,6 +176,7 @@ The VS Code extension supports dictation too ([[ide-integrations]]).
 Fullscreen is a flicker-free renderer on the terminal's alternate screen, with mouse support and flat memory in long conversations. It is in research preview. Switch with `/tui fullscreen` (the conversation relaunches intact and the choice is saved) and back with `/tui default`, or launch with `CLAUDE_CODE_NO_FLICKER=1 claude`.
 
 - **Search:** use `Ctrl+O` for the transcript, then `/` to search or `[` to write it to scrollback.
+- **Menus:** click an option to choose it; the mouse wheel scrolls long select menus.
 - **Selection:** in-app selection copies on mouse release. Hold `Shift` (`Option` in iTerm2, `Fn` in Terminal.app) for native selection.
 - **Mouse:** `CLAUDE_CODE_DISABLE_MOUSE=1` turns off mouse capture entirely. `CLAUDE_CODE_DISABLE_MOUSE_CLICKS=1` keeps wheel scrolling but ignores clicks.
 

@@ -7,12 +7,14 @@ sources:
   - raw/articles/harness-design-long-running-apps.md
   - raw/articles/long-running-claude.md
   - raw/articles/building-c-compiler.md
-related: ["[[context-engineering]]", "[[agent-evals]]", "[[agentic-patterns]]", "[[agent-teams]]", "[[headless-mode]]", "[[agent-sdk]]"]
+  - raw/articles/opus-5-5-longer-coding-sessions.md
+  - raw/articles/openai-how-agents-are-transforming-work.md
+related: ["[[context-engineering]]", "[[agent-evals]]", "[[agentic-patterns]]", "[[agent-teams]]", "[[headless-mode]]", "[[agent-sdk]]", "[[claude-code-in-practice]]", "[[context-window]]"]
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-15
-aliases: [agent-harness-design, planner-generator-evaluator, ralph-loop, c-compiler-agent-team, context-resets]
+last_verified: 2026-09-25
+aliases: [how-long-do-agents-run, agent-task-horizon, agent-harness-design, planner-generator-evaluator, ralph-loop, c-compiler-agent-team, context-resets]
 ---
 
 # Long-Running Agents
@@ -123,6 +125,18 @@ Over a few days, the solver reached sub-percent agreement with CLASS. It isn't p
 - **Give agents specialized roles:** deduplicating code, compiler performance, output-code efficiency, Rust design critique and documentation.
 
 **Limits.** The compiler calls GCC for 16-bit x86, has a buggy assembler and linker of its own, and emits code less efficient than GCC with all optimizations disabled. Near the end, new features frequently broke existing functionality.
+
+## How long agents run in practice
+
+Usage data from both major vendors shows agents taking on longer, less supervised work:
+
+| Measure | Value |
+|---|---|
+| Claude Code, March to September 2026 | Claude works 3.3x longer per prompt, with over 40% more model calls per prompt and 68% fewer interruptions; prompts per session held steady |
+| Codex individual users, May 2026 | 80.6% made a request estimated at over 30 minutes of human work, 70.2% over one hour, 42.4% over four hours, 25.6% over eight hours |
+| Codex heaviest users at OpenAI, June 2026 | The 99th percentile regularly runs over 60 hours of agent turns per day, spread across parallel agents |
+
+The Codex horizons are LLM-judge estimates from a 0.1% sample of individual users, so treat them as directional. Growth in context per request and what it does to cost are on [[context-window]]; earlier turn-duration and autonomy data are on [[claude-code-in-practice]].
 
 ## What this means for Claude Code users
 

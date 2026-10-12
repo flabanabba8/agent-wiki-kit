@@ -7,21 +7,22 @@ sources:
   - raw/docs/official/commands.md
   - raw/docs/official/features-overview.md
   - raw/docs/official/sub-agents.md
+  - raw/docs/changelog-2.1.275-to-2.1.282.md
 related: ["[[subagents]]", "[[plugins]]", "[[hooks]]", "[[claude-md-and-memory]]", "[[slash-commands]]", "[[agent-standards]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
+last_verified: 2026-09-25
 aliases: [skill-md, custom-slash-commands, skill-frontmatter, bundled-skills]
 ---
 
 # Skills
 
-A skill is a `SKILL.md` file of instructions that Claude adds to its toolkit. Claude loads it when its description matches the task, or you run it with `/skill-name`. Until a skill runs, only its name and description sit in context, so long reference material costs almost nothing until it is needed.
+A skill is a `SKILL.md` file of instructions. Claude loads it when its description matches the task, or you run it with `/skill-name`; until then only its name and description sit in context.
 
-Custom commands and skills are the same mechanism: `.claude/commands/deploy.md` and `.claude/skills/deploy/SKILL.md` both create `/deploy`. Claude Code skills follow the Agent Skills open standard ([[agent-standards]]) and extend it with invocation control, subagent execution and dynamic context injection.
+Custom commands and skills are one mechanism: `.claude/commands/deploy.md` and `.claude/skills/deploy/SKILL.md` both create `/deploy`. Skills follow the Agent Skills open standard ([[agent-standards]]) with Claude Code extensions.
 
-**Use a skill** when you keep pasting the same playbook into chat, or a CLAUDE.md section has become a procedure ([[claude-md-and-memory]]). Use a [[hooks]] entry instead when something must happen every time without Claude's judgment, and a [[subagents]] definition when you need context isolation.
+**Use a skill** for a playbook you keep pasting; use [[hooks]] for what must always happen, and [[subagents]] for context isolation.
 
 ## Create a skill
 
@@ -43,9 +44,9 @@ description: Summarizes uncommitted changes and flags anything risky. Use when t
 Summarize the changes above in two or three bullets, then list risks.
 ```
 
-The directory name becomes the command (`/summarize-changes`). The `` !`git diff HEAD` `` line runs before Claude sees the skill and is replaced by its output.
+The directory name becomes the command (`/summarize-changes`).
 
-A skill directory can hold supporting files (`reference.md`, `examples.md`, `scripts/helper.py`). Reference them from `SKILL.md` so Claude knows when to load each one, and keep `SKILL.md` under 500 lines.
+A skill directory can hold supporting files (`reference.md`, `scripts/helper.py`); reference them from `SKILL.md`, and keep `SKILL.md` under 500 lines.
 
 ## Where skills load
 
@@ -57,9 +58,9 @@ A skill directory can hold supporting files (`reference.md`, `examples.md`, `scr
 | Nested | `<subdir>/.claude/skills/<skill-name>/SKILL.md` | Sessions started in or below `<subdir>`, or once Claude touches a file there |
 | Additional directory | `.claude/skills/` inside a `--add-dir` directory | That session |
 | Plugin | `<plugin>/skills/<skill-name>/SKILL.md` | Wherever the plugin is enabled, as `/plugin-name:skill-name` |
-| claude.ai account | Skills enabled for your claude.ai account | Cowork, cloud sessions, and terminal sessions signed in with that account |
+| claude.ai account | Skills enabled in claude.ai settings | Cowork, cloud, and terminal sessions signed in with that account |
 
-- Project skills load from the start directory and every parent up to the repository root. `/add-dir` with a subdirectory path loads its nested skills early.
+- Project skills load from the start directory and every parent up to the repository root (in a linked worktree, the worktree root; if it has no `.claude/skills`, the main checkout's skills load). `/add-dir` with a subdirectory path loads its nested skills early.
 - Skill folders may be symlinks. The folder name `synced` is reserved.
 - Files in `.claude/commands/` support the same frontmatter except `name` and `paths`.
 - A skill folder containing `.claude-plugin/plugin.json` loads as a plugin named `<name>@skills-dir` ([[plugins]]).
@@ -67,11 +68,11 @@ A skill directory can hold supporting files (`reference.md`, `examples.md`, `scr
 - Cloud sessions and routines don't read `~/.claude/skills/`; enable the skill on your claude.ai account or commit it.
 - Account skills sync into terminal sessions signed in with that account: they download to `~/.claude/skills/synced/` at start, refresh about every 10 minutes without a restart, are listed under `claude.ai sync` in `/skills`, and never run `!` commands locally. A few Anthropic skills such as `pdf` and `xlsx` always sync. Syncing needs a `/login` sign-in and feature-flag fetching, so it is off with an API key, `apiKeyHelper`, Bedrock, `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`, `--bare`, `--safe-mode`, a `--setting-sources` list without `user`, or managed settings locking skills to plugin sources. `CLAUDE_CODE_SYNC_SKILLS=1` makes a non-interactive run wait for the download; `syncClaudeAiSkills: false` stops syncing and moves synced skills to `~/.claude/skills/.trash/`.
 
-**Name clashes.** Enterprise beats personal, and personal beats project. Your skill replaces a bundled skill of the same name but not its aliases. A skill beats a `.claude/commands/` file. Plugin skills are namespaced, so both load. With a root `deploy` and a nested one in `apps/web/`, `/deploy` runs the root skill and `/apps/web:deploy` runs the nested one. A synced claude.ai skill that clashes runs only as `/anthropic-skills:<name>`.
+**Name clashes.** Enterprise beats personal, and personal beats project. Your skill replaces a bundled skill of the same name but not its aliases. A skill beats a `.claude/commands/` file. Plugin skills are namespaced, so both load. With a root `deploy` and a nested one in `apps/web/`, `/deploy` runs the root skill and `/apps/web:deploy` runs the nested one. A synced claude.ai skill shows and runs by its short name unless another command uses it; then it runs only as `/anthropic-skills:<name>`.
 
 ## Frontmatter reference
 
-All fields are optional; `description` is recommended. Claude Code reads frontmatter only when the opening `---` is the file's first line. Boolean fields accept `true`/`false`, `yes`/`no`, `on`/`off` and `1`/`0`.
+All fields are optional; `description` is recommended. Claude Code reads frontmatter only when the opening `---` is the file's first line, and silently ignores unknown field names (hyphens must match). Boolean fields accept `true`/`false`, `yes`/`no`, `on`/`off` and `1`/`0`.
 
 | Field | Description |
 | :-- | :-- |
@@ -92,11 +93,9 @@ All fields are optional; `description` is recommended. Claude Code reads frontma
 | `hooks` | Hooks registered on invocation, kept for the rest of the session. `once: true` removes one after its first successful run |
 | `paths` | Globs that limit automatic loading to matching files, in the same format as path-specific rules |
 | `shell` | `bash` (default) or `powershell` for `!` commands |
-| `metadata` | Free-form map for your own tooling; Claude Code ignores it |
-| `license` | Agent Skills field; accepted, not acted on |
-| `compatibility` | Agent Skills field, up to 500 characters; accepted, not acted on |
+| `metadata`, `license`, `compatibility` | Accepted and ignored (`compatibility` up to 500 characters) |
 
-Outside Claude Code (claude.ai uploads, the Skills API, `package_skill.py`), only `name`, `description`, `license`, `compatibility`, `metadata` and `allowed-tools` are allowed; any other key is a hard error.
+claude.ai uploads and the Skills API accept only `name`, `description`, `license`, `compatibility`, `metadata` and `allowed-tools`; other keys are errors.
 
 ## Control who invokes a skill
 
@@ -106,9 +105,7 @@ Outside Claude Code (claude.ai uploads, the Skills API, `package_skill.py`), onl
 | `disable-model-invocation: true` | Yes | No | Nothing until you invoke it |
 | `user-invocable: false` | No | Yes | Description always; full skill when invoked |
 
-Use `disable-model-invocation: true` for side-effecting workflows such as `/deploy` or `/commit`.
-
-Permission rules also gate the Skill tool ([[permissions-and-modes]]): deny `Skill` to block all skills, or write `Skill(name)` for an exact match and `Skill(name *)` for a prefix.
+Permission rules also gate the Skill tool ([[permissions-and-modes]]): deny `Skill` to block all skills, or write `Skill(name)` for an exact match and `Skill(name *)` for a prefix. A few built-in commands, including `/init` and `/security-review`, are reachable through the Skill tool.
 
 The `skillOverrides` setting hides skills without editing their files. In the `/skills` menu, `Space` cycles a skill's state, saving the choice to `.claude/settings.local.json`. Plugin skills are managed through `/plugin` instead.
 
@@ -132,14 +129,14 @@ The `skillOverrides` setting hides skills without editing their files. In the `/
 | `${CLAUDE_PROJECT_DIR}` | Project root |
 | `${CLAUDE_PLUGIN_ROOT}`, `${CLAUDE_PLUGIN_DATA}` | Plugin install and persistent data directories (plugin skills only) |
 
-Escape a literal dollar before a digit as `\$1.00`. `${CLAUDE_SKILL_DIR}` and `${CLAUDE_PROJECT_DIR}` are also substituted in `allowed-tools`, so `allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/render.sh *)` lets a bundled script run without a prompt. Stack skills at the start of a message (`/write-tests /fix-issue 123`) to load the first skill plus up to five more, each receiving the trailing text.
+Escape a literal dollar before a digit as `\$1.00`. `${CLAUDE_SKILL_DIR}` and `${CLAUDE_PROJECT_DIR}` also expand in `allowed-tools`, e.g. `Bash(${CLAUDE_SKILL_DIR}/scripts/render.sh *)`. Stack skills at the start of a message (`/write-tests /fix-issue 123`) to load the first skill plus up to five more, each receiving the trailing text.
 
 ## Dynamic context injection
 
 `` !`command` `` at the start of a line or after whitespace, or a fenced block opened with ```` ```! ````, runs before Claude sees the skill and is replaced by its output.
 
 - A non-zero exit aborts the whole invocation. Exit 1 from search and comparison commands counts as a normal result; append `|| true` to other commands that may exit non-zero.
-- Injected commands never prompt. A deny rule aborts the invocation, and outside auto mode so does any check that doesn't return allow, so pre-approve the command in `allowed-tools`. In auto mode a command that would need approval instead loads the skill with an instruction telling Claude to run it first, except in a forked skill that sets `agent` or a session without the shell tool, which still abort.
+- Injected commands never prompt. A deny rule aborts the invocation; outside auto mode so does any non-allow result, so pre-approve the command in `allowed-tools`. In auto mode, the skill instead tells Claude to run the command itself.
 - Each command runs under the Bash tool's 2-minute timeout.
 - `"disableSkillShellExecution": true` in settings replaces commands from user, project, plugin and additional-directory skills with a placeholder. Bundled and managed skills are unaffected.
 
@@ -153,7 +150,7 @@ Invoked content enters the conversation as one message and stays; the file is no
 
 ## Bundled skills
 
-Bundled skills are prompt-based and invoked like your own: `/batch`, `/code-review`, `/debug`, `/design`, `/loop`, `/run`, `/simplify`, `/verify` and others listed on [[slash-commands]]. `/verify` runs only when you invoke it, `/design` drafts a design canvas ([[artifacts]]), and `/run-skill-generator` records a launch recipe at `.claude/skills/run-<name>/` for `/run` and `/verify` to follow.
+Bundled skills are prompt-based and invoked like your own. They include `/batch`, `/claude-api`, `/code-review`, `/dataviz`, `/debug`, `/design`, `/doctor`, `/fewer-permission-prompts`, `/loop`, `/run`, `/run-skill-generator`, `/simplify`, `/update-config`, `/verify` and `/workflow-authoring` (the last only when dynamic workflows are enabled). `/verify` runs only when you invoke it, and `/design` drafts a design canvas ([[artifacts]]). `/run-skill-generator` records a launch recipe at `.claude/skills/run-<name>/` for `/run` and `/verify` to follow. The full list is on [[slash-commands]].
 
 Turn all bundled skills off with `disableBundledSkills`, or hide one with a `skillOverrides` entry of `"off"`. `/doctor` stays typable; hide it with `DISABLE_DOCTOR_COMMAND`.
 
@@ -165,6 +162,7 @@ The listing always contains every skill name, but descriptions are shortened to 
 
 ## Test and troubleshoot
 
-- **Measure, don't eyeball.** Run realistic prompts in fresh sessions with the skill enabled and disabled; `claude plugin eval` automates this for a plugin's skills ([[plugins]]). Triggering only tells you Claude found the skill, not that the output was right.
-- **Not triggering:** put the words users say in `description`, ask Claude "What skills are available?", or invoke it with `/skill-name`. Malformed YAML loads the body with empty metadata; run `claude plugin validate .claude/skills`.
+- **Measure:** compare realistic prompts in fresh sessions with the skill on and off; `claude plugin eval` ([[plugins]]) automates this.
+- **Not triggering:** put the words users say in `description`, ask Claude "What skills are available?", or invoke it with `/skill-name`. Malformed YAML loads the body with empty metadata; run with `--debug`, or `claude plugin validate .claude/skills`.
 - **Triggers too often:** narrow the description or set `disable-model-invocation: true`.
+- **Personal skills gone:** look in `~/.claude/skills/.trash/` and move the folder back within 30 days.

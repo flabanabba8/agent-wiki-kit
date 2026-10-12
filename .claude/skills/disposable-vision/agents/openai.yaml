@@ -1,0 +1,6 @@
+interface:
+  display_name: "Disposable Vision"
+  short_description: "Inspect and generate images outside main context"
+  default_prompt: "Use $disposable-vision to inspect or generate images in a fresh worker and return only text findings and file paths."
+policy:
+  allow_implicit_invocation: true

@@ -5,15 +5,16 @@
 #   ./scripts/setup.sh                   # the basics: venv, semantic index, git hooks, agent configs, health check
 #   ./scripts/setup.sh --with-sources    # basics + the primary sources in raw/ (about 400 files)
 #   ./scripts/setup.sh --with-browser    # basics + Camoufox (about 1.2 GB) for pages plain HTTP cannot read
+#   ./scripts/setup.sh --with-vision     # basics + Pillow for disposable image workers (Python 3.11+)
 #
 # Nothing here needs an API key. Safe to run again: every step checks before it acts.
 set -uo pipefail
 R="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$R"
-BROWSER=0; SOURCES=0
+BROWSER=0; SOURCES=0; VISION=0
 for a in "$@"; do case "$a" in
   --full) BROWSER=1; SOURCES=1 ;;
-  --with-browser) BROWSER=1 ;; --with-sources) SOURCES=1 ;;
-  -h|--help) sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+  --with-browser) BROWSER=1 ;; --with-vision) VISION=1 ;; --with-sources) SOURCES=1 ;;
+  -h|--help) sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
   *) echo "unknown option: $a" >&2; exit 2 ;;
 esac; done
 step() { printf '\n== %s\n' "$1"; }
@@ -25,6 +26,19 @@ git rev-parse --show-toplevel >/dev/null 2>&1 || { echo "run this inside the git
 step "Python environment and the local embedding model"
 bash scripts/mem0/setup.sh >/dev/null || { echo "environment setup failed; run scripts/mem0/setup.sh to see why" >&2; exit 1; }
 echo "  .venv ready"
+
+if [ "$VISION" = 1 ]; then
+  step "Disposable image-worker dependencies"
+  ./.venv/bin/python -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' || {
+    echo "Disposable image workers require Python 3.11 or newer." >&2; exit 1;
+  }
+  if command -v uv >/dev/null 2>&1; then
+    uv pip install --python .venv/bin/python -r .claude/skills/disposable-vision/requirements.txt || exit 1
+  else
+    ./.venv/bin/python -m pip install -r .claude/skills/disposable-vision/requirements.txt || exit 1
+  fi
+  echo "  Runtime still requires Codex CLI on PATH and your own Codex login."
+fi
 
 if [ "$BROWSER" = 1 ]; then
   step "Camoufox"

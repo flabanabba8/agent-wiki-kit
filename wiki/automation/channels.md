@@ -7,9 +7,9 @@ sources:
   - raw/docs/official/channels-reference.md
 related: ["[[mcp]]", "[[plugins]]", "[[enterprise-admin]]", "[[permissions-and-modes]]", "[[routines-and-scheduling]]", "[[claude-code-on-the-web]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
+last_verified: 2026-09-25
 aliases: [claude-channels, telegram-channel, discord-channel, webhook-channel, permission-relay]
 valid_until: 2027-03-15
 ---

@@ -8,10 +8,10 @@ argument-hint: "[path-or-url]"
 # Ingest a source
 
 1. **Save the source to `raw/`** as a new file with a SOURCE header (url, publisher, publication date, fetch date). Official Claude Code docs: `./scripts/refetch-docs.sh`. New Claude Code releases: `./scripts/changelog-delta.sh`. Never edit an existing raw file.
-2. **Read it** and list the 3–5 facts that matter to a Claude Code user.
+2. **Read it** and list the 3–5 facts that matter to a Claude Code user. Grade each: *high* (the primary source says it, or two independent sources agree), *medium* (one credible secondary source), *low* (single unverified source). Write only high and medium facts into pages as current facts; park low ones in `wiki/log.md` with what would confirm them. Two sources that disagree get a `> [!contradiction]` callout with both cited, never an average.
 3. **Find the owning page** for each fact: `./.venv/bin/python scripts/mem0/query_wiki.py "<topic>"` and `wiki/index.md`. Each topic has exactly one home page.
 4. **Update the owning page**: replace outdated statements (no "changed since" notes), add the raw file to `sources:`, set `updated` and `last_verified`. Create a new page only when no page owns the topic; there are no source-summary pages.
 5. **Check identifiers:** `python3 scripts/lint_identifiers.py` must report nothing for pages you touched.
 6. **Wire it up:** new pages go in `wiki/index.md`; append a dated entry to `wiki/log.md`; add a `wiki/hot.md` line; run `./scripts/hot-compact.py`.
-7. **Verify:** `./.venv/bin/python scripts/mem0/index_wiki.py`, `./scripts/wiki-lint.sh`.
+7. **Verify:** `./.venv/bin/python scripts/mem0/index_wiki.py`, `./scripts/wiki-lint.sh`. Report each check as PASS (ran and passed), PARTIAL (some ran), BLOCKED (a required check could not run) or INVALID (the output cannot support the claim). Capture each exit code on its own; a pipe into `tail` or `grep` hides a failed lint.
 8. **Record the source:** `./scripts/sources.py manifest --accept <the new raw files>`. `raw/` is gitignored because sources are other people's text; the manifest and the identifier index are what get committed. If `raw/` is empty, run `./scripts/sources.py fetch` first.

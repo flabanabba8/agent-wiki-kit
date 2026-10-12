@@ -61,3 +61,20 @@ Pages keep contradiction callouts where two current sources disagree. Examples: 
 Microsoft Foundry inference ([[cloud-providers]]), one LLM judge versus one per dimension
 ([[agent-evals]]), the OpenCode local MCP timeout default ([[opencode]]) and the Hermes MCP tool-name
 prefix ([[hermes-agent]]).
+
+
+## 2026-10-09 — disposable image workers and bounded agent contracts
+
+Added the portable disposable-vision skill, offline CI tests, prerequisite checker, and non-overwriting installer for Codex, Claude Code, and Hermes. Shared project instructions route image work through fresh workers; generated output receives an independent review. No credentials, user paths, global settings, or generated image artifacts are included.
+
+Reviewed Sahil-SS9/agent-personas at commit 068a9894bb87291aab5d369404dd27047906b5e9. Adopted task briefs and evidence-scoped completion reports in the existing native agents, and documented the distinction between packaging, discovery, and behavior in [[multi-agent-systems]]. Saved pinned source snapshots locally under raw/ and registered their origins. The upstream catalogue and runtime are not imported.
+
+Validation: 63 unit tests passed; retrieval found the expected page in all 47 cases. Lint scored 99/100 with one source-hash freshness warning, no temporal failures, and no unsourced identifiers. The imported worker runtime matches the previously live-tested installed bundle byte for byte. New worker/installer files passed detect-secrets and a personal-deployment-pattern check. No publication was performed; a full published-ref/history audit remains required before any public push.
+
+## 2026-10-11 - scheduled-job audit, evidence states and fact grades
+
+Took three more methods from Sahil-SS9/agent-personas (MIT, commit 068a989). New skill `audit-scheduled-jobs` follows the weekly maintenance cron to a merged result and reports DELIVERING, STALLED, BROKEN or UNKNOWN. The `ingest` skill now grades each fact high, medium or low and reports checks as PASS, PARTIAL, BLOCKED or INVALID. Sources pinned in `sources/manifest.tsv`.
+
+## 2026-10-11 - parity with the private source wiki
+
+Brought the 2026-09-25 content batch across. Claude Code changelog to 2.1.282, the Opus 5.5 release and migration guidance, the plugin docs split into 20 pages, and three new pages: [[plugin-marketplaces]], [[code-modernization]] and [[prompting-claude-models]]. [[claude-projects]] now has one home under surfaces, replacing the earlier copy under automation. 64 pages were merged three-way from the common ancestor; where both sides had edited the same passage the newer verification won, and passages that only added sourced facts were kept. `refetch-docs.sh` now refuses an HTML or bot-challenge response instead of overwriting a snapshot with it. The disposable-vision skill gained its local-inference backend. Manifest rebuilt: 442 sources, all matching.

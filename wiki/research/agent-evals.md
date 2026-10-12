@@ -6,11 +6,12 @@ sources:
   - raw/articles/demystifying-evals.md
   - raw/articles/infrastructure-noise-evals.md
   - raw/articles/multi-agent-research-system.md
-related: ["[[tool-design]]", "[[long-running-agents]]", "[[multi-agent-systems]]", "[[plugins]]", "[[headless-mode]]"]
+  - raw/articles/ai-driven-code-modernization.md
+related: ["[[tool-design]]", "[[long-running-agents]]", "[[multi-agent-systems]]", "[[plugins]]", "[[headless-mode]]", "[[code-modernization]]"]
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-15
+last_verified: 2026-09-25
 aliases: [demystifying-evals, pass-at-k, llm-as-judge, infrastructure-noise, eval-driven-development]
 ---
 
@@ -107,4 +108,5 @@ Frameworks named in the source are Harbor, Braintrust, LangSmith, Langfuse, and 
 - To evaluate skills and plugin behavior, see the plugin eval tooling on [[plugins]].
 - To run Claude Code non-interactively inside an eval harness, see [[headless-mode]]. To run evals in CI, see [[ci-cd-and-code-review]].
 - To evaluate MCP tools specifically, see [[tool-design]].
+- For a production-scale grader, see the modernization **certificate**: machine-checkable conditions, including adversarial Claude reviews in fresh context windows, that every agent change must pass ([[code-modernization]]).
 - This repo's own retrieval eval is described in [[harness]].

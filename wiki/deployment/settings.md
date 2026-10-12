@@ -8,11 +8,12 @@ sources:
   - raw/docs/official/managed-settings.md
   - raw/docs/official/debug-your-config.md
   - raw/docs/official/llm-gateway-connect.md
+  - raw/docs/changelog-2.1.275-to-2.1.282.md
 related: ["[[enterprise-admin]]", "[[permissions-and-modes]]", "[[environment-variables]]", "[[hooks]]", "[[troubleshooting]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
+last_verified: 2026-09-25
 aliases: [settings-json, settings-precedence, settings-scopes, claude-config-files, settings-local-json]
 ---
 
@@ -82,19 +83,20 @@ Environment variables are not a level in this stack. Each variable/key pair deci
 
 ### Keys that don't apply from a repository file
 
-- Keys whose Scope is `User or managed`, `User, local, or managed`, `Managed` or `Global config` in the settings index never apply from `.claude/settings.json`. A few of them a repository file can still switch *off*; each such key says so on its Scope line.
+- Keys whose Scope is `User or managed`, `User, local, or managed`, `Managed` or `Global config` in the settings index never apply from `.claude/settings.json`, apart from a few that a repository file can still switch off (each says so on its Scope line).
 - `permissions.defaultMode` values `auto` and `bypassPermissions` don't take effect from project or local files.
 - `permissions.allow`, `permissions.additionalDirectories`, `extraKnownMarketplaces` and most `env` values wait until each teammate trusts the folder. `deny` and `ask` rules apply immediately.
 - A project `env` block applies only after first-run setup and the trust prompt, so a gateway credential placed there doesn't stop the login screen.
+- Project and local files can't turn on OpenTelemetry export, set its endpoint or capture content, including through telemetry variables in an `env` block (a few off values still apply); `/status`, `claude doctor` and a startup notice list the telemetry variables ignored there ([[environment-variables]]).
 
 ## Settings in cloud sessions
 
 Cloud sessions on [[claude-code-on-the-web]] run on a fresh clone:
 
-- A session with one repository reads its committed `.claude/settings.json`, because the session starts inside the clone. A session with several repositories starts above them, and from each repository's file it loads only the plugins and marketplaces the file declares — not permission rules, hooks, `env` or any other key.
+- With one repository, they read its committed `.claude/settings.json`. A session with several repositories reads only `enabledPlugins` and `extraKnownMarketplaces` from each repository's file.
 - They don't read user or local files.
-- They receive only server-managed settings; a self-hosted environment also reads the managed settings file in its runner image.
-- In a browser at claude.ai/code, `/config` opens claude.ai settings instead of changing a value. To change a value, set an environment variable on the cloud environment, or commit the key to a single repository's `.claude/settings.json`.
+- They receive only server-managed settings.
+- At claude.ai/code, `/config` opens claude.ai settings. To change a value, set environment variables on the cloud environment or, with one repository, commit the key.
 
 ## Check what loaded
 
@@ -115,11 +117,11 @@ More symptom-driven checks are on [[troubleshooting]].
 | Permissions | `permissions.allow`/`ask`/`deny`, `permissions.defaultMode`, `permissions.additionalDirectories`, `permissions.disableBypassPermissionsMode`, `autoMode`, `disableAutoMode`, `allowManagedPermissionRulesOnly` |
 | Sandbox | `sandbox.enabled`, `sandbox.filesystem.*`, `sandbox.network.allowedDomains`, `sandbox.credentials` |
 | Memory and context | `autoCompactEnabled`, `autoCompactWindow`, `autoMemoryEnabled`, `claudeMd`, `claudeMdExcludes`, `env`, `fileCheckpointingEnabled` |
-| Interface and terminal | `theme`, `editorMode`, `statusLine`, `spinnerTipsEnabled`, `companyAnnouncements`, `voiceEnabled`, `verbose` |
-| Git and attribution | `attribution.commit`, `attribution.pr`, `includeGitInstructions`, `prUrlTemplate` |
-| Hooks and automation | `hooks`, `disableAllHooks`, `allowManagedHooksOnly`, `allowedHttpHookUrls`, `enableWorkflows` |
-| Plugins, skills, MCP | `enabledPlugins`, `extraKnownMarketplaces`, `strictKnownMarketplaces`, `syncClaudeAiSkills`, `syncClaudeAiPlugins`, `allowedMcpServers`, `deniedMcpServers`, `managedMcpServers` |
-| Authentication and providers | `apiKeyHelper`, `awsAuthRefresh`, `awsCredentialExport`, `gcpAuthRefresh`, `forceLoginMethod`, `forceLoginOrgUUID`, `forceLoginGatewayUrl`, `gatewayInternalNetworks`, `otelHeadersHelper` |
+| Interface and terminal | `theme`, `editorMode`, `maxProseWidth` (caps prose width in wide terminals; tables and code keep full width), `statusLine`, `spinnerTipsEnabled`, `companyAnnouncements`, `voiceEnabled`, `verbose` |
+| Git and attribution | `attribution.commit`, `attribution.pr` (`"attribution": false` hides all commit and PR attribution, but older CLI versions skip a file holding it, so keep the object form in shared files), `includeGitInstructions`, `prUrlTemplate` |
+| Hooks and automation | `hooks`, `bashEditDiffEnabled` (record files a Bash command changed, for the diff and PostToolUse hooks), `disableAllHooks`, `allowManagedHooksOnly`, `allowedHttpHookUrls`, `enableWorkflows` |
+| Plugins, skills, MCP | `syncClaudeAiSkills`, `syncClaudeAiPlugins` (`false` stops syncing the skills or plugins enabled on your claude.ai account), `enabledPlugins`, `extraKnownMarketplaces`, `strictKnownMarketplaces`, `allowedMcpServers`, `deniedMcpServers`, `managedMcpServers` |
+| Authentication and providers | `apiKeyHelper`, `awsAuthRefresh`, `awsCredentialExport`, `gcpAuthRefresh`, `forceLoginMethod`, `forceLoginOrgUUID`, `gatewayInternalNetworks`, `otelHeadersHelper` |
 | Updates and versioning | `autoUpdatesChannel`, `minimumVersion`, `requiredMinimumVersion`, `requiredMaximumVersion` |
 | Privacy and telemetry | `cleanupPeriodDays`, `desktopSessionCleanupPeriodDays`, `feedbackSurveyRate`, `skipWebFetchPreflight` |
 | Enterprise and managed | `managedSourcesBehavior`, `parentSettingsBehavior`, `policyHelper`, `forceRemoteSettingsRefresh`, `disableSideloadFlags`, `wslInheritsWindowsSettings` |

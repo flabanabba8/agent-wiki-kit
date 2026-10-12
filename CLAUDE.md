@@ -4,6 +4,18 @@ A source-backed wiki about Claude Code and agentic systems that maintains itself
 
 This file is also `AGENTS.md` (a symlink), so Claude Code, Codex, OpenCode and Hermes all read the same instructions. See [[cross-agent-setup]].
 
+## Disposable-session policy
+
+Read `.claude/skills/disposable-vision/SKILL.md` for image operations.
+Default inspection uses this project helper and fresh
+stateless requests to a warm local server, with no agent harness/tools/history.
+Only native image generation or explicitly chosen image-review escalation may
+launch a fresh disposable agent session. For image operations, pass
+only the task, selected image paths and acceptance criteria; return text and paths.
+Do not launch disposable agents for code, logs, documents, datasets, web research
+or reviews. Use local commands, bounded reads and saved logs for all non-image work.
+Never pass the parent conversation to an image worker or resume an image worker.
+
 ## Where things live
 
 - `raw/` — primary sources, the verification baseline. They are other people's text, so they are **not in this repository**: `raw/` is gitignored and a fresh clone has none. `./scripts/sources.py fetch` downloads them from `sources/manifest.tsv`, which records each file's origin and a hash of its content when the wiki was last verified against it. `raw/docs/official/` is a snapshot of every code.claude.com page (`./scripts/refetch-docs.sh`); `raw/docs/changelog-*.md` holds CHANGELOG sections (`./scripts/changelog-delta.sh`); vendor docs are in `raw/docs/<vendor>/`; papers and posts in `raw/articles/`. Never edit an existing raw file; add new ones.

@@ -15,12 +15,14 @@ sources:
   - raw/docs/official/agent-sdk__sessions.md
   - raw/docs/official/agent-sdk__permissions.md
   - raw/docs/official/agent-sdk__migration-guide.md
+  - raw/docs/official/agent-sdk__configuration.md
+  - raw/docs/official/agent-sdk__typescript.md
 related: ["[[agent-sdk-control]]", "[[agent-sdk-deployment]]", "[[managed-agents]]", "[[headless-mode]]", "[[how-claude-code-works]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
-aliases: [claude-agent-sdk, claude-code-sdk, agent-sdk-python, agent-sdk-typescript, claude-sdk-client, agent-sdk-options, agent-sdk-configuration]
+last_verified: 2026-09-25
+aliases: [agent-sdk-configuration, agent-sdk-options, claude-agent-sdk, claude-code-sdk, agent-sdk-python, agent-sdk-typescript, claude-sdk-client]
 ---
 
 # Claude Agent SDK
@@ -29,12 +31,12 @@ The Agent SDK is Claude Code packaged as a library for Python and TypeScript. Yo
 
 ## When to use it
 
-| If you're... | Use | Why |
+| You want to | Use | What you get |
 |---|---|---|
-| Building an agent without writing the tool loop | Agent SDK | The library runs the loop and executes built-in tools |
-| Working interactively or running one-off terminal tasks | Claude Code CLI | Built for daily interactive use |
-| Calling the Messages API and implementing the loop yourself | Client SDK | Direct API access; see [[advanced-tool-use]] and [[context-editing-and-memory-tool]] |
-| Running long or asynchronous agents without operating sandboxes or session storage | [[managed-agents]] | Hosted REST API; Anthropic runs the agent and the sandbox |
+| Embed Claude Code's agent loop in your own Python or TypeScript app, in a process you operate | Agent SDK | The Claude Code binary with its built-in tools, permissions, sessions and hooks |
+| Work interactively or run one-off terminal tasks | Claude Code CLI | Built for daily interactive use |
+| Call the Claude API directly from your own code | Client SDK | Direct API access from any client SDK language. Write the tool loop yourself or use the beta tool runner; see [[advanced-tool-use]] and [[context-editing-and-memory-tool]] |
+| Have Anthropic host the agent | [[managed-agents]] | A hosted harness; the sandbox is Anthropic-managed or self-hosted |
 
 The SDK exists only for Python and TypeScript. From any other language, drive the same loop by running the CLI as a subprocess with `-p` and `--output-format json` ([[headless-mode]]).
 
@@ -100,25 +102,25 @@ Check `ResultMessage.subtype` before reading `result`, which is present only on 
 |---|---|
 | `success` | Finished normally |
 | `error_max_turns` | Hit `max_turns` / `maxTurns`, which counts tool-use turns |
-| `error_max_budget_usd` | Hit `max_budget_usd` / `maxBudgetUsd`. Subagent spend counts toward it |
+| `error_max_budget_usd` | Hit `max_budget_usd` / `maxBudgetUsd`. Counts the call's own spend, subagents included, not totals restored from a resumed session |
 | `error_during_execution` | The loop was interrupted, including by a session crash |
 | `error_max_structured_output_retries` | No output matched the schema ([[agent-sdk-control]]) |
 
 After yielding an error result, a single-shot `query()` raises, so wrap the loop in `try`. To detect a refusal, check for `stop_reason == "refusal"`.
 
-When Claude Code refuses to start at all, it writes an `error_during_execution` result with zeroed totals and a `startup_failure_reason` naming the refusal, so your app can offer the fix instead of retrying. Values include `org_pin_mismatch`, `managed_settings_invalid`, `proxy_invalid`, `temp_dir_unusable`, `cwd_unavailable`, `shell_tool_missing`, `session_held_by_background`, `cli_version_too_old` and `bypass_root`; `errors` carries the same text as stderr. Two failures produce that result on their own: a resume Claude Code stops because it can't return the session to its worktree, and a refused `continue` of a conversation a background session holds. Every other startup failure exits non-zero with stderr output and no result message unless you set `CLAUDE_CODE_STARTUP_FAILURE_RESULTS` to `1` in `env`.
+When Claude Code refuses to start for a known reason (for example `cwd_unavailable`, `bypass_root`, `org_pin_mismatch` or `cli_version_too_old`), the TypeScript SDK (v0.3.274+) can receive an `error_during_execution` result with zeroed totals and a `startup_failure_reason` field, so your app can offer the fix instead of retrying. Only some failures produce it by default; set `CLAUDE_CODE_STARTUP_FAILURE_RESULTS=1` in `env` to get it for every reason.
 
 ## Key options
 
-In Python, options go in `ClaudeAgentOptions` with snake_case names. In TypeScript, they go in the `options` object with camelCase names.
+In Python, options go in `ClaudeAgentOptions` with snake_case names. In TypeScript, they go in the `options` object (type `Options`) with camelCase names. Every field is optional. A session also reads settings files and environment variables.
 
 | Option (Python) | Purpose |
 |---|---|
 | `allowed_tools` / `disallowed_tools` | Pre-approve or deny tools. Allowing a tool does not limit Claude to that set |
 | `tools` | Restrict which built-in tools exist in the session |
 | `permission_mode`, `can_use_tool` | How much oversight there is, and the approval callback |
-| `system_prompt` | A custom string, `{"type": "preset", "preset": "claude_code", "append": "..."}`, `{"type": "custom", "prompt": "..."}`, or `{"type": "file", "path": "..."}` |
-| `setting_sources`, `settings` | Which filesystem settings load (`"user"`, `"project"`, `"local"`), and a settings file path, inline JSON string or TypeScript settings object that overrides all three |
+| `system_prompt` | A custom string, `{"type": "preset", "preset": "claude_code", "append": "..."}`, `{"type": "custom", "prompt": "..."}` or `{"type": "file", "path": "..."}` |
+| `setting_sources`, `settings` | Which filesystem settings load (`"user"`, `"project"`, `"local"`), and an extra settings file path or inline JSON string (TypeScript also takes an object) that overrides all of them; only managed policy ranks higher |
 | `model`, `fallback_model`, `effort`, `thinking` | Model and reasoning depth. `effort` runs from `low` to `max` ([[models-and-effort]]) |
 | `max_turns`, `max_budget_usd`, `task_budget` | Stop conditions ([[agent-sdk-deployment]]) |
 | `cwd`, `add_dirs`, `env` | Working directory, extra directories, subprocess environment |
@@ -126,16 +128,17 @@ In Python, options go in `ClaudeAgentOptions` with snake_case names. In TypeScri
 | `resume`, `continue_conversation`, `fork_session`, `session_store` | Sessions |
 | `output_format`, `include_partial_messages` | Structured output and streaming |
 
-`env` behaves differently in each language. Python merges it on top of the inherited environment. TypeScript replaces the environment, so spread `process.env` into it to keep `PATH`, `HOME` and `ANTHROPIC_API_KEY`. Whatever form you pass to `settings` overrides user, project and local filesystem settings; only managed policy outranks it.
-
-**Model.** With no `model` option, setting or environment variable, a session starts on Claude Code's default model; the value is an alias or a full model name ([[claude-models]]). `fallback_model` names one backup or a comma-separated list, and the session switches to it when the primary is overloaded or unavailable, then retries the primary at the start of each user turn. In TypeScript, a fallback equal to `model` throws at startup. The Messages API parameters `temperature`, `top_p` and `max_tokens` have no options fields: set `effort` or a spend cap instead, or call the Messages API directly.
-
-**Working directory.** `cwd` decides which project's settings and hooks load, where session skills are discovered, and which project a stored session belongs to. Neither SDK has a setter for it, so use a new session to work in another directory. To let tools reach files outside it, list paths in `add_dirs` / `additionalDirectories`.
+- **Model.** Without `model` (or a model from settings or the environment), a session uses Claude Code's default model ([[models-and-effort]]). `model` takes an alias or full name. `fallback_model` takes one model or a comma-separated chain, used when the primary is overloaded or unavailable. The primary is retried at the start of each user turn. In TypeScript, a fallback equal to `model` throws at startup.
+- **No sampling parameters.** `temperature`, `top_p` and `max_tokens` have no options. Use `effort` or a spend cap, or call the Messages API directly.
+- **`env`.** Python merges your values over the inherited environment. TypeScript replaces the environment, so spread `process.env` into it. Unset, the subprocess inherits your environment in both.
+- **`cwd`.** Defaults to your process's working directory and has no setter; start another session to change it. It decides which project settings, hooks and skills load and which project a stored session belongs to. `add_dirs` / `additionalDirectories` grants file access outside it, not configuration.
+- **Caps.** `max_turns=0` means no limit. `max_budget_usd=0` is rejected at startup. With streaming input, the session survives a cap result: the turn count restarts for each queued message, while the budget keeps accumulating until `/clear`.
 
 ### Two defaults that surprise people
 
-- **System prompt.** If you don't set `system_prompt`, the SDK uses a minimal prompt that covers tool calling only, not Claude Code's prompt, whereas `claude -p` uses the full Claude Code prompt. For CLI-like behavior, use the `claude_code` preset, optionally with `append`. For an agent with a different identity, surface or permission model, write your own prompt and add back the tool and safety guidance it needs. The prompt is recorded on a session's first request, so a different `append` or custom prompt on a resumed session reaches Claude only after compaction; `snapshot: false` on the preset or custom object form rebuilds it every request, at the cost of the session's prompt cache. To change the agent's instructions while it runs, put them in the next user message or in a hook's `additionalContext` instead ([[agent-sdk-control]]).
-- **Filesystem settings.** If you omit `setting_sources`, the SDK loads user, project and local settings, CLAUDE.md files, rules, skills, agents and commands, just as the CLI does. Pass `[]` for isolation. In Python, setting `skills` while `setting_sources` is unset loads only user and project sources, so pass the list explicitly to keep local settings. Managed policy, `~/.claude.json` and auto memory load either way ([[agent-sdk-deployment]] covers multi-tenant isolation).
+- **System prompt.** If you don't set `system_prompt`, the SDK uses a minimal prompt that covers tool calling only, not Claude Code's prompt, whereas `claude -p` uses the full Claude Code prompt. For CLI-like behavior, use the `claude_code` preset, optionally with `append`. For an agent with a different identity, surface or permission model, write your own prompt and add back the tool and safety guidance it needs.
+- **The system prompt is recorded per session.** Claude Code records the prompt on a session's first request and reuses it until the session is compacted, so a different `append` or custom prompt passed on `resume` or `continue` takes effect only after compaction or in a new session. To change instructions mid-session, put them in the next user message or return `additionalContext` from a `UserPromptSubmit` or `PostToolUse` hook. While iterating on wording, set `snapshot: false` on the preset or custom object form to rebuild the prompt every request (TypeScript SDK v0.3.257+, Python v0.2.153+); keep recording on in production, because turning it off breaks prompt-cache reuse.
+- **Filesystem settings.** If you omit `setting_sources`, the SDK loads user, project and local settings, CLAUDE.md files, rules, skills, agents and commands, just as the CLI does. Pass `[]` for isolation. Managed policy, `~/.claude.json` and auto memory load either way ([[agent-sdk-deployment]] covers multi-tenant isolation).
 
 ## query() or ClaudeSDKClient
 
@@ -147,6 +150,8 @@ In Python, options go in `ClaudeAgentOptions` with snake_case names. In TypeScri
 | Good for | One-off tasks, CI | Chat UIs, flows that branch on Claude's reply |
 
 The client also has `set_permission_mode()`, `set_model()`, `rewind_files()`, `get_mcp_status()` and `reconnect_mcp_server()`. TypeScript has no client object. Instead, pass `continue: true` or `resume` on later `query()` calls, and call methods such as `setPermissionMode()` on the object `query()` returns.
+
+Mid-session setters need streaming input. `set_model()` with no argument switches to Claude Code's default model, not the `model` you passed; each model has its own prompt cache, so the next request after a switch is uncached. TypeScript adds `applyFlagSettings()`, which applies settings-file keys at runtime, and `updateSettings()`, which writes one allowlisted key to disk: `outputStyle` to `"localSettings"` (takes effect on the next request) or `effortLevel` to `"userSettings"` (saved as the default for the current model; the running session keeps its effort, and `max` is not written).
 
 Streaming input means passing an async generator of user messages as `prompt`. It is the recommended mode for interactive apps, because it supports image attachments, queued messages, interrupts and approvals mid-session.
 

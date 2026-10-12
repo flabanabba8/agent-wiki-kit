@@ -8,11 +8,11 @@ sources:
   - raw/docs/official/desktop-linux.md
   - raw/docs/official/desktop-wsl.md
   - raw/docs/official/commands.md
-related: ["[[claude-code-on-the-web]]", "[[chrome-and-computer-use]]", "[[worktrees-and-background-work]]", "[[permissions-and-modes]]", "[[enterprise-admin]]", "[[routines-and-scheduling]]"]
+related: ["[[claude-code-on-the-web]]", "[[claude-projects]]", "[[chrome-and-computer-use]]", "[[worktrees-and-background-work]]", "[[permissions-and-modes]]", "[[enterprise-admin]]", "[[routines-and-scheduling]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
+last_verified: 2026-09-25
 aliases: [claude-desktop, desktop-code-tab, claude-desktop-linux, desktop-ssh-sessions, desktop-wsl-sessions]
 ---
 
@@ -20,7 +20,7 @@ aliases: [claude-desktop, desktop-code-tab, claude-desktop-linux, desktop-ssh-se
 
 Three tabs: **Chat** for conversation, **Cowork** for Dispatch and longer agentic tasks in a sandboxed VM, and **Code**, which is Claude Code with a graphical interface.
 
-The Code tab runs the CLI's engine and reads the same `CLAUDE.md`, settings, hooks, skills and MCP files. It bundles Claude Code — no Node.js or separate install — and needs a Pro, Max, Team or Enterprise subscription. Use it for parallel sessions in one window, side-by-side panes and visual diff review; use the CLI for scripting ([[headless-mode]]), since Desktop has no `--print` equivalent.
+The Code tab runs the CLI's engine and reads the same `CLAUDE.md`, settings, hooks, skills and MCP files. It bundles Claude Code and needs a Pro, Max, Team or Enterprise subscription. Use it for parallel sessions in one window, side-by-side panes and visual diff review; use the CLI for scripting ([[headless-mode]]), since Desktop has no `--print` or `--output-format` equivalent.
 
 ## Install
 
@@ -34,7 +34,7 @@ Then sign in and click **Code**.
 Set four things before your first message:
 
 - **Environment**: **Local** (your machine), **Cloud** (Anthropic-managed, keeps running after you close the app — [[claude-code-on-the-web]]), **SSH** (a remote machine), **WSL** (a WSL distribution, Windows only).
-- **Project folder**; cloud sessions add more repositories with **+**, each with its own branch selector.
+- **Project folder**; cloud sessions add more repositories with **+**, each with its own branch selector. For many cloud sessions on one body of work, **Projects** in the sidebar lets Claude start and track them ([[claude-projects]]).
 - **Model**, from the dropdown next to the send button.
 - **Permission mode**, from the mode selector:
 
@@ -51,8 +51,8 @@ A mode you pick is remembered per folder and overrides `permissions.defaultMode`
 ## Review and ship
 
 - **Diff view**: click the `+12 -1` indicator, click any line to comment, then submit all with `Cmd+Enter` / `Ctrl+Enter`; Claude revises the code and shows a new diff.
-- **Review code**: a toolbar button reviewing the current diff for high-signal issues — compile errors, logic errors, security vulnerabilities, obvious bugs — not style, formatting or anything a linter catches.
-- **PR monitoring**: once you open a PR, a CI status bar polls check results through `gh`, which must be installed and authenticated. **Auto-fix** reads failing checks and iterates; **Auto-merge** squash-merges once all checks pass, and must also be enabled in the repository settings.
+- **Review code**: a toolbar button reviewing the current diff for high-signal issues, not style or lint.
+- **PR monitoring**: after you open a PR, a CI status bar polls check results through the GitHub CLI, requiring `gh` installed and authenticated. **Auto-fix** reads failing checks and iterates; **Auto-merge** squash-merges once all checks pass, and must also be enabled in the GitHub repository settings.
 
 Other PR automation: [[ci-cd-and-code-review]].
 
@@ -61,8 +61,8 @@ Other PR automation: [[ci-cd-and-code-review]].
 Panes: chat, diff, browser, terminal, file, plan, tasks and subagent, plus the iOS Simulator on macOS. Drag a pane header to move it or an edge to resize, pop one out into its own window, close the focused pane with `Cmd+\` / `Ctrl+\`, or open more from the **Views** menu.
 
 - **Terminal** (local sessions only): `` Ctrl+` `` opens in the session's working directory, with the same environment Claude uses.
-- **File pane** (local and SSH sessions): click a path to open it, edit, then **Save**. Right-click for **Open in** (VS Code, Cursor, Zed), **Attach as context** or **Copy path**.
-- **Transcript view**: Normal, Thinking (summarized tool calls plus thinking) or Verbose (every tool call plus thinking); cycle with `Ctrl+O`. Thinking appears only once the session has produced some.
+- **File pane** (local and SSH sessions): click a path to open it, edit, then **Save**. Right-click a path for **Open in** (VS Code, Cursor, Zed), **Attach as context** or **Copy path**.
+- **Transcript view**: Normal (tool calls collapsed into summaries), Thinking (the same plus Claude's thinking; listed only once the session has produced thinking) or Verbose (every tool call and step, plus thinking); cycle with `Ctrl+O`.
 - **Usage ring**, next to the model picker: context usage for this session and plan usage shared across surfaces.
 
 | Shortcut (macOS; use Ctrl on Windows) | Action |
@@ -78,7 +78,7 @@ Terminal shortcuts such as `Shift+Tab` don't apply in Desktop.
 
 ## Preview your app
 
-Claude can start a dev server and open it in the **Browser pane**, taking screenshots, inspecting the DOM, clicking elements and filling forms to check its changes; auto-verify is on by default, so this follows every edit.
+Claude can start a dev server and open it in the **Browser pane**, taking screenshots, inspecting the DOM, clicking and filling forms to check its changes after every edit (auto-verify, on by default).
 
 Server configuration lives in `.claude/launch.json` at the root of the selected folder, JSON with comments:
 
@@ -96,7 +96,7 @@ Other fields: `cwd` (working directory); `env` (environment variables — the fi
 
 `autoPort` controls port conflicts: `true` picks a free port and passes it as `PORT`, `false` fails with an error, unset asks once and saves your answer.
 
-The Browser pane is also a tabbed browser for external sites, on a clean profile with no saved logins. The first time Claude acts on an external site you choose **Allow once**, **Always allow** or **Deny**, and safety classifiers review its write actions on external pages in every permission mode. For your own logged-in browser, use Claude in Chrome ([[chrome-and-computer-use]]).
+The Browser pane also browses external sites on a clean profile; the first time Claude acts on one you choose **Allow once**, **Always allow** or **Deny**, and safety classifiers review its write actions there. For work inside your own logged-in browser, use Claude in Chrome ([[chrome-and-computer-use]]).
 
 ## Manage sessions
 
@@ -105,11 +105,10 @@ The Browser pane is also a tabbed browser for external sites, on a clean profile
 - **Archive**: hover a session and click the archive icon; **Auto-archive after PR merge or close** in Settings → Claude Code archives finished local sessions.
 - **Side chat**: `Cmd+;` or `/btw` asks a question with the session's context without adding anything back, and isn't saved to disk.
 - **Tasks pane**: subagents, background shell commands and dynamic workflows running in the current session.
-- **Work across sessions**: ask which session touched something, or have Claude message, rename or archive another. Claude sees the 20 most recently active local, SSH and WSL Code-tab sessions, not cloud, CLI or VS Code ones, and always asks before archiving.
-- **Continue in** (the VS Code icon in the session toolbar): **Claude Code on the Web** pushes your branch and continues the session in the cloud, needing a clean working tree, unavailable for SSH sessions; **Your IDE** opens the project in a supported IDE.
-- **Projects** in the sidebar, for work needing many cloud sessions; its sessions send the project's notifications instead of their own ([[claude-projects]]).
-- **From the CLI**: `/desktop` moves the current terminal session into Desktop on macOS and x64 Windows when signed in with a subscription; inside Desktop, `/resume` lists CLI-started sessions.
-- **Dispatch** (Pro and Max): message a task from your phone. Development tasks spawn a Code session with a **Dispatch** badge and a push notification when it finishes or needs approval.
+- **Work across sessions**: ask which session touched something, or have Claude message, rename or archive another. Claude sees the 20 most recently active local, SSH and WSL Code-tab sessions and always asks before archiving.
+- **Continue in** (the VS Code icon in the session toolbar): **Claude Code on the Web** pushes your branch and continues in the cloud, needing a clean working tree, unavailable for SSH sessions; **Your IDE** opens the project in a supported IDE.
+- **From the CLI**: `/desktop` moves the current terminal session into Desktop, on macOS and x64 Windows when signed in with a subscription. Inside Desktop, `/resume` lists sessions started from the CLI.
+- **Dispatch** (Pro and Max): message a task from your phone. Development tasks spawn a Code session with a **Dispatch** badge, with a push notification when it finishes or needs approval.
 - **Scheduled tasks**: [[routines-and-scheduling]].
 
 ## Environments
@@ -125,22 +124,22 @@ For variables reaching both local sessions and dev servers, open the environment
 **+ Add SSH connection** takes **Name**, **SSH Host** (`user@hostname` or a host from `~/.ssh/config`), **SSH Port** and **Identity File**. The remote host must run Linux or macOS; Desktop installs Claude Code there on first connect.
 
 - SSH sessions support permission modes, connectors, plugins and MCP servers.
-- They read `~/.claude/skills/` and the managed settings file from the remote host, not your machine.
+- They read the managed settings file from the remote host, not your machine.
 
 ### WSL
 
 **Requirements**: Windows 10 or 11 with WSL 2 (WSL 1 isn't supported), at least one installed distribution, and `git` inside that distribution.
 
-Pick the distribution from the **WSL** section of the environment picker, then choose a folder using Linux paths; workspace trust is per distribution and folder. Use WSL when the repository lives on the distribution's filesystem: reaching those files from Windows goes over a network filesystem, slow and breaking file watching.
+Pick the distribution from the **WSL** section of the environment picker, then choose a folder using Linux paths. Use WSL when the repository lives on the distribution's filesystem; reaching it from Windows is slow and breaks file watching.
 
 - **Works**: parallel sessions, side chats, diff review, PR status and worktrees.
 - **Not available yet**: integrated terminal, connectors, plugins, session forking, the file pane and `@` file suggestions.
 
 ## Extensions
 
-- **Connectors** (local and SSH sessions): **+** → **Connectors** adds Google Calendar, Slack, GitHub, Linear, Notion and more, MCP servers with a graphical setup ([[mcp]]).
-- **Skills**: type `/`, or **+** → **Slash commands**.
-- **Plugins** (local and SSH sessions): **+** → **Plugins** → **Add plugin**. Not available in cloud or WSL sessions; for cloud sessions, declare it under `enabledPlugins` in the repo's `.claude/settings.json`, or enable it for your claude.ai account ([[plugins]]).
+- **Connectors** (local and SSH sessions): **+** → **Connectors** adds Google Calendar, Slack, GitHub, Linear, Notion and more — MCP servers with a graphical setup flow ([[mcp]]).
+- **Skills**: type `/`, or **+** → **Slash commands**. Local sessions load `~/.claude/skills/` (SSH sessions read the remote host's); local and cloud sessions also load skills enabled for your claude.ai account.
+- **Plugins** (local and SSH sessions): **+** → **Plugins** → **Add plugin**. Not available in WSL sessions, nor in cloud sessions, which also don't install plugins a repo's `.claude/settings.json` declares ([[plugins]]).
 - **MCP**: local Code sessions also load servers from `claude_desktop_config.json`, and on a name clash that definition wins. The standalone CLI doesn't read it; run `claude mcp add-from-claude-desktop` to import those servers.
 
 ## Linux beta
@@ -191,6 +190,4 @@ Commands that open a terminal dialog behave differently: those with no argument 
 |---|---|
 | `Error 403: Forbidden` in the Code tab | Sign out and back in, confirm a paid plan, quit the app fully and reopen |
 | Tools like `npm` not found | Fix `PATH` in your shell profile and restart the app, or set it in the local environment editor |
-| "Git LFS is required by this repository" | Install Git LFS, run `git lfs install`, restart the app |
 | "Branch doesn't exist yet" for a cloud branch | `git fetch origin <branch-name>`, then `git checkout <branch-name>` |
-| Blank screen on a managed network | Allow the Anthropic, claude.ai and claude.com CDN hosts through the firewall |

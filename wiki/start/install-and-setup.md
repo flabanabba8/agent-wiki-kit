@@ -11,9 +11,9 @@ sources:
   - raw/docs/changelog-2.1.273-to-2.1.274.md
 related: ["[[overview]]", "[[settings]]", "[[troubleshooting]]", "[[cloud-providers]]", "[[environment-variables]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
+last_verified: 2026-09-25
 aliases: [install-claude-code, claude-code-login, update-claude-code, release-channel, uninstall-claude-code]
 valid_until: 2027-03-15
 ---
@@ -122,7 +122,7 @@ Run `claude` in a project directory. On first launch a browser window opens for 
 | Account type | How to sign in |
 |---|---|
 | Claude Pro or Max | Your claude.ai account |
-| Claude for Teams or Enterprise | The claude.ai account your admin invited. Enterprise adds SSO, domain capture, and managed policy |
+| Claude for Teams or Enterprise | The claude.ai account your admin invited. Teams includes SSO and server-managed settings; Enterprise adds domain capture, role-based permissions, and the compliance API |
 | Claude Console | Console credentials after an admin invites you. A "Claude Code" workspace is created for cost tracking. You can sign in with or without creating an API key |
 | Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry | Set the provider's environment variables before running `claude`, or pick **3rd-party platform** at the login prompt. No browser login. See [[cloud-providers]] |
 | Claude apps gateway | Corporate SSO through `/login`. See [[llm-gateways]] |

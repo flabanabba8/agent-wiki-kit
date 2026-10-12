@@ -14,15 +14,15 @@ sources:
   - raw/docs/official/agent-sdk__subagents.md
 related: ["[[agent-sdk]]", "[[sandboxing-and-security]]", "[[enterprise-admin]]", "[[costs-and-usage]]", "[[managed-agents]]", "[[network-config]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
-aliases: [agent-sdk-hosting, secure-agent-deployment, agent-sdk-observability, agent-sdk-cost-tracking, session-store, max-budget-usd]
+last_verified: 2026-09-25
+aliases: [agent-sdk-hosting, secure-agent-deployment, agent-sdk-observability, agent-sdk-cost-tracking, session-store]
 ---
 
 # Deploying Agent SDK Agents
 
-Self-hosting an [[agent-sdk]] agent means four jobs: running a long-lived `claude` subprocess for each session, keeping its state durable, limiting what it can reach, and measuring what it spends. If you don't need your own infrastructure or data plane, [[managed-agents]] runs the agent and the sandbox for you.
+Self-hosting an [[agent-sdk]] agent means four jobs: running a long-lived `claude` subprocess for each session, keeping its state durable, limiting what it can reach, and measuring what it spends. If you don't need to run the agent loop on your own infrastructure, [[managed-agents]] hosts it for you, with tools running in an Anthropic-managed or self-hosted sandbox.
 
 ## The subprocess model
 
@@ -56,7 +56,7 @@ For long-running sessions in TypeScript, `streamInput()` adds turns to a live se
 
 ## Persist sessions with a SessionStore
 
-A `SessionStore` mirrors transcripts to your own backend, so any host can resume a session. Implement `append` and `load`; the optional methods are `listSessions`, `listSessionSummaries`, `delete` and `listSubkeys`. `load` must return entries deep-equal to what was appended and in the same order, so a backend that reorders object keys is fine. The SDK ships `InMemorySessionStore` for development and testing. Both repositories carry one runnable reference adapter per storage type under `examples/session-stores/` (TypeScript) and `examples/session_stores/` (Python) — an object store (S3), a key-value store (Redis) and a relational or document database (Postgres) — plus a conformance suite for your own (`run_session_store_conformance` in Python).
+A `SessionStore` mirrors transcripts to your own backend, so any host can resume a session. Implement `append` and `load`; the optional methods are `listSessions`, `listSessionSummaries`, `delete` and `listSubkeys`. The SDK ships `InMemorySessionStore` for development and testing. Both SDK repositories have one example adapter per storage type (object store, key-value store, database: S3, Redis and Postgres), under `examples/session-stores/` in TypeScript and `examples/session_stores/` in Python; copy the closest one and adapt it. Both SDKs ship a conformance suite (`run_session_store_conformance` in Python).
 
 ```python
 store = MyRedisStore(client)  # your adapter
@@ -73,7 +73,7 @@ What to design around:
 - **Writes are best-effort.** A failed `append` batch gets up to three attempts in total, then is dropped with a `mirror_error` system message. Deduplicate on `entry.uuid` and alert on `mirror_error`.
 - **Resume from a matching working directory.** The store key encodes the original `cwd`.
 - **Some options conflict.** A store can't be combined with `persistSession: false` or with file checkpointing.
-- **It stores transcripts only.** CLAUDE.md and working-directory files need their own volume or sync. The SDK never deletes anything from your store, so retention is your job.
+- **It stores transcripts only.** CLAUDE.md and working-directory files need their own volume or sync. The SDK never deletes anything from your store, so use your backend's expiry mechanism or run cleanup yourself.
 - **Python auth on resume.** When resuming from a store, Python copies only credentials and `.claude.json` into the temporary config directory. An `apiKeyHelper` in user settings then fails with `Not logged in`, so set `ANTHROPIC_API_KEY` in `env` instead.
 
 ## Isolate tenants
@@ -129,7 +129,7 @@ OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer your-token"
 - **Trace linking.** When your app has an active span, the SDK injects `TRACEPARENT` automatically, so the agent run appears inside your trace.
 - **Pitfalls.** Never use the `console` exporter, because stdout is the SDK's message channel. Export errors are silent by default; set `CLAUDE_CODE_OTEL_DIAG_STDERR=1` and read them through the `stderr` callback.
 - **Per-user audit.** Put end-user and tenant IDs, percent-encoded, in `OTEL_RESOURCE_ATTRIBUTES` for each call.
-- **Content is excluded by default.** Opt in only if your pipeline is approved to store it: `OTEL_LOG_USER_PROMPTS`, `OTEL_LOG_TOOL_DETAILS`, `OTEL_LOG_TOOL_CONTENT`, `OTEL_LOG_RAW_API_BODIES`.
+- **Content is excluded by default.** Opt in only if your pipeline is approved to store it: `OTEL_LOG_USER_PROMPTS`, `OTEL_LOG_TOOL_DETAILS`, `OTEL_LOG_TOOL_CONTENT` (a `tool.output` span event with file contents and Bash output; needs tracing), `OTEL_LOG_RAW_API_BODIES`.
 - **Short runs.** By default, metrics export every 60 s and traces and logs every 5 s. Lower `OTEL_METRIC_EXPORT_INTERVAL`, `OTEL_LOGS_EXPORT_INTERVAL` and `OTEL_TRACES_EXPORT_INTERVAL` so data leaves before the process exits.
 
 Organization-wide monitoring setup is in [[enterprise-admin]].
@@ -144,7 +144,7 @@ Organization-wide monitoring setup is in [[enterprise-admin]].
 | `total_cost_usd` | Yes |
 | `modelUsage` / `model_usage` | Yes, broken down per model |
 
-- **Per call.** Each `query()` reports only its own totals, so sum across calls yourself. In streaming input mode, each turn's result carries a running total, which starts over after `/clear`.
+- **Across calls.** Independent `query()` calls (no `resume` or `continue`) report only their own totals, so sum them yourself. A call that resumes or forks a session restores the session's saved totals, so its results already include earlier spend: read the latest result rather than summing. In streaming input mode, each turn's result carries a running total, which starts over after `/clear`.
 - **Per step.** Assistant messages carry usage. Deduplicate by message ID, because parallel tool calls share one. Their `output_tokens` is a placeholder, so read output tokens from the result.
 - **Crashes.** After a crash, the `error_during_execution` result may carry zeroed cost fields. Recover totals from the previous turn's result.
 - **Caching.** Prompt caching is automatic; watch `cache_creation_input_tokens` and `cache_read_input_tokens`. With API-key and cloud-provider auth, your turns use a 5-minute TTL. `ENABLE_PROMPT_CACHING_1H` requests 1 hour, or set `CLAUDE_CODE_PROMPT_CACHE_TTL` and `CLAUDE_CODE_SUBAGENT_PROMPT_CACHE_TTL` separately.

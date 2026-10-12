@@ -5,11 +5,13 @@ tldr: "Context rot, just-in-time retrieval, compaction"
 sources:
   - raw/articles/context-engineering.md
   - raw/articles/harness-design-long-running-apps.md
-related: ["[[context-window]]", "[[claude-md-and-memory]]", "[[context-editing-and-memory-tool]]", "[[long-running-agents]]", "[[subagents]]"]
+  - raw/articles/opus-5-5-longer-coding-sessions.md
+  - raw/articles/openai-rethinking-skills-gpt-6-astra.md
+related: ["[[context-window]]", "[[claude-md-and-memory]]", "[[context-editing-and-memory-tool]]", "[[long-running-agents]]", "[[subagents]]", "[[skill-evolution]]"]
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-15
+last_verified: 2026-09-25
 aliases: [context-rot, attention-budget, just-in-time-context, compaction-strategy, structured-note-taking]
 ---
 
@@ -27,6 +29,8 @@ The guiding principle is to find "the smallest possible set of high-signal token
 
 Treat context as a finite resource with diminishing marginal returns.
 
+**It is also a cost lever.** In agentic coding, re-read context dominates the bill: Claude Code sessions increasingly run longer, more open-ended tasks, so the economic impact of context engineering compounds. Make sure every token you supply is necessary, and that as much of it as possible is read from cache. Current usage and caching numbers are on [[context-window]].
+
 ## Anatomy of effective context
 
 | Component | Guidance |
@@ -43,6 +47,7 @@ The post defines agents simply as "LLMs autonomously using tools in a loop." Man
 - Claude Code analyzes large databases this way: it writes targeted queries, stores the results, and uses `head` and `tail` instead of loading whole data objects.
 - Metadata carries signal. A `test_utils.py` in a `tests` folder implies a different purpose than the same file in `src/core_logic/`. Folder hierarchy, naming conventions and timestamps all help the agent decide what matters.
 - This enables **progressive disclosure**: the agent discovers context layer by layer and keeps only what it needs in working memory.
+- The same applies to standing instructions. OpenAI's guidance for GPT-6 Astra: tell the agent which doc serves which situation ("database.md for schema changes") rather than "read these files before every edit", which burns context on a typo fix. Skill descriptions compete for context the same way ([[skill-evolution]]).
 - The trade-off is that runtime exploration is slower than pre-computed retrieval. Without good tools and heuristics, the agent wastes context on dead ends.
 
 **Hybrid strategy.** Claude Code drops CLAUDE.md files into context up front, and uses primitives like glob and grep to retrieve files just in time. This avoids stale indexes and complex syntax trees. The post suggests hybrids suit less dynamic content such as legal or finance work. Its standing advice is "do the simplest thing that works."

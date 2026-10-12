@@ -7,11 +7,12 @@ sources:
   - raw/docs/official/agent-view.md
   - raw/docs/official/agents.md
   - raw/docs/official/cli-reference.md
+  - raw/docs/changelog-2.1.275-to-2.1.282.md
 related: ["[[subagents]]", "[[agent-teams]]", "[[workflows]]", "[[sessions-and-checkpoints]]", "[[hooks]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
+last_verified: 2026-09-25
 aliases: [git-worktrees, agent-view, claude-agents, background-sessions, parallel-sessions]
 valid_until: 2027-03-15
 ---
@@ -28,8 +29,9 @@ Pick the approach by who coordinates the work:
 | Agent view | You have several independent tasks to hand off and check back on later |
 | [[agent-teams]] | Claude should split a project, assign pieces and keep workers in sync (experimental, off by default) |
 | [[workflows]] | A script should hold the plan: dozens to hundreds of agents, cross-checked results |
+| [[claude-projects]] | Claude should start and track parallel cloud sessions from one ongoing conversation (public beta) |
 
-Worktrees support all of these. `/batch` is a skill that splits one large change into 5 to 30 worktree-isolated subagents, each opening a pull request. Running many sessions multiplies token usage. To have Claude start and track the parallel sessions for you in the cloud instead, from one conversation, see [[claude-projects]].
+Worktrees support all of these. `/batch` is a skill that splits one large change into 5 to 30 worktree-isolated subagents, each publishing its change (outside git, it needs a `WorktreeCreate` hook). Running many sessions multiplies token usage.
 
 ## Worktrees
 
@@ -65,7 +67,7 @@ While a session is in a worktree, Claude Code blocks four kinds of tool call, an
 - Git pointed at the main checkout (`git -C`, `--git-dir`, `GIT_DIR`, `GIT_WORK_TREE`, or `cd` then git).
 - Commands whose git usage it can't verify from the command text. This check can't be turned off.
 
-A worktree shares three things with the main checkout: the `.git` directory (so `git commit` works with the sandbox on), plugins installed at project scope, and "don't ask again" Bash approvals, which are saved to the main checkout's `.claude/settings.local.json`.
+A worktree shares these with the main checkout: the `.git` directory (so `git commit` works with the sandbox on), plugins installed at project scope, "don't ask again" Bash approvals (saved to the main checkout's `.claude/settings.local.json`), and, when the worktree has no `.claude/skills` at its root (for example because it is gitignored), the main checkout's project skills, agents and commands.
 
 In [[hooks]], `${CLAUDE_PROJECT_DIR}` stays at the original project root. Read the `cwd` field of the hook input to get the worktree path.
 
@@ -75,7 +77,7 @@ Ask Claude to "use worktrees for your agents", or add `isolation: worktree` to a
 
 ### Cleanup
 
-- **When you exit an interactive session**: a clean, unnamed worktree is removed together with its branch. A named session, or a worktree that holds work, asks whether to keep or remove it.
+- **When you exit an interactive session**: a clean, unnamed worktree is removed together with its branch. A named session, or a worktree that holds work (changed or untracked files, uncommitted submodule work, new commits) or whose state can't be verified, asks whether to keep or remove it.
 - **`-p` runs** never clean up. Run `git worktree remove <path>`, and if git says it is locked, run `git worktree unlock` first.
 - **The periodic sweep** removes subagent and background-session worktrees older than `cleanupPeriodDays`. It skips any worktree with changes or unpushed commits, any worktree you made with `git worktree add`, and any worktree without Claude Code's marker. While an agent runs, Claude Code holds a `git worktree lock` on its worktree.
 - When you resume a session, it returns to its worktree. If the worktree directory is gone, the session continues in the launch directory. `--fork-session` starts in the launch directory.
@@ -91,9 +93,9 @@ For SVN, Perforce or Mercurial, configure `WorktreeCreate` and `WorktreeRemove` 
 | Git LFS files show up as pointer files | The repository's own filter drivers (for example from `git lfs install --local`) are skipped during creation. Run `git lfs pull` in the worktree |
 | `Refusing to use <path> as an isolation worktree` | Follow the message's ending. The common case, `launch from the parent checkout`, means you should launch from the main checkout |
 | Creation fails on a symlinked path | `.claude`, `.claude/worktrees` or the target is a symlink. Remove the symlink |
-| `Git was not run: the repository's own git config sets <key>` | The key points Git LFS at a program to run, such as `lfs.customtransfer.<name>.path`. Move it to your global config if it is yours, or remove it from the repository's config if you don't recognize it |
+| `Git was not run: the repository's own git config sets <key>` | A repo-level key such as `lfs.customtransfer.<name>.path` points Git LFS at a program. Move it to your global config, or remove it if you don't recognize it |
 
-Claude Code creates no worktree at all when it can't tell which filter drivers the repository's config defines — a conditional `includeIf` in `.git/config` is one cause — or when it finds a setting there it can't switch off. In stream-json output, `startup_failure_reason` is `worktree_unverified` for `could not verify worktree` and `worktree_resume_refused` when a resume into a worktree is refused, so a script can branch on it instead of the error text.
+In stream-json output, `startup_failure_reason` is `worktree_unverified` or `worktree_resume_refused` for worktree startup errors, so scripts needn't match error text.
 
 ## Background sessions and agent view
 
@@ -139,7 +141,7 @@ Rows are grouped under Ready for review, Needs input, Working and Completed. Sta
 
 In the dispatch input, `@<repo>` targets a child repository, a first word or `@name` that matches a subagent runs that subagent, `! <cmd>` starts a shell job, and a bare `/resume` brings back a past session. Filters include `s:blocked`, `a:<name>` and `#<PR>`. Detaching never stops a session. Run `/stop` inside it to end it.
 
-A session dispatched from `claude agents` opened in a shell, or from `claude --bg`, starts the way a new `claude` in that directory would. `/bg` and `←` keep the session's current permission mode.
+A session dispatched from `claude agents` opened in a shell, or from `claude --bg`, starts the way a new `claude` in that directory would. `/bg` and `←` keep the session's current permission mode. `claude --bg` in a directory that hasn't passed the workspace trust prompt asks for trust first, or exits when not run interactively. A `--setting-sources` restriction carries over to sessions spawned by `/bg`, `claude agents`, teammates and `--worktree --tmux`.
 
 ### Manage from the shell
 

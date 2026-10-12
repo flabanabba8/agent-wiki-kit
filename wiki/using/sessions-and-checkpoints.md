@@ -5,12 +5,13 @@ tldr: "Resume, branch, rewind to undo edits, transcripts"
 sources:
   - raw/docs/official/sessions.md
   - raw/docs/official/checkpointing.md
+  - raw/docs/official/env-vars.md
 related: ["[[context-window]]", "[[worktrees-and-background-work]]", "[[headless-mode]]", "[[permissions-and-modes]]", "[[cli-reference]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
-aliases: [resume-session, continue-conversation, rewind, checkpoints, undo-file-edits, fork-session]
+last_verified: 2026-09-25
+aliases: [resume-session, continue-conversation, rewind, checkpoints, fork-session]
 ---
 
 # Sessions and Checkpoints
@@ -33,7 +34,7 @@ Sessions created with `claude -p` or the Agent SDK are hidden from the picker an
 
 **What comes back on resume:**
 
-- Full history, including tool calls. A tool that was mid-run when the process died doesn't re-run.
+- Full history, including tool calls. A tool that was mid-run when the process died doesn't re-run; Claude sees it marked as cut off and is told to check whether it took effect before running it again (unless `CLAUDE_CODE_RESUME_INTERRUPTED_TURN` is set).
 - The model the session was using, unless `--model`, `ANTHROPIC_MODEL`, or a pinned-family variable picks one, or the model is retired or excluded by `availableModels`.
 - An `--agent` selection, an active goal, and unexpired scheduled tasks.
 - The permission mode, when you resume from a terminal with `--continue` or an exact `--resume`. Exceptions: `bypassPermissions` and `plan` sessions start in the normal starting mode, and `auto` returns only if you still qualify. The picker and `/resume` don't restore the stored mode. See [[permissions-and-modes]].
@@ -64,7 +65,7 @@ A session from another worktree resumes in place. For an unrelated project, the 
 
 ## Name your sessions
 
-Named sessions are easy to find and resume. Name one at startup with `claude -n auth-refactor`, during a session with `/rename auth-refactor` (the name shows on the prompt bar), or from the picker with `Ctrl+R`. Accepting a plan in plan mode titles an unnamed session from the plan. Unnamed sessions get a generated title from the first prompt, and that title also works with `--resume`. The default display name, such as `my-app-3f`, is not a resume handle. If you pick a name another live session already uses, Claude Code appends a two-word suffix to yours.
+Named sessions are easy to find and resume. Name one at startup with `claude -n auth-refactor`, during a session with `/rename auth-refactor` (the name shows on the prompt bar), or from the picker with `Ctrl+R`. Accepting a plan in plan mode titles an unnamed session from the plan. Unnamed sessions get a generated title from the first prompt (not for a `claude -p` run started from a shell or script), and that title also works with `--resume`. The default display name, such as `my-app-3f`, is not a resume handle. If you pick a name another live session already uses, Claude Code appends a two-word suffix to yours.
 
 ## Branch a session
 

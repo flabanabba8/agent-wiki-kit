@@ -1,6 +1,6 @@
 ---
 title: Hot Cache
-updated: 2026-09-18
+updated: 2026-10-09
 ---
 
 # Hot Cache
@@ -9,11 +9,15 @@ Recent decisions, fixes and gotchas. Read this first in a new session, then `ind
 
 ## Wiki State
 
-- **75 pages**: start (3), using (9), extending (6), automation (7), surfaces (6), deployment (6), reference (7), sdk-and-api (7), research (14), ecosystem (8), project (2)
-- **~121K words**, 1,200 wikilinks (71 unique), 403 raw files
+- **78 pages**: start (3), using (9), extending (7), automation (7), surfaces (7), deployment (6), reference (7), sdk-and-api (8), research (14), ecosystem (8), project (2)
+- **~129K words**, 1,269 wikilinks (75 unique), 442 raw files
 - Sources are not in the repo: run `./scripts/sources.py fetch` to rebuild `raw/` from the manifest.
 
 ## Compressed Observations (newest first)
+
+✅ 2026-10-11 Parity with source wiki: 64 pages merged, Opus 5.5, changelog to 2.1.282, plugin docs split
+✅ 2026-10-09 Disposable image workers, cached inspections, independent review and safe user-level installer
+💡 2026-10-09 Worker briefs name scope, inputs and completion evidence; discovery is not a behavior test
 
 ✅ 2026-09-19 51 pages re-verified against refetched docs; manifest records the new snapshot
 📝 2026-09-19 New page [[claude-projects]]: Claude coordinates parallel cloud-session threads (Pro/Max beta)

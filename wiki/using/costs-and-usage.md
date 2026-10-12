@@ -6,12 +6,16 @@ sources:
   - raw/docs/official/costs.md
   - raw/docs/official/statusline.md
   - raw/docs/official/commands.md
-related: ["[[models-and-effort]]", "[[context-window]]", "[[enterprise-admin]]", "[[headless-mode]]", "[[agent-teams]]"]
+  - raw/articles/what-a-task-costs-on-opus-5-5.md
+  - raw/articles/opus-5-5-longer-coding-sessions.md
+  - raw/articles/anthropic-claude-opus-5-5.md
+  - raw/docs/changelog-2.1.275-to-2.1.282.md
+related: ["[[models-and-effort]]", "[[context-window]]", "[[claude-models]]", "[[enterprise-admin]]", "[[headless-mode]]", "[[agent-teams]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
-aliases: [usage-limits, token-costs, cost-command, reduce-token-usage, usage-credits]
+last_verified: 2026-09-25
+aliases: [usage-limits, token-costs, cost-command, reduce-token-usage, usage-credits, cost-per-task, prompt-audit]
 valid_until: 2027-03-15
 ---
 
@@ -19,10 +23,23 @@ valid_until: 2027-03-15
 
 Claude Code consumes tokens on every request, and each request carries the conversation so far. How that turns into a bill depends on how you sign in:
 
-- **Pro, Max, Team, and Enterprise subscriptions** draw from a usage allowance with a rolling five-hour window and a weekly window, shared with Claude chat and Cowork. Usage credits let you keep working past the allowance.
+- **Pro, Max, Team, and Enterprise subscriptions** draw from a usage allowance with a rolling five-hour window and a weekly window, shared with Claude chat and Cowork. Usage credits let you keep working past the allowance. With Opus 5.5, Anthropic raised five-hour limits on Pro, Max, Team, and seat-based Enterprise plans, and gave subscribers a rate-limit reset they can save and use when they choose. The lower Opus 5.5 token price also passes through to plan limits, including cached context, so they go about 25% further than on Opus 5; if yours don't, report it with `/feedback`.
 - **Claude Console API keys and cloud providers** (Bedrock, Agent Platform, Foundry) bill per token to the organization.
 
-The docs report that across enterprise deployments the average is "around \$13 per developer per active day and \$150-250 per developer per month, with costs remaining below \$30 per active day for 90% of users". Start with a pilot group to establish your own baseline.
+The docs report that across enterprise deployments the average is "around \$13 per developer per active day and \$150-250 per developer per month, with costs remaining below \$30 per active day for 90% of users". Start with a pilot group to establish your own baseline; a session well above your own normal is worth reviewing.
+
+## What a task costs
+
+A task in Claude Code is a loop of requests, and four things set its cost:
+
+- **Turns.** Every turn resends the conversation so far, so the cheapest turn is the one you don't need. A task that grows from 20K to 120K tokens of context over 40 turns processes about 2.8M input tokens; the same task in 25 turns processes about 1.75M. Giving Claude a check to run (a test, a build) and letting it batch tool calls cuts turns.
+- **Cache reads.** Most of each resend is billed as a cache read at a small fraction of the input price. At Opus 5.5 list prices ([[claude-models]]) those 2.8M tokens cost \$11.20 uncached, about \$1.62 at a 90% hit rate, and about \$0.99 at 96%. No other setting moves input cost as much ([[context-window]]).
+- **Output**, which includes thinking, at five times the input price. On Opus 5.5 an output token costs 100 cache reads, so 60K output tokens (\$1.20) cost the same as 6M cached tokens. That is why effort moves the bill ([[models-and-effort]]).
+- **Model**, which sets the price of every token, including in subagents that inherit it.
+
+Anthropic estimates Opus 5.5 costs about 40% less than Opus 5 on typical token-billed workloads: lower prices plus fewer tokens per task. Price alone cuts an illustrative Claude Code session (2M cache reads, 200K fresh input, 60K output) from \$3.50 to \$2.40, about 31%. Cache-heavy sessions save up to 60% on input; a short uncached question with a long answer saves up to 20%. On a well-scoped task both models take about the same turns; the gap is widest on open-ended tasks where a model can spend many turns on the wrong idea.
+
+**Effort as a cost trade.** Say `high` adds 20K thinking tokens to a task: \$0.40 on Opus 5.5, about the cost of a ten-turn retry loop at 100K cached context. High pays for itself on a task where it saves one retry and is wasted where `medium` would have finished first time. Every way to spend fewer tokens (lower effort, a smaller model, less context) can also cost you a finished task, and a retry costs more than the savings.
 
 ## Check your usage
 
@@ -33,6 +50,10 @@ The docs report that across enterprise deployments the average is "around \$13 p
 - **Plan usage breakdown** (subscriptions): recent usage attributed to skills, subagents, plugins, and individual MCP servers; flags for behaviors such as long context or cache misses that account for 10% or more; and the heaviest `/loop` or scheduled tasks. Press `d` or `w` to switch between 24 hours and 7 days. The breakdown is computed from local history on this machine.
 - **Usage-credits row:** this month's usage-credits spend against your spend limit, when credits are on.
 - **Rate-limited endpoint:** `/usage` shows the last data it loaded within 60 minutes. Press `r` to retry.
+
+**Reading a session.** At the end of a task, check three things. A low cache share in a long session points to a long pause, a change of model, or an MCP server connected partway through. A lot of output on a small change usually means effort is too high for the task, or Claude is retrying. Total input many times the conversation's size means many turns, so read the conversation for where the loop repeated.
+
+**Measure it yourself.** Run the same real backlog task on two models (switch with `/model`) and compare turns, output tokens and cost; do three or four tasks before concluding. Try the effort ladder too: one hard task at `medium` and at `high`, one mechanical task at `low`.
 
 Related tools:
 
@@ -56,7 +77,7 @@ Related tools:
 | Setup | See spend | Cap spend | Per-user data |
 |:--|:--|:--|:--|
 | Claude for Teams or Enterprise | Spend report in org analytics | Spend limits in admin settings (org, group, or member) | Spend report CSV; Enterprise Analytics API |
-| Claude Console (API) | Console usage page | Workspace spend limits on the auto-created "Claude Code" workspace | Console dashboard; Claude Code Analytics API |
+| Claude Console (API) | Console usage page | Workspace spend limits on the auto-created "Claude Code" workspace | Claude Code Analytics API (estimated cost per user); Usage and Cost API (by model, cached vs uncached) |
 | Bedrock, Agent Platform, Foundry | Cloud billing console | Cloud budget controls | OpenTelemetry, a Claude apps gateway, or an LLM gateway |
 
 OpenTelemetry export works on every setup. To make `/usage`, the status line, and telemetry show contracted rather than list prices, deploy the `modelPricing` managed setting; `/usage` then notes `at your organization's configured rates`. Rollout and analytics details are in [[enterprise-admin]].
@@ -76,18 +97,19 @@ These limits apply at the organization level, so per-user allocations shrink as 
 
 ## Why usage climbs in a long session
 
-- **Long context:** each request resends the whole conversation, re-read at the cached rate, so a one-line question late in a long session still costs the full history.
+- **Long context:** each request resends the whole conversation, re-read at the cached rate, so a one-line question late in a long session still costs the full history. On Opus 5.5 a turn's cache read costs about \$0.004 at 20K tokens of context and \$0.03 at 150K, so 30 turns cost \$0.12 versus \$0.90 in reads alone. Stale stack traces, finished files and old test output ride along on every turn.
 - **Cache misses:** the first message after a break longer than the cache lifetime reprocesses everything. The lifetime is one hour on a subscription, five minutes while drawing on usage credits, and five minutes by default on API keys and cloud providers.
 - **Idle-time triggers:** scheduled tasks, cross-session messages, and goal check-ins can start turns on an idle session, each sending the full context. Set `crossSessionInbound` to `hold` to queue inbound messages, and set `CLAUDE_CODE_GOAL_CHECKIN_MINUTES` to `0` to turn check-ins off.
 - **Agent teammates** consume tokens until they exit. Teams "use approximately 7x more tokens than standard sessions when teammates run in plan mode" ([[agent-teams]]).
-- **Compaction** is itself a large request. `/clear` costs nothing.
-- **Background work** such as summarizing past sessions for `claude --resume` uses a small amount of tokens, "typically under \$0.04 per session".
+- **Compaction** is itself a large request (economics in [[context-window]]). `/clear` costs nothing.
+- **Background work** such as summarizing past sessions for `claude --resume` uses a small amount of tokens, "typically under \$0.04 per session". Prompt suggestions send a short request to the session's model after each response, mostly cache reads; they are skipped near your usage limit and can be turned off.
 
 ## Reduce token usage
 
 - **Clear between tasks.** `/rename`, then `/clear`, then `/resume` later. Stale context is paid for on every message.
 - **Compact with focus.** `/compact Focus on code samples and API usage`, or add a `# Compact instructions` section to CLAUDE.md.
-- **Match the model to the job.** Sonnet handles most coding; reserve Opus for hard reasoning; use `model: haiku` for simple subagents. Lower the effort level for simple work.
+- **Match model and effort to the job.** Raise effort before changing models, keep code edits on the main model, and put search and log-reading subagents on Sonnet or Haiku ([[models-and-effort]]). Switching to Opus also moves subagents that inherit the session model.
+- **Audit prompts written for older models.** They can make Opus 5.5 write more and repeat tool calls. `/claude-api prompt-audit` checks your skills and CLAUDE.md for these anti-patterns (and the code of a Claude Platform app). On one internal 44-ticket support benchmark, moving from Opus 4.8 to Opus 5.5 at low effort cut cost about 18%, and the audit a further 9%, by removing a mandatory six-step procedure, a scratchpad rule, a verify-twice rule and contradictory instructions. Treat it as an example, and compare `/usage` before and after.
 - **Trim MCP overhead.** Tool definitions are deferred by default, but CLI tools such as `gh` and `aws` are cheaper still. Disable unused servers in `/mcp` and check `/context`.
 - **Use code intelligence plugins** for typed languages; go-to-definition replaces grep-and-read loops.
 - **Preprocess with hooks.** A `PreToolUse` hook can rewrite `npm test` to show only failures, shrinking tens of thousands of tokens to hundreds.

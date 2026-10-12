@@ -8,17 +8,18 @@ sources:
   - raw/docs/official/context-window.md
   - raw/docs/official/prompt-caching.md
   - raw/docs/official/commands.md
+  - raw/docs/changelog-2.1.275-to-2.1.282.md
 related: ["[[context-window]]", "[[skills]]", "[[hooks]]", "[[settings]]", "[[enterprise-admin]]", "[[prompting-and-workflows]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
-aliases: [claude-md, auto-memory, claude-rules, memory-md, project-instructions, agents-md]
+last_verified: 2026-09-25
+aliases: [claude-md, auto-memory, claude-rules, memory-md, project-instructions]
 ---
 
 # CLAUDE.md and Memory
 
-Every session starts with a fresh context window. Two mechanisms carry knowledge across sessions, and both load at the start of every conversation:
+Two mechanisms carry knowledge between sessions, and both load at the start of every conversation:
 
 | | CLAUDE.md files | Auto memory |
 |---|---|---|
@@ -33,7 +34,11 @@ Both are **context, not enforcement**: Claude reads them and tries to follow the
 
 Add an entry when Claude makes the same mistake twice, when review catches something Claude should have known, or when a new teammate would need the same context. Keep CLAUDE.md to facts needed in every session: build commands, conventions, layout, "always do X" rules. Multi-step procedures belong in [[skills]]; area-specific guidance in a path-scoped rule.
 
-### Locations, in load order
+Add an entry when Claude makes the same mistake twice, review catches something Claude should have known, or a new teammate would need the context. Keep CLAUDE.md to facts needed in every session: build commands, conventions, layout, and "always do X" rules. Multi-step procedures belong in [[skills]], and guidance for one area of the codebase belongs in a path-scoped rule.
+
+### Locations
+
+Listed in load order, broadest first:
 
 | Scope | Location | Shared with |
 |---|---|---|
@@ -51,14 +56,27 @@ Add an entry when Claude makes the same mistake twice, when review catches somet
 
 ### Generate one with `/init`
 
-`/init` analyzes the codebase and writes build commands, test instructions, and conventions; if CLAUDE.md exists it suggests improvements instead. It pulls in Cursor rules (`.cursor/rules/`, `.cursorrules`) and Copilot rules (`.github/copilot-instructions.md`). `CLAUDE_CODE_NEW_INIT=1` adds an interactive flow that asks which artifacts to set up, explores with a subagent, and proposes before writing; it also reads `AGENTS.md`, `.devin/rules/`, `.windsurf/rules/`, and `.clinerules`. `/import` copies another coding agent's instruction files, MCP servers, commands, subagents, and skills across.
+`/init` analyzes the codebase and writes build commands, test instructions, and conventions. If CLAUDE.md already exists, it suggests improvements instead. It also pulls in relevant Cursor rules (`.cursor/rules/`, `.cursorrules`) and Copilot rules (`.github/copilot-instructions.md`). Set `CLAUDE_CODE_NEW_INIT=1` (safe to leave set) for an interactive flow that asks which artifacts to set up (CLAUDE.md, skills, hooks) and shows a proposal before writing; it also reads `AGENTS.md`, `.devin/rules/`, `.windsurf/rules/`, and `.clinerules`. `/import` copies another coding agent's instruction files, MCP servers, commands, subagents, and skills into Claude Code.
 
 ### Write instructions that stick
 
-- **Size:** under 200 lines per file. Longer files cost context and reduce adherence. Use headers and bullets, not dense paragraphs.
-- **Specificity:** make instructions verifiable. "Use 2-space indentation", not "Format code properly". When two rules contradict, Claude may pick either.
-- **Emphasis:** add "IMPORTANT" only to the one line Claude keeps skipping. If many lines are emphasized, none stands out.
-- **The pruning test:** ask of each line, "Would removing this cause Claude to make mistakes?" If Claude asks about something CLAUDE.md answers, that line is ambiguous.
+- **Size:** under 200 lines per file. Longer files cost context and reduce adherence.
+- **Structure:** use headers and bullets, not dense paragraphs.
+- **Specificity:** make instructions verifiable. Write "Use 2-space indentation", not "Format code properly". Write "Run `npm test` before committing", not "Test your changes".
+- **Consistency:** when two rules contradict, Claude may pick either. Review nested files and rules periodically.
+- **Emphasis:** add "IMPORTANT" only to the one line Claude keeps skipping.
+- **The pruning test:** for each line, ask "Would removing this cause Claude to make mistakes?" If Claude asks about something CLAUDE.md already answers, the phrasing is ambiguous.
+
+| Include | Exclude |
+|---|---|
+| Bash commands Claude can't guess | Anything Claude can learn by reading the code |
+| Style rules that differ from defaults | Standard language conventions |
+| Test instructions and preferred runners | Detailed API docs (link instead) |
+| Repo etiquette (branch naming, PR conventions) | Frequently changing information |
+| Project-specific architectural decisions | Long tutorials or file-by-file descriptions |
+| Env quirks, required env vars, gotchas | "Write clean code" |
+
+`/doctor` proposes trims for a checked-in CLAUDE.md. It cuts derivable content such as layouts, dependency lists, and architecture overviews, and keeps pitfalls, rationale, and non-default conventions.
 
 **Include** commands Claude can't guess, test instructions, style rules that differ from defaults, repo etiquette, architectural decisions, and environment quirks. **Exclude** anything Claude can learn from the code, standard conventions, API docs (link instead), long tutorials, frequently changing information, and "write clean code". `/doctor` proposes trims for a checked-in CLAUDE.md, cutting content derivable from the code and keeping pitfalls, rationale, and non-default conventions. A "Compact Instructions" section steers what survives compaction ([[context-window]]).
 
@@ -75,7 +93,20 @@ See @README for project overview and @package.json for npm commands.
 - The first time a project file imports a path outside the working directory, Claude Code asks for approval; decline and those imports stay disabled. Imports in your own user-scope files load without asking.
 - A gitignored `CLAUDE.local.md` exists only in the worktree where you made it; to share personal notes across worktrees, import a file from your home directory.
 
-## AGENTS.md
+### AGENTS.md
+
+By default Claude reads `AGENTS.md` (and `.claude/AGENTS.md`) in the working directory and its parents only when none of those directories has a `CLAUDE.md`, `.claude/CLAUDE.md`, or `CLAUDE.local.md`; user and managed CLAUDE.md and `.claude/rules/` don't count and load alongside. A subdirectory's `AGENTS.md` loads when Claude reads a file there. `AGENTS.local.md`, `AGENTS.override.md`, and `.agents/` are not read. Adding a `CLAUDE.local.md` therefore stops `AGENTS.md` loading.
+
+Change this with **Project instructions** in `/config`, or `pluginConfigs["agents-md@builtin"].options.instructionFiles` in user, `--settings`, or managed settings (ignored in project settings):
+
+| Value | Reads |
+|---|---|
+| `claude-md-or-agents-md` (default) | CLAUDE.md files, or AGENTS.md when there are none |
+| `claude-md-and-agents-md` | Both, CLAUDE.md first in each directory; an already-imported AGENTS.md isn't read twice |
+| `claude-md` | CLAUDE.md only |
+| `managed-only` | Managed CLAUDE.md and auto memory at launch |
+
+Where the setting is missing (the built-in `agents-md` plugin is disabled, or sometimes the first session after an upgrade), only CLAUDE.md loads; there, and whenever a CLAUDE.md also exists, put `@AGENTS.md` at the top of a CLAUDE.md with Claude-specific notes below it. A symlink (`ln -s AGENTS.md CLAUDE.md`) works too, but Edit and Write refuse to write through it, and Windows clones without `core.symlinks` get a one-line file. A directly read AGENTS.md doesn't fire `InstructionsLoaded` hooks or load from `--add-dir` directories. Remove any `SessionStart` hook that prints AGENTS.md, since it now adds a second copy. `/memory` lists an AGENTS.md that loaded.
 
 Claude Code can read `AGENTS.md` as your project instructions, so a repository already set up for other coding agents needs no `CLAUDE.md`, import, or setting. By default it reads your `AGENTS.md` files only when no `CLAUDE.md`, `.claude/CLAUDE.md`, or `CLAUDE.local.md` sits in the working directory or above it, and your CLAUDE.md files instead when one does. Your `~/.claude/CLAUDE.md`, the managed policy file, and `.claude/rules/` don't count for that check and load either way — but a `CLAUDE.local.md` holding your uncommitted notes does count, and stops Claude reading `AGENTS.md` until you change the setting below.
 
@@ -115,11 +146,19 @@ paths:
 - All API endpoints must include input validation
 ```
 
-- Patterns are globs: `**/*.ts` matches TypeScript files anywhere, `src/**/*` everything under `src/`, `*.md` markdown in the project root.
-- Brace expansion multiplies patterns. A rule's `paths` list shares a budget of 1,000 expanded patterns and 4 MiB, and a pattern that would exceed it matches nothing. Escape a literal `[` as `\[`; an invalid pattern matches nothing.
-- **User rules** in `~/.claude/rules/` apply to every project and load first, so project rules take priority.
-- **Symlinks** into `.claude/rules/` work; a target outside the working directory needs approval, like an external import.
-- Path-scoped rules and nested CLAUDE.md files live in message history, so compaction summarizes them away until a matching file is read again ([[context-window]]). For a rule that must survive, remove its `paths:` or move it to the root CLAUDE.md.
+| Pattern | Matches |
+|---|---|
+| `**/*.ts` | TypeScript files anywhere |
+| `src/**/*` | Everything under `src/` |
+| `*.md` | Markdown in the project root |
+| `src/components/*.tsx` | Components in one directory |
+
+- Brace expansion multiplies patterns. A rule's `paths` list shares a budget of 1,000 expanded patterns and 4 MiB, and a pattern that would exceed it matches nothing.
+- Escape a literal `[` as `\[`. Otherwise an invalid pattern matches nothing.
+- **Frontmatter:** `paths` (a YAML list or comma-separated string) is the only field read; others are ignored. Unparseable YAML loads the rule unscoped (`claude --debug` shows why).
+- **User rules** in `~/.claude/rules/` apply to every project and load before project rules. Neither overrides the other, so if they conflict Claude may follow either.
+- **Symlinks** into `.claude/rules/` work. A target outside the working directory is treated like an external import and needs approval.
+- Path-scoped rules and nested CLAUDE.md files live in message history, so compaction summarizes them away until a matching file is read again. If a rule must survive compaction, remove its `paths:` or move it to the root CLAUDE.md.
 
 ## Teams and monorepos
 
@@ -132,7 +171,14 @@ paths:
 
 ## Auto memory
 
-Claude saves notes for itself as it works, and not every session. Each note's frontmatter records a `type`: `user` for your role and preferences, `feedback` for corrections and confirmed approaches, `project` for work and decisions not visible in code or git, `reference` for where outside information lives. It skips anything derivable from the codebase or already in CLAUDE.md. "Remember that the API tests require a local Redis instance" goes to auto memory; "add this to CLAUDE.md" puts it there instead.
+Claude saves notes for itself as it works, and not every session. Each note's frontmatter records its `type`:
+
+- `user`: your role, expertise, and preferences
+- `feedback`: corrections you give and approaches you confirm
+- `project`: ongoing work, deadlines, and decisions not visible in code or git
+- `reference`: where to find outside information such as trackers and dashboards
+
+It skips anything derivable from the code or already in CLAUDE.md. "Remember that the API tests require a local Redis" goes to auto memory; say "add this to CLAUDE.md" to put it there.
 
 **Storage.** Memory lives in `~/.claude/projects/<project>/memory/`, one directory per git repo, shared by all worktrees and subdirectories, and local to the machine:
 
@@ -149,7 +195,13 @@ Claude saves notes for itself as it works, and not every session. Each note's fr
 
 **Controls.** `/memory` toggles auto memory (writing `autoMemoryEnabled` to `~/.claude/settings.json`) and opens the folder, which is plain markdown. `"autoMemoryEnabled": false` in a project's settings turns it off there, `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1` turns it off by environment, and `"autoMemoryDirectory"` moves the folder (absolute or `~/`).
 
-`autoMemoryDirectory` set in a project's settings file is honored under the same workspace-trust rule as hooks there. While `permissions.blockReadsOutsideWorkingDirectories` is on, Claude Code loads no auto memory from a directory that a repository-supplied settings file chooses, and saves none to it, wherever that directory sits.
+| Want | Do |
+|---|---|
+| Toggle it | `/memory` → auto memory toggle (writes `autoMemoryEnabled` to `~/.claude/settings.json`) |
+| Off for one project | `"autoMemoryEnabled": false` in the project's settings |
+| Off via env | `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1` |
+| Different location | `"autoMemoryDirectory": "~/my-custom-memory-dir"` (absolute or `~/`). From project settings it needs workspace trust, and is ignored while `blockReadsOutsideWorkingDirectories` is on |
+| Browse or edit | `/memory` → open the auto memory folder. It's plain markdown |
 
 ## When edits apply
 
@@ -165,5 +217,5 @@ Project-root and user CLAUDE.md are read once at session start, so **editing the
 | `AGENTS.md` seems unread | A `CLAUDE.md`, `.claude/CLAUDE.md`, or `CLAUDE.local.md` in the working directory or above, other than `~/.claude/CLAUDE.md`; or `/config` → **Project instructions** missing, `claude-md`, or `managed-only` |
 | Want system-prompt-level instructions | `--append-system-prompt` at launch (best for scripts; see [[cli-reference]]) |
 | Unsure which files loaded and why | Log them with the `InstructionsLoaded` hook |
-| Instruction gone after `/compact` | It was said only in chat, sits in a nested CLAUDE.md, or is a path-scoped rule that hasn't matched again |
-| CLAUDE.md too large | Move content to path-scoped rules or skills, or run `/doctor` for trim proposals |
+| Instruction gone after `/compact` | It was said only in chat, sits in a nested CLAUDE.md, or is a path-scoped rule that hasn't matched again. Move it to root CLAUDE.md |
+| CLAUDE.md too large (the startup notice counts all instruction files and `@` imports together) | Move content to path-scoped rules or skills, or run `/doctor` for trim proposals |

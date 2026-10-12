@@ -7,11 +7,12 @@ sources:
   - raw/docs/official/scheduled-tasks.md
   - raw/docs/official/desktop-scheduled-tasks.md
   - raw/docs/changelog-2.1.273-to-2.1.274.md
-related: ["[[claude-code-on-the-web]]", "[[claude-projects]]", "[[desktop-app]]", "[[ci-cd-and-code-review]]", "[[mcp]]", "[[channels]]"]
+  - raw/docs/changelog-2.1.275-to-2.1.282.md
+related: ["[[claude-code-on-the-web]]", "[[desktop-app]]", "[[ci-cd-and-code-review]]", "[[mcp]]", "[[channels]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
+last_verified: 2026-09-25
 aliases: [routines, schedule-command, loop-command, cron-tasks, scheduled-tasks]
 valid_until: 2027-03-15
 ---
@@ -44,10 +45,10 @@ A **routine** saves a prompt, one or more GitHub repositories, a cloud environme
 - **Desktop:** Code tab → **Routines** → **New routine** → **Cloud**. Choosing **Local** creates a Desktop scheduled task instead.
 
 All three surfaces write to the same account. The form sets:
-- **Prompt and model.** Runs are autonomous: there is no permission-mode picker, and nothing stops for approval apart from some artifact actions, so write the prompt to be self-contained with explicit success criteria.
+- **Prompt and model.** Runs are autonomous, with no permission-mode picker and no approvals (except some [[artifacts]] actions), so write the prompt to be self-contained with explicit success criteria. A scheduled or **Run now** run republishes an existing artifact without asking only if you can edit it, it belongs to your organization, it isn't shared publicly or pinned to the latest version for viewers, the publish carries only the page, and the page has no connector grants. Publishing a new artifact always asks, so give a page-refreshing routine an artifact you already published.
 - **Repositories.** Each is cloned from its default branch on every run. Claude pushes to `claude/`-prefixed branches. A push to any other branch is rejected if the branch is protected, has someone else's open PR, or carries commits by other authors.
-- **Environment.** Controls network access, environment variables and a cached setup script. The **Default** environment uses **Trusted** network access, limited to an allowlist. Other hosts fail with `403` and `x-deny-reason: host_not_allowed`. To reach more hosts, edit the environment and choose **Custom** or **Full**. An organization-shared environment opens read-only here, so an Owner changes its network access from the **Cloud environments** page in admin settings. See [[claude-code-on-the-web]].
-- **Connectors.** All your claude.ai connectors are included by default, and Claude can use every tool in them, writes included, without asking. Remove the ones you don't need. Servers added locally with `claude mcp add` aren't available unless you add them as connectors; a routine with one repository can also take them from a committed `.mcp.json` (see [[mcp]]).
+- **Environment.** Controls network access, environment variables and a cached setup script. The **Default** environment uses **Trusted** network access, limited to an allowlist. Other hosts fail with `403` and `x-deny-reason: host_not_allowed`. To reach more hosts, edit one of your own environments and choose **Custom** or **Full**; an organization-shared environment is read-only here and changed by an Owner under **Cloud environments** in admin settings. See [[claude-code-on-the-web]].
+- **Connectors.** All your claude.ai connectors are included by default, and Claude can use every tool in them, writes included, without asking. Remove the ones you don't need. Servers added locally with `claude mcp add` aren't available unless you add them as connectors or, for a single-repository routine, commit them in `.mcp.json` (see [[mcp]]).
 
 ### Triggers
 
@@ -72,16 +73,17 @@ The response carries `claude_code_session_id` and `claude_code_session_url`. The
 
 ### Manage
 
-- Web detail page: **Run now**, the on/off switch at the top of the page to pause or resume the schedule, and run history. The menu beside the routine's name holds **Edit** (name, prompt, repositories, environment, connectors, triggers) and **Delete**.
+- Web detail page: **Run now**, an on/off switch at the top to pause or resume, **Edit** and **Delete** in the menu next to the routine's name, and run history.
 - CLI: `/schedule list`, `/schedule update`, `/schedule run`, or ask something like `/schedule why did my nightly review do nothing this morning?`.
 - A green run status means only that the session exited without an infrastructure error. Open the run to check whether the task actually succeeded.
 - A scheduled or **Run now** run republishes an existing artifact without asking only when you can edit it, it belongs to your own organization, it isn't shared publicly or shared with the latest version pinned for viewers, the publish carries the page alone and forces over nothing newer, and the page holds no grant reaching beyond it such as connector calls. Everything else, including a first publish, asks first — so give a page-tending routine an artifact you already published ([[artifacts]]).
 
 ### Limits and troubleshooting
 
-- Routines draw on subscription usage and also have a daily per-account run cap. Organizations with usage credits turned on can keep running on overage. While your subscription is paused, routines are on hold, and you turn them back on once it is active again.
-- With the owner's GitHub connection missing or expired, a routine skips runs for up to 72 hours and resumes on its own once you reconnect. After 72 hours without one it turns off, and you turn it back on after reconnecting.
-- `/schedule` is hidden when its requirements aren't met. Signed in with a Console API key or an Anthropic profile it points you at Claude for Enterprise; fully signed out it asks you to run `/login` with a claude.ai account; inside a cloud session it says the command isn't available there; and where your organization's policy disables cloud sessions it answers `Cloud sessions are disabled by your organization's policy`. With a cloud-provider login it stays `Unknown command: /schedule`. Owners control the Routines toggle at claude.ai/admin-settings/claude-code.
+- Routines draw on subscription usage and also have a daily per-account run cap. Organizations with usage credits turned on can keep running on overage.
+- When the owner's GitHub connection is missing or expired, a routine skips runs for up to 72 hours and resumes once you reconnect; after that it turns off until you re-enable it.
+- While your subscription is paused, routines are on hold; turn them back on afterwards.
+- `/schedule` is hidden (`Unknown command: /schedule`) when you are signed in with an API key, profile or cloud provider (claude.ai login is required; an API key or profile shows a Claude for Enterprise message instead) or your organization has disabled routines. Signed out, it says to run `/login`; inside a cloud session it says it isn't available there; with cloud sessions disabled by policy it shows `Cloud sessions are disabled by your organization's policy`. Owners control the Routines toggle under Admin settings → Capabilities → Remote sessions (the Claude Code admin page links there); the Claude Code admin setting for cloud sessions is labeled **Cloud sessions**.
 
 ## Desktop scheduled tasks
 
@@ -119,6 +121,6 @@ See [[desktop-app]] for the Desktop app itself.
 - **Expiry:** recurring tasks expire 7 days after creation, after one final fire.
 - **Cron syntax:** `*`, values, `*/15`, ranges and lists. `L`, `W`, `?` and names like `MON` are not supported. If both day fields are set, a date matches when either one matches.
 - Starting a new conversation clears all tasks. `--resume` or `--continue` restores unexpired `CronCreate` tasks but not a self-paced `/loop`. Backgrounding the session carries `/loop` tasks over (see [[worktrees-and-background-work]]).
-- With feature-flag fetching off, a task you asked to keep across sessions is stored in the project's `.claude/scheduled_tasks.json` and runs only in the folder where you created it; copying the file into another folder, such as a worktree, lists the tasks there but never runs them. A symlinked `.claude` directory or task file is an error instead.
+- With feature-flag fetching off, a task you ask to keep across sessions is saved to the project's `.claude/scheduled_tasks.json` (a symlinked `.claude` or file is an error) and runs only in that folder; a copy in another worktree is listed but never fires.
 
 To disable the scheduler, set `CLAUDE_CODE_DISABLE_CRON=1`.

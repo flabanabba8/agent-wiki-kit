@@ -7,17 +7,17 @@ sources:
   - raw/docs/official/env-vars.md
 related: ["[[headless-mode]]", "[[slash-commands]]", "[[environment-variables]]", "[[permissions-and-modes]]", "[[worktrees-and-background-work]]", "[[settings]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
+last_verified: 2026-09-25
 aliases: [claude-flags, claude-command-line, cli-options, claude-subcommands]
 ---
 
 # CLI Reference
 
-`claude` starts sessions, runs one-shot prompts, and manages installs, authentication, MCP servers, plugins and background sessions. In-session `/` commands are on [[slash-commands]]; scripting patterns (output formats, budgets, unattended permissions) on [[headless-mode]].
+`claude` starts sessions, runs one-shot prompts, and manages installs, auth, MCP, plugins and background sessions. In-session `/` commands are on [[slash-commands]]; scripting patterns (output formats, budgets, unattended permissions) on [[headless-mode]].
 
-`claude --help` doesn't list every flag, so one missing from `--help` can still work. A mistyped subcommand prints the closest match (`claude udpate` → `Did you mean claude update?`) and exits.
+`claude --help` doesn't list every flag, so one missing from `--help` can still work. A mistyped subcommand prints the closest match and exits.
 
 ## Starting a session
 
@@ -36,9 +36,9 @@ aliases: [claude-flags, claude-command-line, cli-options, claude-subcommands]
 | Command | Purpose |
 |---|---|
 | `claude update`, `claude install [version]` | Update to the latest version; install or reinstall the native binary at a version such as `2.1.118`, `stable` or `latest` |
-| `claude auth login`, `claude setup-token` | Sign in: `--email` pre-fills the address, `--sso` forces SSO, `--console` bills API usage to Anthropic Console instead of a subscription. Or print a long-lived OAuth token for CI and scripts, not saved, requiring a Claude subscription |
+| `claude auth login`, `claude setup-token` | Sign in: `--email` pre-fills the address, `--sso` forces SSO, `--console` bills API usage to Anthropic Console instead of a subscription. Or print a long-lived, unsaved OAuth token for CI (Claude subscription required) |
 | `claude auth logout`, `claude auth status` | Log out; auth status as JSON (`--text` for human-readable), exit 0 when logged in, 1 when not |
-| `claude doctor` | Read-only install and settings diagnostics (install health, settings validation errors, Remote Control eligibility) without starting a session |
+| `claude doctor` | Read-only install, settings and Remote Control diagnostics without starting a session |
 
 ### Background sessions
 
@@ -49,7 +49,7 @@ aliases: [claude-flags, claude-command-line, cli-options, claude-subcommands]
 | `claude stop <id>`, `claude rm <id>` | Stop a background session, also accepted as `claude kill`; remove a session from the list, keeping its transcript on disk. When a worktree blocks removal, the refusal prints the flag to pass: `--discard-unpushed <commit>@<worktree-id>` or `--force-remove-worktree <worktree-id>` |
 | `claude daemon status`, `claude daemon stop --any` | Supervisor state, version, socket directory and worker count, exiting 1 when the supervisor isn't running; stop the supervisor and its sessions, where `--keep-workers` leaves sessions running for the next supervisor |
 
-A leading `--dangerously-skip-permissions` or `--allow-dangerously-skip-permissions` still routes `claude ... daemon <subcommand>` to the daemon subcommand; any other leading flag turns `daemon <subcommand>` into a prompt for a new session. See [[worktrees-and-background-work]].
+Only a leading `--dangerously-skip-permissions` or `--allow-dangerously-skip-permissions` keeps `claude ... daemon <subcommand>` a subcommand; other leading flags make it a prompt. See [[worktrees-and-background-work]].
 
 ### MCP, plugins, import
 
@@ -58,7 +58,7 @@ A leading `--dangerously-skip-permissions` or `--allow-dangerously-skip-permissi
 | `claude mcp` | Configure MCP servers (see [[mcp]]) |
 | `claude mcp login <name>`, `claude mcp logout <name>` | Run a configured server's OAuth flow from the shell (HTTP, SSE, claude.ai connectors; `--no-browser` prints the URL over SSH); clear a server's stored OAuth credentials |
 | `claude plugin` | Manage plugins; alias `claude plugins`. See [[plugins]] |
-| `claude import [source]` | Start a session running `/import` to bring configuration from other coding agents; `--dry-run`, `--yes`. Unavailable on Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry, Claude Platform on AWS, and with feature-flag fetching off |
+| `claude import [source]` | Start a session running `/import` to bring configuration from other coding agents; `--dry-run`, `--yes`. Unavailable on Bedrock, Agent Platform, Foundry, Claude Platform on AWS, or with feature-flag fetching off |
 
 ### Admin, cloud, review, cleanup
 
@@ -66,9 +66,9 @@ A leading `--dangerously-skip-permissions` or `--allow-dangerously-skip-permissi
 |---|---|
 | `claude auto-mode defaults`, `claude auto-mode reset` | Print the built-in auto mode classifier rules as JSON, where `--label <prefix>` filters and `claude auto-mode config` prints your effective config; remove the `autoMode` section from user settings, where `-y`/`--yes` skips confirmation and managed and `--settings` rules still apply |
 | `claude gateway`, `claude self-hosted-runner` | Run the self-hosted Claude apps gateway (SSO and policy in front of Bedrock, Agent Platform or Foundry), which requires `--config gateway.yaml`; register this machine as a runner for a self-hosted cloud environment, with subcommands `setup`, `doctor`, `orchestrator` |
-| `claude remote-control` | Start a Remote Control server with no local interactive session, e.g. `--name "My Project"` |
+| `claude remote-control` | Start a Remote Control server with no local interactive session (`--name`) |
 | `claude ultrareview [target]` | Run ultrareview non-interactively. `--json` for raw output, `--timeout <minutes>` (default 45), `--post` posts findings to a github.com PR (`--no-post` is the default). Exit 0 on success, 1 otherwise |
-| `claude project purge [path]` | Delete local state for a project: transcripts, task lists, debug logs, file-edit history, prompt history lines and its `~/.claude.json` entry. `--dry-run`, `-y`/`--yes`, `-i`/`--interactive`, `--all` |
+| `claude project purge [path]` | Delete a project's local state: transcripts, task lists, debug logs, edit and prompt history, its `~/.claude.json` entry. `--dry-run`, `-y`/`--yes`, `-i`/`--interactive`, `--all` |
 
 ## Flags
 
@@ -103,10 +103,10 @@ See [[models-and-effort]].
 | `--permission-mode` | `default` (alias `manual`), `acceptEdits`, `plan`, `auto`, `dontAsk`, `bypassPermissions`. Overrides `defaultMode` |
 | `--dangerously-skip-permissions`, `--allow-dangerously-skip-permissions` | Same as `--permission-mode bypassPermissions`; or add `bypassPermissions` to the `Shift+Tab` cycle without starting in it |
 | `--allowedTools`, `--allowed-tools`, `--disallowedTools`, `--disallowed-tools` | Rules that run without prompting, e.g. `"Bash(git log *)" "Read"`; deny rules, where a bare name removes the tool (`"*"` all tools, `"mcp__*"` all MCP tools) and a scoped rule like `Bash(rm *)` denies matching calls only |
-| `--tools` | Restrict built-in tools: `""` none, `"default"`, or a list like `"Bash,Edit,Read"`. Doesn't affect MCP tools |
+| `--tools` | Restrict built-in tools: `""` none, `"default"`, or a list like `"Bash,Edit,Read"`; MCP tools unaffected |
 | `--permission-prompt-tool`, `--permission-prompts` | MCP tool that answers permission prompts in non-interactive mode; in print mode, `host` (default) sends prompts to the SDK host or prompt tool and `none` denies them |
 | `--add-dir` | Extra working directories for file access; most `.claude/` configuration isn't discovered there |
-| `--restricted` | For evaluation harnesses on shared machines: removes command- and code-running tools and WebFetch unless named in `--tools`, confines file tools to the working directories, loads only managed settings and `--settings`, refuses `bypassPermissions` and cloud sessions. Same as `CLAUDE_CODE_RESTRICTED=1` |
+| `--restricted` | For evaluation harnesses: removes command- and code-running tools and WebFetch unless named in `--tools`, confines file tools to the working directories, loads only managed settings and `--settings`, refuses `bypassPermissions` and cloud sessions. Same as `CLAUDE_CODE_RESTRICTED=1` |
 
 Rule syntax and modes: [[permissions-and-modes]]. Tool names: [[tools-reference]].
 
@@ -118,19 +118,19 @@ Rule syntax and modes: [[permissions-and-modes]]. Tool names: [[tools-reference]
 - `--system-prompt-snapshot`: `on` (default) reuses the prompt recorded on the conversation's first request; `off` rebuilds it every request.
 - `--exclude-dynamic-system-prompt-sections`: move per-machine sections (cwd, environment, memory paths) into the first user message for cache reuse across machines. Default prompt only; use with `-p`.
 
-The replacement flags are mutually exclusive; append flags combine with either. Appending keeps the default tool guidance and safety instructions, so replace only when the identity or permission model differs — then supply whatever the task still needs. Switchable personas are output styles ([[interface]]); project conventions go in CLAUDE.md ([[claude-md-and-memory]]).
+The replacement flags are mutually exclusive; append flags combine with either. Appending keeps the default tool guidance and safety instructions; replace only when the identity or permission model differs. Switchable personas are output styles ([[interface]]); project conventions go in CLAUDE.md ([[claude-md-and-memory]]).
 
-The built prompt is recorded on a conversation's first request and reused, including after `--resume` or `--continue`, until compaction or a new conversation. Pass `--system-prompt-snapshot off` while iterating on prompt text across `--continue` runs; outside cloud sessions, bare mode doesn't record unless you pass `--system-prompt-snapshot on`.
+The built prompt is recorded on a conversation's first request and reused, including after `--resume` or `--continue`, until compaction or a new conversation. Pass `--system-prompt-snapshot off` while iterating across `--continue` runs; outside cloud sessions, bare mode doesn't record unless you pass `--system-prompt-snapshot on`. In a replacement prompt, a line containing only `__SYSTEM_PROMPT_DYNAMIC_BOUNDARY__` splits static instructions (cached) from per-run context below it.
 
 ### Print mode and output
 
 - `--print`, `-p`, `--verbose`: non-interactive mode; full turn-by-turn output, which overrides `viewMode`.
 - `--output-format`, `--input-format`, `--json-schema`: output `text`, `json`, `stream-json`; input `text`, `stream-json`; validated JSON output matching a schema after the run.
-- `--max-turns`, `--max-budget-usd`: cap agentic turns, exiting with an error at the limit; spend cap including subagent spend.
+- `--max-turns`, `--max-budget-usd`: cap agentic turns, exiting with an error at the limit; spend cap including subagent spend but not totals restored by `--continue` or `--resume`.
 - `--include-partial-messages`, `--include-hook-events`: partial streaming events; hook lifecycle events in the stream (both require stream-json).
 - `--replay-user-messages`, `--forward-subagent-text`, `--prompt-suggestions`: re-emit stdin user messages (stream-json in and out); subagent text and thinking blocks with `parent_tool_use_id`; emit `prompt_suggestion` messages (also needs `--verbose`) — all require stream-json.
 - `--init`, `--maintenance`, `--init-only`: run Setup hooks with the `init` or `maintenance` matcher first (print mode); or run Setup and `SessionStart` hooks, then exit.
-- `--bare`: skip discovery of hooks, skills, commands, subagents, plugins, MCP servers, auto memory and CLAUDE.md; only Bash, file read and file edit tools. Sets `CLAUDE_CODE_SIMPLE`.
+- `--bare`: skip discovery of hooks, skills, commands, subagents, installed plugins, MCP servers, auto memory and CLAUDE.md; only Bash, file read and file edit tools. Sets `CLAUDE_CODE_SIMPLE`.
 
 ### Configuration loading
 
@@ -144,7 +144,7 @@ The built prompt is recorded on a conversation's first request and reused, inclu
 
 - `--bg`, `--background`: start as a background agent and return the session ID; can't be combined with `-p`. `--exec` runs a shell command as a PTY-backed background job.
 - `--worktree`, `-w`, `--tmux`: start in a git worktree at `<repo>/.claude/worktrees/<name>`, accepting `#<number>`, a GitHub PR URL or a GitLab MR URL; create a tmux session for it, where `--tmux=classic` forces classic tmux over iTerm2 panes.
-- `--cloud`, `--environment <environment-id>`: with a task, create a cloud session; with a session ID or URL plus `-p`, queue a follow-up (`--remote` is a deprecated alias). Or create it on a self-hosted environment (`ccpool_` IDs), where `--ref <branch>` sets the checkout base.
+- `--cloud`, `--environment <environment-id>`: with a task, create a cloud session; with a session ID or URL plus `-p`, queue a follow-up (`--remote` is a deprecated alias). Or create the cloud session on a self-hosted environment (`ccpool_` IDs), where `--ref <branch>` sets the checkout base.
 - `--remote-control`, `--rc`: interactive session with Remote Control enabled; `--remote-control-session-name-prefix <prefix>` prefixes auto-generated names.
 - `--teammate-mode`, `--channels`: agent team display `in-process` (default), `auto`, `tmux`, `iterm2`; listen for channel notifications from `plugin:<name>@<marketplace>` entries, where `--dangerously-load-development-channels` enables channels off the approved allowlist, for development.
 
@@ -159,6 +159,6 @@ The built prompt is recorded on a conversation's first request and reused, inclu
 ## Examples
 
 ```bash
-claude -p --max-budget-usd 5.00 --output-format json "Check for type errors"  # spend cap, JSON out
-claude -w feature-auth --tmux  # isolated feature work in its own worktree and tmux session
+claude -p --max-budget-usd 5.00 --output-format json "Check for type errors"
+claude -w feature-auth --tmux
 ```

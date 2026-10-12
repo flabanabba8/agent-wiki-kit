@@ -1,6 +1,6 @@
 ---
 title: Wiki Index
-updated: 2026-09-19
+updated: 2026-10-11
 ---
 
 # Wiki Index
@@ -36,6 +36,7 @@ Skills, subagents, agent teams, hooks, MCP servers and plugins.
 - [[agent-teams]] — Coordinated Claude sessions led by one lead
 - [[hooks]] — Hook events, exit codes, blocking a command
 - [[mcp]] — Connect external tools through MCP servers
+- [[plugin-marketplaces]] — Create, host and publish a plugin catalog
 - [[plugins]] — Build, install, test and distribute plugins
 - [[skills]] — SKILL.md format, frontmatter, scopes, invocation
 - [[subagents]] — Built-in and custom subagents, frontmatter
@@ -46,7 +47,7 @@ Background work, workflows, schedules, channels, artifacts and headless runs.
 
 - [[artifacts]] — Publish live, shareable pages from a session
 - [[channels]] — Push chat and webhook events into a session
-- [[claude-projects]] — One conversation coordinating cloud threads
+- [[code-modernization]] — Plan large legacy migrations with Claude
 - [[headless-mode]] — Run Claude Code non-interactively in scripts
 - [[routines-and-scheduling]] — Routines, /schedule, /loop, cron tools
 - [[workflows]] — Script-orchestrated subagents at scale
@@ -59,6 +60,7 @@ Where Claude Code runs besides the terminal.
 - [[chrome-and-computer-use]] — Browser automation and screen control
 - [[ci-cd-and-code-review]] — Claude in CI, and automated PR review
 - [[claude-code-on-the-web]] — Cloud sessions, teleport, Remote Control, mobile
+- [[claude-projects]] — One chat that runs parallel cloud threads
 - [[desktop-app]] — Desktop Code tab: sessions, panes, SSH, WSL
 - [[ide-integrations]] — VS Code extension and JetBrains plugin setup
 - [[slack-and-claude-tag]] — @Claude in Slack channels, two ways
@@ -97,6 +99,7 @@ Building on the Agent SDK, Managed Agents and the Claude API.
 - [[claude-models]] — Claude 5 lineup: IDs, limits, prices, lifecycle
 - [[context-editing-and-memory-tool]] — API context clearing, compaction, memory tool
 - [[managed-agents]] — Hosted agents: session log, harness, sandbox
+- [[prompting-claude-models]] — Prompt and harness patterns for Claude API apps
 
 ## Research
 
@@ -142,4 +145,4 @@ How the harness works and how it runs from four agents.
 - `hot.md` — recent decisions, fixes and gotchas, newest first.
 - `log.md` — append-only record of changes to this wiki.
 
-75 pages.
+78 pages.

@@ -3,13 +3,19 @@ title: Multi-Agent Systems
 type: research
 tldr: "When multi-agent helps and how it fails"
 sources:
+  - raw/articles/agent-personas-dispatch-2026-10-10.md
+  - raw/articles/agent-personas-compatibility-2026-10-10.md
+  - raw/articles/agent-personas-evidence-2026-10-10.md
+  - raw/articles/agent-personas-scheduled-job-audit-2026-10-11.md
+  - raw/articles/agent-personas-test-evidence-integrity-2026-10-11.md
+  - raw/articles/agent-personas-claim-verification-2026-10-11.md
   - raw/articles/multiagent-patterns-problems.md
   - raw/articles/multi-agent-research-system.md
   - raw/articles/building-c-compiler.md
   - raw/articles/long-running-claude.md
 related: ["[[agentic-patterns]]", "[[agent-teams]]", "[[subagents]]", "[[worktrees-and-background-work]]", "[[trustworthy-agents]]"]
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-10-11
 confidence: high
 last_verified: 2026-09-15
 aliases: [multiagent-failure-modes, agent-swarms, agent-conformity, multi-agent-coordination, fan-out]
@@ -105,3 +111,11 @@ This checklist is synthesized from the sources above:
 - [[agent-teams]] run peer instances that message each other, which is where the conformity and conflict risks above apply most.
 - Isolate parallel sessions in separate worktrees so agents don't overwrite each other ([[worktrees-and-background-work]]).
 - For containment and permission limits on autonomous agents, see [[trustworthy-agents]] and [[sandboxing-and-security]].
+
+## Bounded assignments and evidence
+
+The Agent Personas catalogue separates a role's responsibilities from reusable methods and from the host's execution permissions. Its dispatch guidance recommends a self-contained assignment: intended result, scope limits, concrete input pointers, a checkable completion condition, and the expected response. Treat this as a coordination convention, not experimental proof of better model performance. A worker's reply still needs checking against the assignment.
+
+Its compatibility and evidence documents distinguish file packaging, native skill discovery, and observed task behavior. A skill visible in a menu has not thereby passed a real task; a successful local test does not establish every platform or model combination. Record what was actually exercised and what remains unverified. Markdown persona files are not universal native subagent definitions.
+
+The kit applies these conventions in the task contract of its research, writing and audit agents, in the evidence states and fact grades of the `ingest` skill, in the `audit-scheduled-jobs` skill, which follows a job to its delivered result rather than its exit code, and to bounded image jobs in [[harness]]. It does not import the catalogue or treat installed instructions as permission to dispatch more agents.

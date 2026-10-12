@@ -1,59 +1,61 @@
 ---
-title: Plugins and Marketplaces
+title: Plugins
 type: reference
-tldr: "Build, install, test and distribute plugins"
+tldr: "Install, build, load and test plugins"
 sources:
-  - raw/docs/official/plugins.md
-  - raw/docs/official/plugins-reference.md
-  - raw/docs/official/discover-plugins.md
-  - raw/docs/official/plugin-marketplaces.md
+  - raw/docs/official/plugins__overview.md
+  - raw/docs/official/plugins__install.md
+  - raw/docs/official/plugins__anthropic-marketplaces.md
+  - raw/docs/official/plugins__create.md
+  - raw/docs/official/plugins__components.md
+  - raw/docs/official/plugins__manifest-reference.md
+  - raw/docs/official/plugins__loading.md
+  - raw/docs/official/plugins__cli-reference.md
+  - raw/docs/official/plugins__code-intelligence.md
+  - raw/docs/official/plugins__measure.md
+  - raw/docs/official/plugins__security.md
+  - raw/docs/official/plugins__troubleshooting.md
   - raw/docs/official/plugin-evals.md
-  - raw/docs/official/plugin-dependencies.md
-  - raw/docs/official/plugin-hints.md
-  - raw/docs/official/plugin-relevance.md
-  - raw/docs/changelog-2.1.273-to-2.1.274.md
-  - raw/docs/changelog-2.1.275-to-2.1.278.md
-related: ["[[skills]]", "[[subagents]]", "[[hooks]]", "[[mcp]]", "[[enterprise-admin]]", "[[settings]]"]
+  - raw/docs/changelog-2.1.275-to-2.1.282.md
+related: ["[[plugin-marketplaces]]", "[[skills]]", "[[subagents]]", "[[hooks]]", "[[mcp]]", "[[enterprise-admin]]", "[[settings]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
-aliases: [claude-plugins, plugin-marketplace, plugin-json, claude-plugin-eval, marketplace-json]
+last_verified: 2026-09-25
+aliases: [claude-plugins, plugin-json, claude-plugin-eval, plugin-dir, install-plugin, plugin-scopes, synced-plugins]
 ---
 
-# Plugins and Marketplaces
+# Plugins
 
-A plugin is a self-contained directory packaging [[skills]], [[subagents]], [[hooks]], [[mcp]] servers, LSP servers, monitors and more, so one install brings the whole setup to another project or teammate. A marketplace is a catalog, `marketplace.json`, listing plugins and where to fetch them. Start with plain `.claude/` configuration (a skill named `/hello`) and convert it to a plugin (`/plugin-name:hello`) to share or version it.
+A plugin is a directory of [[skills]], [[subagents]], [[hooks]], [[mcp]] servers, LSP servers and other components that Claude Code installs and loads as one unit, usually from a marketplace. Standalone files under `.claude/` work without a plugin; make one when you want to share a setup with teammates, reuse it across projects or publish versioned releases. Running and publishing marketplaces is on [[plugin-marketplaces]]; org policy is on [[enterprise-admin]].
 
-Plugins run arbitrary code with your user privileges, so install only ones you trust.
+A plugin runs code with your user privileges. Hooks and MCP servers run outside the sandbox; calls to its MCP tools and `bin/` executables are tool calls, so permission rules apply. An enabled plugin also costs context every turn: the names and descriptions of its model-invocable skills, agents and commands.
 
 ## Install and manage
 
-- The official marketplace `claude-plugins-official` is added automatically on first interactive launch; otherwise run `/plugin marketplace add anthropics/claude-plugins-official`. The reviewed community marketplace is `anthropics/claude-plugins-community`, installed from as `@claude-community`.
-- `/plugin` opens the manager (**Discover**, **Installed**, **Marketplaces**, **Errors**, **Stats**), showing each plugin's context cost and what will install.
-- `/plugin install github@claude-plugins-official` asks for a scope. From the shell, `claude plugin install formatter@my-marketplace --scope project` does the same without a prompt. To install from a marketplace you haven't added, pass the source with `--marketplace`, as in `/plugin install quality-review-plugin --marketplace your-org/plugins`: Claude Code shows the resolved source and asks before adding it, and the plugin name goes in bare.
-- Closing the `/plugin` menu reloads plugins; for changes made elsewhere run `/reload-plugins`, or `/reload-plugins --force` when it warns about invalidating the prompt cache.
-- From the shell: `claude plugin enable|disable|uninstall|update <plugin>@<marketplace>`, `claude plugin list --json`, and `claude plugin details <name>` for a component inventory and token cost.
-- Official marketplaces and claude.ai-hosted ones auto-update by default; other third-party and local ones don't. Toggle it per marketplace in `/plugin`. `DISABLE_AUTOUPDATER` stops updates, and adding `FORCE_AUTOUPDATE_PLUGINS=1` keeps plugin updates on.
-- If skills don't appear, clear `~/.claude/plugins/cache` and reinstall.
+- Claude Code adds the official marketplace, `claude-plugins-official`, on the first interactive terminal session unless policy or `CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL` blocks it. Others are added with `/plugin marketplace add <source>` (see [[plugin-marketplaces]]).
+- `/plugin install commit-commands@claude-plugins-official` opens the plugin's details (**Will install**, and for official plugins a **Context cost** estimate) and asks for a scope. The summary says `Plugin is now active.` or `Run /reload-plugins to activate.`
+- `/plugin install deploy-helper --marketplace your-org/plugins` adds the marketplace after confirmation and then installs.
+- `/plugin` has **Discover**, **Installed**, **Marketplaces** and **Errors** tabs, plus **Stats** for the usage report. **Installed** groups plugins under **Not used recently** and shows **Last used**.
+- From the shell, `claude plugin install formatter@your-org --scope project` installs without a session; `--yes` accepts a `command`-source prompt and `--config key=value` sets options. On a fresh machine, run `claude plugin marketplace add anthropics/claude-plugins-official` first.
+- `claude plugin enable|disable|uninstall|update <plugin>@<marketplace>`, `claude plugin list` and `claude plugin details <name>` manage installs. `details` prints an `Always-on` token figure and a per-component breakdown. On install, enable, disable, uninstall and update, `--json` prints one result object for scripts.
+- Closing `/plugin` with pending changes runs `/reload-plugins`. If a reload would invalidate the prompt cache (adding or removing MCP tools or the LSP tool), it warns instead; `/reload-plugins --force` applies it.
+- **Other surfaces:** the desktop app's **+ > Plugins** and VS Code's `/plugins` read the same settings files as the terminal. `claude -p` loads installed plugins, but `/plugin` doesn't run there. Cloud sessions load neither your local plugins nor a repository's plugin settings; only server-managed settings install plugins there.
 
-Install scopes map to settings files: `user` (the default) to `~/.claude/settings.json`, `project` to `.claude/settings.json`, `local` to `.claude/settings.local.json`, and `managed` to read-only managed settings.
+| Scope | Settings file |
+| :-- | :-- |
+| `user` (default) | `~/.claude/settings.json` |
+| `project` | `.claude/settings.json` (committed) |
+| `local` | `.claude/settings.local.json` |
+| `managed` | Managed settings (read-only) |
 
-To give a team the same plugins, commit `extraKnownMarketplaces` and `enabledPlugins` to `.claude/settings.json`. Teammates get the marketplace after trusting the folder, but plugins from external sources still need `claude plugin install`.
+Local overrides project, which overrides user. A project that enables a plugin from an external source still needs each collaborator to run `claude plugin install <name>@<marketplace> --scope project`. Uninstalling a project-enabled plugin asks whether to disable it for you (`y`) or remove it for everyone (`u`). Installing or enabling a plugin also installs or enables its dependencies; after an uninstall, `claude plugin prune` removes the orphaned ones.
 
-### Plugins synced from claude.ai
+**Updates.** Auto-update is on by default for official marketplace names (except `knowledge-work-plugins` and `first-party-plugins`) and marketplaces added from claude.ai, and off for everything else; toggle it per marketplace under **Marketplaces**. It runs after a random delay of up to ten minutes after your first message, and the running session keeps the old version until `/reload-plugins`. `DISABLE_UPDATES`, `DISABLE_AUTOUPDATER` or `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` turns it off unless `FORCE_AUTOUPDATE_PLUGINS=1` is also set. Removing a marketplace uninstalls its plugins.
 
-The plugins enabled for your claude.ai account, including ones your organization turns on, load alongside your marketplace installs, at the same trust: Claude Code downloads each into `~/.claude/plugins/synced/` and loads it as `<name>@synced`, with no marketplace and no install record.
+**Plugins from claude.ai.** Plugins you or your org enable on your claude.ai account sync in the background at each terminal start (v2.1.273+) and load as `<name>@synced`. Disable one with `claude plugin disable <name>@synced`, unless your org marks it required; `syncClaudeAiPlugins: false` stops all of them. Plugins installed locally don't go to claude.ai, and the `ListPlugins` tool lists the claude.ai ones. `claude plugin marketplace add --claudeai <name>` adds a marketplace claude.ai lists, registered under a `claudeai-` name.
 
-- Cowork and cloud sessions download them at session start. A terminal session signed in with that account checks once per launch in the background, adding, updating and removing plugins and showing `Plugins changed. Run /reload-plugins to activate.`
-- `claude plugin list` groups them under `Synced from claude.ai`; the `/plugin` **Installed** tab shows `synced` as their source.
-- `claude plugin disable <name>@synced` writes `"<name>@synced": false` to your user `enabledPlugins`, unless your organization marks the plugin required. `install`, `update` and `uninstall` don't apply: turn it off on claude.ai and the next sync removes it.
-- `syncClaudeAiPlugins: false` in user or managed settings stops syncing and moves synced plugins to `~/.claude/plugins/.trash/`; so does turning off Skills for the organization.
-- An enabled plugin of the same name from any other source wins, and the synced copy reports as not loaded.
-
-Marketplaces hosted on claude.ai, such as an organization's plugin library, appear under `From claude.ai:` in `claude plugin marketplace list` and in the `/plugin` **Marketplaces** tab. `claude plugin marketplace add --claudeai claudeai-organization-library` registers one under its `claudeai-` name; it refuses `--scope` and `--sparse` because it is hosted for your account rather than declared in settings, auto-updates, and keeps no local clone. `strictKnownMarketplaces` and `blockedMarketplaces` match it by a `hostPattern` for `claude.ai`, which doesn't admit personal uploads.
-
-**Code intelligence plugins** (`typescript-lsp`, `pyright-lsp`, `gopls-lsp`, `rust-analyzer-lsp` and others) give Claude diagnostics after edits plus go-to-definition and references. Install the language server binary separately; `Executable not found in $PATH` in the Errors tab means it is missing.
+**Code intelligence plugins** (`typescript-lsp`, `pyright-lsp`, `gopls-lsp`, `rust-analyzer-lsp`, `clangd-lsp` and others) give Claude diagnostics after edits and symbol navigation. Install the language server binary separately; `Executable not found in $PATH` in the Errors tab names the missing one.
 
 ## Create a plugin
 
@@ -65,95 +67,61 @@ mkdir -p my-first-plugin/.claude-plugin my-first-plugin/skills/hello
 { "name": "my-first-plugin", "description": "A greeting plugin", "version": "1.0.0", "author": { "name": "Your Name" } }
 ```
 
-Save the JSON as `my-first-plugin/.claude-plugin/plugin.json`, add `skills/hello/SKILL.md`, then run `claude --plugin-dir ./my-first-plugin` and invoke `/my-first-plugin:hello`. `--plugin-dir` also accepts a `.zip` or a folder of plugins and repeats; `--plugin-url` loads a hosted zip for one session. A local copy overrides an installed plugin of the same name.
-
-`claude plugin init my-tool --with skills hooks` scaffolds `~/.claude/skills/my-tool/`, which loads as `my-tool@skills-dir` with no install step. A project-scope one loads only after workspace trust and runs no monitors.
+Save the JSON as `my-first-plugin/.claude-plugin/plugin.json`, add `skills/hello/SKILL.md`, run `claude plugin validate ./my-first-plugin`, then `claude --plugin-dir ./my-first-plugin` and `/my-first-plugin:hello`. To convert an existing `.claude/` setup, copy `commands/`, `agents/` and `skills/` to the plugin root and move the settings `hooks` object into `hooks/hooks.json`; delete the originals afterward, or hooks run twice.
 
 | Path at plugin root | Holds |
 | :-- | :-- |
-| `.claude-plugin/plugin.json` | Manifest (optional; the only file that goes there) |
+| `.claude-plugin/plugin.json` | Manifest (optional; nothing else goes in `.claude-plugin/`) |
 | `skills/<name>/SKILL.md`, or one root `SKILL.md` | Skills |
-| `commands/` | Flat-file skills |
-| `agents/` | Subagents; `hooks`, `mcpServers` and `permissionMode` ignored |
-| `hooks/hooks.json` | Hook config, same format as settings |
-| `.mcp.json`, `.lsp.json` | MCP servers; language servers (`command` and `extensionToLanguage` required) |
-| `monitors/monitors.json` | Background commands whose stdout notifies Claude; interactive CLI only |
-| `bin/` | Executables added to the Bash tool's `PATH` |
-| `settings.json` | Defaults; only `agent` and `subagentStatusLine` |
+| `commands/` | Flat Markdown skills (older form) |
+| `agents/` | Subagents; `permissionMode`, `hooks`, `mcpServers` and `initialPrompt` are ignored |
+| `hooks/hooks.json` | Hook config, same shape as settings |
+| `.mcp.json` | MCP servers |
+| `.lsp.json` | Language servers; `command` and `extensionToLanguage` required |
+| `monitors/monitors.json` | Background monitors; interactive sessions only |
+| `bin/` | Executables on the Bash tool's `PATH`, after the user's own entries |
+| `settings.json` | Only `agent` and `subagentStatusLine` apply |
 | `output-styles/`, `themes/`, `workflows/` | Output styles, color themes, workflow scripts |
 
-A `CLAUDE.md` at the plugin root is not loaded; ship instructions as a skill.
+A root `CLAUDE.md` isn't loaded; ship instructions as a skill.
 
-**Manifest.** `name` (kebab-case) is the only required field and sets the namespace. Optional fields:
+**Manifest.** `name` (kebab-case) is the only required field and namespaces every component. Other fields:
 
-- Metadata: `$schema`, `displayName`, `version`, `description`, `author`, `homepage`, `repository`, `license`, `keywords`, `metadata`, and `defaultEnabled` (`false` installs disabled).
-- Component paths: `skills` adds to the default scan; `commands`, `agents`, `workflows` and `outputStyles` replace their defaults; `hooks`, `mcpServers` and `lspServers` accept paths or inline config. Paths start with `./` and can't leave the plugin.
-- `userConfig`: values prompted at enable time, with `type`, `title`, `description` and optionally `sensitive` (kept in the keychain). They are available as `${user_config.KEY}` in MCP, LSP and exec-form hook config, and as `CLAUDE_PLUGIN_OPTION_<KEY>` to hooks. Shell-form hooks, monitors and `headersHelper` reject them.
-- `channels`, `dependencies`, and the experimental `experimental.monitors`, `experimental.themes` and `experimental.evals`.
+- Metadata: `displayName`, `version`, `description`, `author`, `homepage` (must parse as a URL), `repository`, `license`, `keywords`, `metadata`, and `defaultEnabled` (`false` installs it off).
+- Component paths: `skills` adds to the default scan; `commands`, `agents` (`.md` files only), `outputStyles`, `workflows` and the experimental themes and monitors replace their defaults; `hooks`, `mcpServers` (also `.mcpb`/`.dxt` bundles) and `lspServers` merge with the default file. Paths start with `./` and must stay inside the plugin.
+- `userConfig`: options prompted at enable time, each with `type` (`string`, `number`, `boolean`, `directory` or `file`), `title` and `description`, plus optional `required`, `default`, `options`, `multiple`, `sensitive` (kept in secure storage) and `min`/`max`. Values substitute as `${user_config.KEY}` in MCP and LSP config, exec-form hook `args`, and skill and agent content (non-sensitive only), and reach hooks as `CLAUDE_PLUGIN_OPTION_<KEY>`. Shell-form hooks, monitors and MCP `headersHelper` reject `${user_config.*}`. Options also appear in `/config`; `/plugin configure <plugin>` reopens the dialog.
+- `settings`, `channels`, `dependencies` ([[plugin-marketplaces]]), and `experimental.themes`, `experimental.monitors` and `experimental.evals`.
 
-**Paths and data.** Marketplace plugins are copied into `~/.claude/plugins/cache`, so use `${CLAUDE_PLUGIN_ROOT}` for bundled files; it changes on each update. The variables reach hook processes and MCP and LSP subprocesses but not Bash commands, so write the placeholder in plugin content instead. Keep state in `${CLAUDE_PLUGIN_DATA}` (`~/.claude/plugins/data/{id}/`), which survives updates and is deleted on the last uninstall unless you pass `--keep-data`.
+**Paths and data.** Marketplace plugins are copied to `~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/`, so reference bundled files with `${CLAUDE_PLUGIN_ROOT}` (quoted in shell-form hooks) and never write state there. `${CLAUDE_PLUGIN_DATA}` (`~/.claude/plugins/data/<id>/`) survives updates and is deleted on the last uninstall unless you pass `--keep-data`. `${CLAUDE_PROJECT_DIR}` is the project root. These variables aren't in the Bash tool's environment. When the plugin root has `package.json` and a bun or npm lockfile, Claude Code installs dependencies into the cached copy with frozen resolution and `--ignore-scripts` (60-second timeout; Yarn and pnpm are skipped).
 
-Two kinds of plugin load in place rather than being copied: a `command` source in link mode, and a relative-path source in a marketplace added from a local directory. For the latter, edits to the source directory apply at the next session start or `/reload-plugins` with no version bump, `CLAUDE_PLUGIN_ROOT` points at that stable directory, and no Node.js dependencies are installed there.
+**Plugin MCP names** are `plugin:<plugin>:<server>` for the server and `mcp__plugin_<plugin>_<server>__<tool>` for tools, which is the form to use in permission rules and hook matchers.
 
-A plugin shipping `package.json` with a bun or npm lockfile gets its dependencies installed with `--ignore-scripts`; a yarn or pnpm lockfile, or a `bunfig.toml` beside a bun lockfile, skips the install with a debug-log warning.
+## Load without installing
 
-**Plugin MCP tool names** are `mcp__plugin_<plugin>_<server>__<tool>`, and the server is `plugin:<plugin>:<server>`.
+- `claude --plugin-dir <path>` loads a directory, a `.zip`, or a folder whose subfolders each have a manifest, for one session; repeat it for more. `--plugin-url <url>` fetches a zip. `CLAUDE_CODE_PLUGIN_DIRS` lists paths when you can't pass a flag. These load as `<name>@inline`.
+- `claude plugin init my-tool --with skills` scaffolds `~/.claude/skills/my-tool/`, which loads every session as `my-tool@skills-dir`. A project's `.claude/skills/<name>/` with a manifest loads for everyone after workspace trust, without monitors, MCP bundles or out-of-plugin MCP files.
+- **Name conflicts,** by manifest name: managed `enabledPlugins` wins, then `--plugin-dir`/`--plugin-url`/`CLAUDE_CODE_PLUGIN_DIRS`, then installed marketplace plugins, then skills-directory plugins, then synced plugins. `"<name>@inline": false` stops a session-only copy from shadowing.
 
 ## Validate and test
 
-- `claude plugin validate ./my-plugin --strict` checks the manifest, `hooks/hooks.json` and frontmatter, failing on warnings in CI; `claude --debug` shows loading errors. Directories must sit at the plugin root, and hook scripts must be executable.
-- **Evals** measure behavior. `claude plugin eval init` interviews you and writes cases under `evals/`, each a `prompt.md` plus `graders/*.md`. `claude plugin eval .` runs each case three times with the plugin and three times without it, reporting `WITH`, `W/OUT` and `Δ` along with an HTML report.
+- `claude plugin validate <path> --strict` checks the manifest and every skill, agent and command frontmatter, and fails on warnings in CI. Then `/reload-plugins`, the **Installed** and **Errors** tabs, and `claude plugin list` show what loaded. `claude --debug` logs dependency-install failures and `--plugin-dir` overrides.
+- Common errors: `<component> path not found`, `path escapes plugin directory`, `skills/` placed inside `.claude-plugin/`, or `--plugin-dir` pointed at a marketplace root. Errors are indexed on the official troubleshooting page.
+- **Evals** measure behavior. `claude plugin eval init` interviews you and writes cases under `evals/`, each a `prompt.md` plus `graders/*.md`, or a `case.yaml`. `claude plugin eval .` runs each case three times with the plugin and three times without, reporting `WITH`, `W/OUT` and `Δ` and an HTML report.
 
 | Grader `type` | Passes when |
 | :-- | :-- |
-| `regex` | Pattern found in the target (`last_message`, `trace`, `files`, a file's contents, `mock_calls`) |
+| `regex` | Pattern found in the target (`last_message` default, `trace`, `files`, a file, `mock_calls`) |
 | `tool_used` | A tool was called between `min` and `max` times, optionally matching `input_match` |
-| `tool_order` | The `before` tool ran before the `after` tool |
+| `tool_order` | The first `before` call precedes the first `after` call |
 | `file_exists` | A file created during the run matches `path` |
-| `llm` | A judge model votes PASS on the rubric in 2 of 3 votes |
+| `llm` | A judge votes PASS on the rubric in at least two of three votes |
 | `baseline` | A judge rates the run at least as good as a reference transcript |
 
-A `tool_used: Skill` grader is excluded from scoring in both arms, so it doesn't inflate `Δ`. Runs are isolated, with none of your settings, CLAUDE.md or MCP servers loaded, and only read-only tools unless you grant more with `--allow-tools`. The plugin's MCP servers are replaced by mocks under `evals/mocks/<server>/<tool>.md`, and every run and judge call is billed to your account. In CI:
+In a two-arm run, `tool_used: Skill` graders, `mock_calls` graders on the plugin's own mocked servers, and graders marked `arm: with-only` count in neither arm (`arm: both` forces scoring). Runs are isolated: none of your settings, CLAUDE.md or MCP servers, and only read-only tools unless you grant more with `--allow-tools Write Edit "Bash(npm test *)"`. MCP servers are replaced by mock files under `evals/mocks/<server>/<tool>.md`. The first run in an untrusted directory asks `Trust this plugin directory?`; without a terminal, under `--json`, or with `CI` set it exits 1 unless you pass `--trust-plugin`. Runs and judge calls are billed to your account. In CI:
 
 ```bash
 claude plugin eval . --trust-plugin --json results.json --threshold 0.8 \
   --model claude-sonnet-5 --judge-model claude-haiku-4-5 --no-publish --max-cost-usd 20
 ```
 
-Exit 0 means every case met the threshold (default 1.0), 1 a failure or load error, 2 a partial run.
-
-## Distribute through a marketplace
-
-`.claude-plugin/marketplace.json` at the repository root needs `name`, `owner` and `plugins`:
-
-```json
-{ "name": "company-tools", "owner": { "name": "DevTools Team" }, "plugins": [
-  { "name": "code-formatter", "source": "./plugins/formatter" },
-  { "name": "deployment-tools", "source": { "source": "github", "repo": "company/deploy-plugin" } }
-] }
-```
-
-| `source` | Fields |
-| :-- | :-- |
-| Relative path | `"./plugins/x"`, resolved from the marketplace root |
-| `github` | `repo`, `ref`, `sha` |
-| `url` | Git `url`, `ref`, `sha` |
-| `git-subdir` | `url`, `path`, `ref`, `sha` (sparse clone) |
-| `npm` | `package`, `version`, `registry`; fetched and unpacked with install scripts disabled |
-| `archive` | HTTPS zip `url`, `sha256` |
-| `command` | Local command printing a plugin directory; users must accept it |
-
-- Users add the marketplace with `/plugin marketplace add owner/repo`, a git URL (`#ref` to pin), a local path, or a URL to `marketplace.json`; relative plugin paths don't resolve from a URL-hosted one. From the shell, `claude plugin marketplace add|list|remove|update`. Removing a marketplace uninstalls its plugins.
-- **Versions:** Claude Code uses `plugin.json` `version`, then the marketplace entry `version`, then the git commit SHA, then the archive digest, then `unknown`. With an explicit version, users get updates only when you bump it — except for a `command` source or a plugin loaded in place — so set it in one place. For release channels, publish two marketplaces pointing at different refs.
-- **`strict`:** `true` (default) makes `plugin.json` authoritative, the entry adding to it; `false` makes the entry the whole definition. A top-level `renames` map (old name to new, or `null`) migrates existing installs.
-- **Git LFS:** plugin and marketplace clones leave LFS files as pointers, so keep what a plugin needs out of LFS.
-- **Private repositories** use your git credential helpers, except the background refresh: it checks the remote for new commits with helpers disabled, then re-clones when it finds commits or can't authenticate. Set `CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE=1` to keep the existing checkout instead of re-cloning, configure `gh auth setup-git`, or add a git URL rewrite so the check authenticates itself. `CLAUDE_CODE_PLUGIN_GIT_TIMEOUT_MS` raises the 120-second git timeout.
-- **Containers:** pre-populate plugins at build time and point `CLAUDE_CODE_PLUGIN_SEED_DIR` at them; seeds are read-only and never auto-update.
-- **Dependencies:** list them as `"dependencies": ["helper-lib", { "name": "secrets-vault", "version": "~2.1.0" }]`. Ranges resolve against `{plugin-name}--v{version}` git tags that `claude plugin tag --push` creates, cross-marketplace dependencies require `allowCrossMarketplaceDependenciesOn`, and `claude plugin prune` removes orphans. A manifest holding only dependencies bundles a team's plugin set.
-- **Validate** with `claude plugin validate .`. Reserved marketplace names are rejected, including `claude-plugins-official` and, in any casing, `npm`, `pip`, `uv`, `cargo`, `github`, `gh`.
-
-Submit to the community marketplace through the claude.ai or Console forms after `claude plugin validate` passes; the official marketplace is curated by Anthropic. A CLI whose plugin is official can print `<claude-code-hint v="1" type="plugin" value="name@claude-plugins-official" />` on its own stderr line when `CLAUDECODE` is set, prompting the user to install once.
-
-## Organization controls
-
-Managed `strictKnownMarketplaces` allowlists marketplace sources (`[]` blocks all, and it doesn't cover synced plugins, which `syncClaudeAiPlugins: false` stops), `blockedMarketplaces` denies them, `disableCommandPluginSources` blocks command sources, and `enabledPlugins` force-enables plugins. A marketplace entry's `relevance` signals (`cwd`, `cli`, `hosts`, `filesRead`, `manifestDeps`) suggest plugins only for marketplaces in `pluginSuggestionMarketplaces`. Distributing through claude.ai organization settings rejects plugins with a top-level `bin/`. Rollout: [[enterprise-admin]]; settings keys: [[settings]].
+Exit 0 means every case met the threshold (default 1.0), 1 means a failure or load error, and 2 means a partial run.

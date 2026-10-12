@@ -8,11 +8,12 @@ sources:
   - raw/articles/anthropic-mcp-agentic-ai-foundation.md
   - raw/articles/anthropic-trustworthy-agents-in-practice.md
   - raw/docs/official/skills.md
+  - raw/docs/official/memory.md
 related: ["[[skills]]", "[[mcp]]", "[[plugins]]", "[[skill-evolution]]", "[[trustworthy-agents]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
+last_verified: 2026-09-25
 aliases: [agent-skills-open-standard, agentskills-io, agentic-ai-foundation, aaif, skill-md-spec]
 ---
 
@@ -81,13 +82,13 @@ Claude Code follows the standard and adds features on top, such as invocation co
 Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name
 ```
 
-Claude Code-only body features such as dynamic context injection don't work in claude.ai chat or through the API. Frontmatter written to the spec loads in Claude Code unchanged.
+Claude Code-only body features such as dynamic context injection don't work in claude.ai chat or through the API. Frontmatter written to the spec loads in Claude Code unchanged, and Claude Code silently ignores fields it doesn't recognize.
 
 ### Where skills run
 
 - **Claude apps:** Team and Enterprise admins can provision skills organization-wide. Provisioned skills are on by default, and users can switch them off. Partner skills (Notion, Canva, Figma, Atlassian and others) are listed at claude.com/connectors.
 - **Claude Developer Platform:** skills can be added to Messages API requests and managed through the `/v1/skills` endpoint.
-- **Claude Code:** install skills through plugins, check them into a repository, or place them in `~/.claude/skills` ([[plugins]]).
+- **Claude Code:** install skills through plugins, check them into a repository, place them in `~/.claude/skills`, or sync the ones enabled on your claude.ai account ([[plugins]], [[skills]]).
 - **Claude Agent SDK:** the same Agent Skills support.
 
 ### Authoring and security guidance
@@ -131,5 +132,6 @@ MCP gives an agent access to tools and data. Skills teach it procedures. Anthrop
 
 - To share a skill beyond Claude Code, stick to the six spec fields and the size budgets above. Use Claude Code-only fields only for skills that stay in Claude Code ([[skills]]).
 - Package and distribute skills and MCP servers together with [[plugins]].
+- Claude Code reads a repository's `AGENTS.md` as project instructions when it has no `CLAUDE.md`, so one instruction file can serve several agents ([[claude-md-and-memory]]).
 - MCP servers configured in Claude Code use the open, foundation-governed protocol, so the same server works in other MCP clients ([[mcp]]).
 - Before installing any third-party skill or MCP server, audit it as you would code ([[trustworthy-agents]]).

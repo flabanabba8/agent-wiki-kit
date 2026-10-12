@@ -7,9 +7,9 @@ sources:
   - raw/docs/official/corporate-launcher.md
 related: ["[[enterprise-admin]]", "[[settings]]", "[[llm-gateways]]", "[[worktrees-and-background-work]]", "[[environment-variables]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
+last_verified: 2026-09-25
 aliases: [corporate-proxy, custom-ca-certificates, mtls-client-certificates, network-allowlist, corporate-launcher]
 ---
 
@@ -119,6 +119,7 @@ Four timers abort a streaming response that goes quiet, so a dead connection ret
 | `registry.npmjs.org` | npm-source plugins, `npx` MCP servers, npm/bun installs of Claude Code |
 | `bridge.claudeusercontent.com` | Claude in Chrome bridge; with an organization IP allowlist, route it through the same egress as `claude.ai` |
 | `*.frame.claudeusercontent.com` | Artifact content reads (drop by setting `"enableArtifact": false`) |
+| `github.com` | Cloning GitHub-hosted plugin marketplaces and plugins over HTTPS or SSH (`CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1` forces HTTPS) |
 | `raw.githubusercontent.com` | `/release-notes` changelog feed |
 | `code.claude.com` | Documentation lookups by the built-in guide agent and pre-approved WebFetch |
 | `formulae.brew.sh` | Update checks on Homebrew installs only |

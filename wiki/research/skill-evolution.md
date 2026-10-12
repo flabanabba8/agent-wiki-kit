@@ -10,12 +10,13 @@ sources:
   - raw/articles/skill-kd.md
   - raw/articles/muse-autoskill.md
   - raw/articles/after-procedural-memory.md
-related: ["[[skills]]", "[[agent-standards]]", "[[self-improving-agents]]", "[[agent-evals]]", "[[plugins]]"]
+  - raw/articles/openai-rethinking-skills-gpt-6-astra.md
+related: ["[[skills]]", "[[agent-standards]]", "[[self-improving-agents]]", "[[agent-evals]]", "[[plugins]]", "[[openai-codex]]"]
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-25
 confidence: medium
-last_verified: 2026-09-15
-aliases: [skillopt, skillsvote, hasp-program-functions, skill-kd, muse-autoskill]
+last_verified: 2026-09-25
+aliases: [skill-description-length, skill-authoring-for-stronger-models, skillopt, skillsvote, hasp-program-functions, skill-kd, muse-autoskill]
 ---
 
 # Skill Evolution
@@ -141,6 +142,18 @@ AFTER (arXiv 2606.23127) is a benchmark of 382 enterprise tasks across 6 roles a
 
 - Transfer across roles breaks. A pdf skill gained +11.7 within PM and +6.2 within DS, but lost 4.8 to 7.5 points when moved to the other role.
 - Large training gains can vanish on held-out tasks. EvoSkill's narrow run gained +14.9 on train and lost 2.7 on test.
+
+## Vendor guidance: prune skills as models improve
+
+OpenAI's Codex team (Sep 2026, for GPT-6 Astra) reaches similar conclusions from practice rather than experiments:
+
+- **Descriptions crowd each other out.** Every skill's name and description sits in context. With too many skills, Codex shortens descriptions to fit, so the model sees less of each; long or overlapping descriptions also make it load skills that don't help.
+- **Scope the trigger narrowly.** "Use when adding or changing a migration, or reviewing its rollout" beats "Use when working with databases, queries, models, or persistence", which fires on any database work.
+- **Progressive disclosure.** For a multi-workflow skill, make the root file a minimal router to supporting docs and scripts, since every read costs context.
+- **Drop the recipes.** Step-by-step itineraries that helped older models can now hinder results.
+- **Mind other models.** Repository skills also guide contributors' agents, which may run different models.
+
+OpenAI updated its `$skill-creator` skill to follow these rules.
 
 ## Patterns across the papers
 

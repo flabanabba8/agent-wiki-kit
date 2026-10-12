@@ -11,23 +11,23 @@ sources:
   - raw/docs/changelog-2.1.271-to-2.1.272.md
 related: ["[[agent-sdk]]", "[[agent-sdk-deployment]]", "[[long-running-agents]]", "[[context-engineering]]", "[[trustworthy-agents]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: medium
-last_verified: 2026-09-19
+last_verified: 2026-09-25
 aliases: [claude-managed-agents, managed-agents-api, brain-and-hands, meta-harness]
 ---
 
 # Claude Managed Agents
 
-Managed Agents is a hosted REST API on the Claude Platform for long-horizon, asynchronous agent work. Anthropic runs both the agent loop and the sandbox. Your application sends events and streams results back, so you don't operate any hosting infrastructure. It is a separate product from the [[agent-sdk]].
+Managed Agents is a hosted agent harness on the Claude Platform for long-horizon, asynchronous agent work, configured through the Claude API. Anthropic hosts the agent loop. Tool execution runs in an Anthropic-managed cloud sandbox or in a self-hosted sandbox on your own infrastructure. Your application sends events and receives streamed results through the client SDKs, the `ant` CLI or the REST API. It is a separate product from the [[agent-sdk]].
 
 ## When to choose it
 
 | You need | Choose |
 |---|---|
-| A library that runs the loop in your own process, with your own isolation and data plane | [[agent-sdk]], self-hosted ([[agent-sdk-deployment]]) |
-| Long-running or asynchronous agents without operating sandboxes or session storage | Managed Agents |
-| Full control of the Messages API loop | Client SDK |
+| Claude Code's agent loop embedded in your own Python or TypeScript process | [[agent-sdk]], self-hosted ([[agent-sdk-deployment]]) |
+| Anthropic to host the agent loop, with the sandbox managed by Anthropic or run by you | Managed Agents |
+| Direct Claude API calls from any client SDK language, writing the tool loop yourself or using the beta tool runner | Client SDK |
 
 In Claude Code, the bundled `/claude-api` skill loads Managed Agents reference material for your project's language. `/claude-api managed-agents-onboard` walks you through creating a new Managed Agent.
 

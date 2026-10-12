@@ -7,23 +7,24 @@ sources:
   - raw/docs/official/agents.md
   - raw/docs/official/features-overview.md
   - raw/docs/official/hooks.md
+  - raw/docs/changelog-2.1.275-to-2.1.282.md
 related: ["[[agent-teams]]", "[[skills]]", "[[hooks]]", "[[models-and-effort]]", "[[workflows]]", "[[permissions-and-modes]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
+last_verified: 2026-09-25
 aliases: [custom-agents, agent-tool, forked-subagent, claude-agents-directory]
 ---
 
 # Subagents
 
-A subagent is a specialized Claude worker that runs in its own context window with its own system prompt, tool access and permissions. Claude delegates a task to it through the Agent tool, the subagent does the work, and only its summary returns to your conversation.
+A subagent is a Claude worker with its own context window, system prompt, tools and permissions. Claude delegates through the Agent tool, and only the subagent's summary returns to your conversation.
 
 ## When to use one
 
-- **Use a subagent** when a side task would flood the conversation with search results, logs or file contents you won't reference again, when you want to enforce tool restrictions, or when the work is self-contained. Define a custom one when you keep spawning the same kind of worker.
-- **Stay in the main conversation** for iterative back-and-forth, phases that share a lot of context, and quick targeted changes. A non-fork subagent starts fresh and must gather context.
-- **Use a skill** for reusable instructions that run in the main context ([[skills]]), and `/btw` for a quick question about what is already there.
+- **Use a subagent** when a side task would flood the conversation with output you won't reference again, to enforce tool restrictions, or for self-contained work.
+- **Stay in the main conversation** for iterative back-and-forth, heavily shared context and quick targeted changes.
+- **Use a skill** for reusable instructions in the main context ([[skills]]); `/btw` for a quick question about what's in context.
 - For many parallel sessions, coordinated teammates or scripted fan-out, see [[worktrees-and-background-work]], [[agent-teams]] and [[workflows]].
 
 ## Built-in subagents
@@ -37,7 +38,7 @@ A subagent is a specialized Claude worker that runs in its own context window wi
 | statusline-setup | Sonnet | Runs for `/statusline` |
 | claude-code-guide | Haiku | Answers questions about Claude Code |
 
-Explore and Plan skip CLAUDE.md files and the parent's git status, and are one-shot: they return no agent ID, so they can't be resumed. A user or project subagent named `Explore` replaces the built-in one.
+Explore and Plan skip CLAUDE.md files and git status, and are one-shot (no agent ID, so no resume). A user or project subagent named `Explore` replaces the built-in one; give it `model: haiku` to keep exploration cheap.
 
 To restrict built-ins, add `Agent(Explore)` to `permissions.deny`, deny `Agent` entirely, set `CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS=1` for Explore and Plan alone, or set `CLAUDE_AGENT_SDK_DISABLE_BUILTIN_AGENTS=1` in non-interactive and SDK runs to remove every built-in type.
 
@@ -51,9 +52,10 @@ To restrict built-ins, add `Agent(Explore)` to `permissions.deny`, deny `Agent` 
 | `~/.claude/agents/` | All your projects | 4 |
 | Plugin `agents/` directory | Where the plugin is enabled | 5 (lowest) |
 
-- Directories are scanned recursively; identity comes only from the `name` field. Across nested project directories, the definition closest to the working directory wins, and duplicates in one directory load in filesystem order.
-- In a plugin, a subfolder becomes part of the scoped name: `agents/review/security.md` in `my-plugin` is `my-plugin:review:security`. Plugin subagents ignore `hooks`, `mcpServers` and `permissionMode`; copy the file into `.claude/agents/` if you need them.
-- Claude Code watches `~/.claude/agents/` and `.claude/agents/` and picks up edits within seconds. Restart after creating a scope's first `agents` directory, after editing agents in an `--add-dir` directory, or in sessions started with `--disable-slash-commands`.
+- Directories are scanned recursively; identity comes only from the `name` field. Across nested project directories, the definition closest to the working directory wins. Keep names unique within one directory, because duplicates load in filesystem order.
+- In a plugin, a subfolder becomes part of the scoped name: `agents/review/security.md` in `my-plugin` is `my-plugin:review:security`.
+- Plugin subagents ignore `hooks`, `mcpServers` and `permissionMode`. Copy the file into `.claude/agents/` if you need them.
+- Claude Code picks up edits in `~/.claude/agents/` and `.claude/agents/` within seconds. Restart after creating a scope's first `agents` directory, after editing agents in an `--add-dir` directory, or with `--disable-slash-commands`.
 - To create one, ask Claude to write the file or write it yourself; `/agents` only prints a reminder of these locations.
 
 ## File format
@@ -71,17 +73,17 @@ You are a code reviewer. Analyze the code and give specific, actionable feedback
 
 The body becomes the system prompt. A subagent receives that prompt plus environment details, not the Claude Code system prompt. In non-interactive runs, `--append-subagent-system-prompt` (or `--append-subagent-system-prompt-file`) appends text to every non-fork subagent's prompt.
 
-Claude Code silently skips a file with no `name` or no `description`, an opening `---` that isn't the first line, a `name` starting with `-` or containing `:`, or YAML that doesn't parse. `claude plugin validate .claude/agents` finds parse errors before a session.
+Claude Code silently skips a file lacking `name` or `description`, whose opening `---` isn't the first line, whose `name` starts with `-` or contains `:`, or whose YAML doesn't parse. `claude plugin validate .claude/agents` finds parse errors before a session.
 
 ## Frontmatter reference
 
-Only `name` and `description` are required.
+Only `name` and `description` are required. Names are camelCase and must match exactly; unknown fields are silently ignored.
 
 | Field | Description |
 | :-- | :-- |
 | `name` | Unique lowercase-and-hyphen identifier. Hooks receive it as `agent_type`. No `:` |
 | `description` | When Claude should delegate. Combined descriptions over 15,000 tokens trigger a startup warning |
-| `tools` | Allowlist. Inherits every tool available to subagents if omitted |
+| `tools` | Allowlist, comma-separated or YAML list. Inherits every tool available to subagents if omitted |
 | `disallowedTools` | Denylist, applied before `tools`. A specifier such as `Bash(git push *)` still removes the whole tool |
 | `model` | `sonnet`, `opus`, `haiku`, `fable`, a full model ID, or `inherit` |
 | `permissionMode` | `default` (alias `manual`), `acceptEdits`, `auto`, `dontAsk`, `bypassPermissions` or `plan` |
@@ -94,11 +96,11 @@ Only `name` and `description` are required.
 | `omitClaudeMd` | `true` skips user, project and local CLAUDE.md files |
 | `effort` | `low`, `medium`, `high`, `xhigh` or `max` |
 | `isolation` | `worktree` runs it in a temporary git worktree branched from your default branch, removed if unchanged |
-| `color` | `red`, `blue`, `green`, `yellow`, `purple`, `orange`, `pink` or `cyan` |
-| `initialPrompt` | First user turn, auto-submitted when the agent runs as the main session |
+| `color` | Display color, such as `red` or `cyan` |
+| `initialPrompt` | First user turn, auto-submitted when the agent runs as the main session (ignored for plugin agents) |
 | `experimental` | Map; `cacheTtl: 5m` or `1h` sets this subagent's prompt cache lifetime |
 
-The `--agents` JSON takes a `prompt` field for the system prompt plus `description`, `tools`, `disallowedTools`, `model`, `permissionMode`, `mcpServers`, `hooks`, `maxTurns`, `skills`, `initialPrompt`, `memory`, `effort`, `background`, `omitClaudeMd` and `isolation`.
+The `--agents` JSON takes a `prompt` field for the system prompt plus `description`, `tools`, `disallowedTools`, `model`, `permissionMode`, `mcpServers`, `hooks`, `maxTurns`, `skills`, `initialPrompt`, `memory`, `effort`, `background`, `omitClaudeMd` and `isolation` (`color` and `experimental` are ignored). With `-p`, `--agents` also takes the path to a JSON file, and `prompt` may be empty.
 
 ## Model selection order
 
@@ -109,15 +111,15 @@ Claude Code picks a subagent's model from the first source that applies:
 3. `CLAUDE_CODE_SUBAGENT_MODEL`, when set to an alias or model ID.
 4. The main conversation's model.
 
-Every value is checked against the organization's `availableModels` allowlist; a blocked family alias runs on the newest permitted version of that family, and other blocked values fall back to the inherited model. `CLAUDE_CODE_SUBAGENT_MODEL` alone does not move Explore or Plan. `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1` applies one model to every subagent, teammate and workflow agent, ignoring definitions and per-call values; forks and `context: fork` skills with `model: inherit` still use the main model. `/tasks` shows each running subagent's model. Subagents inherit the session's extended-thinking setting, and their context window is sized by their own model ([[models-and-effort]]).
+A family alias such as `opus` in steps 1 or 2 resolves to the main conversation's exact model (including `[1m]`) when that model is in the same family, so a `/model` switch reaches these subagents; an alias in `CLAUDE_CODE_SUBAGENT_MODEL` always resolves to the alias's version. Every value is checked against the organization's `availableModels` allowlist; a blocked family alias runs on the newest permitted version of that family, and other blocked values fall back to the inherited model. `CLAUDE_CODE_SUBAGENT_MODEL` alone does not move Explore or Plan. Add `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1` to apply one model to every subagent, teammate and workflow agent, ignoring definitions and per-call values; forks and `context: fork` skills with `model: inherit` still use the main model. `/tasks` shows the model each running subagent uses. Subagents inherit the session's extended-thinking setting, and their context window is sized by their own model. Model aliases and effort are covered in [[models-and-effort]].
 
 ## Tools and permissions
 
-Every subagent loses `AskUserQuestion`, `EndConversation`, `EnterPlanMode`, `ExitPlanMode` (unless its mode is `plan`), `ScheduleWakeup`, `WaitForMcpServers` and `Workflow`, plus `Agent` at the depth limit. A background subagent keeps every MCP tool but only these built-ins: `Read`, `Grep`, `Glob`, `Bash`, `PowerShell`, `Edit`, `Write`, `NotebookEdit`, `WebFetch`, `WebSearch`, `TodoWrite`, `Skill`, `ToolSearch`, `EnterWorktree`, `ExitWorktree`, `Monitor`, `TaskStop`, `SendMessage` and `Artifact`, plus `SubagentHandback` when it reports through that tool. Forks skip both filters. `tools` and `disallowedTools` accept `mcp__<server>` patterns. If nothing in `tools` resolves, the subagent fails to launch.
+Every subagent loses `AskUserQuestion`, `EndConversation`, `EnterPlanMode`, `ExitPlanMode` (unless its mode is `plan`), `ScheduleWakeup`, `WaitForMcpServers` and `Workflow`, plus `Agent` at the depth limit. A background subagent keeps every MCP tool but only these built-ins: `Read`, `Grep`, `Glob`, `LSP`, `Bash`, `PowerShell`, `Edit`, `Write`, `NotebookEdit`, `WebFetch`, `WebSearch`, `TodoWrite`, `Skill`, `ToolSearch`, `EnterWorktree`, `ExitWorktree`, `Monitor`, `TaskStop`, `SendMessage`, `Artifact`, and `SubagentHandback` when it reports through that tool. Forks skip both filters. `tools` and `disallowedTools` accept `mcp__<server>` patterns. If nothing in `tools` resolves, the subagent fails to launch.
 
 `Agent(worker, researcher)` in `tools` limits which types an agent can spawn, but only for an agent running as the main thread with `claude --agent`.
 
-With `permissionMode` unset, a subagent inherits the main conversation's mode. If the main conversation is in `bypassPermissions`, `acceptEdits` or `auto`, that mode wins and the field is ignored. In `default`, `dontAsk` or `plan`, the field applies, except that a subagent can't declare `bypassPermissions`. Under auto mode the classifier evaluates the subagent's calls with the main conversation's rules and reviews its work and final report before delivery. See [[permissions-and-modes]].
+With `permissionMode` unset, a subagent inherits the main conversation's mode. If the main conversation is in `bypassPermissions`, `acceptEdits` or `auto`, that mode wins and the field is ignored; in auto mode the classifier also reviews the subagent's work and final report before delivery. In `default`, `dontAsk` or `plan`, the field applies, except that a subagent can't declare `bypassPermissions`. See [[permissions-and-modes]].
 
 ## Skills, MCP, memory and hooks
 
@@ -128,8 +130,8 @@ With `permissionMode` unset, a subagent inherits the main conversation's mode. I
 
 ## Invoke explicitly
 
-- **Natural language:** "Use the code-reviewer subagent to look at my changes."
-- **@-mention:** pick the agent from the `@` typeahead, or type `@agent-<name>`. This guarantees that subagent runs.
+- **Natural language:** "Use the code-reviewer subagent on my changes."
+- **@-mention:** `@agent-<name>` (or the `@` typeahead) guarantees that subagent runs.
 - **Whole session:** `claude --agent code-reviewer`, or `"agent": "code-reviewer"` in `.claude/settings.json`. Its prompt replaces the default system prompt, CLAUDE.md still loads, and the choice persists on resume.
 
 ## Foreground, background and forks
@@ -140,7 +142,8 @@ A **fork** inherits the whole conversation, system prompt, tools and model, and 
 
 ## Nesting and limits
 
-- Subagents can nest up to three layers below the main conversation. Set `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` to change the depth; `1` disables nesting. In an interactive session a subagent waits for the background subagents it launched, so only its own summary comes back; in `-p` and the SDK it doesn't wait, and a nested subagent finishing later reports into the main conversation.
+- Subagents can nest up to three layers below the main conversation. Set `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` to change the depth; `1` disables nesting.
+- Interactively, a subagent waits for the background subagents it launched. In `-p` and the SDK it doesn't, so a late nested result reports to the main conversation.
 - Spawning fails with `Concurrent subagent limit reached` when 20 are running. Change it with `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`.
 - Subagents auto-compact like the main conversation.
 
@@ -148,8 +151,6 @@ A **fork** inherits the whole conversation, system prompt, tools and model, and 
 
 A non-fork subagent starts with its system prompt, Claude's delegation message, the CLAUDE.md hierarchy including any `AGENTS.md` loaded as project instructions (except Explore, Plan and `omitClaudeMd`), a git status snapshot, preloaded skills, and a roster of other named agents it can message. It never gets your conversation history, output style or auto memory, so restate rules it must follow in the delegation prompt.
 
-To continue a finished subagent, ask Claude to resume it: Claude sends `SendMessage` to its ID or name and the subagent keeps its full history. Transcripts live at `~/.claude/projects/{project}/{sessionId}/subagents/agent-{agentId}.jsonl` and are deleted after `cleanupPeriodDays` (30 days by default).
+To continue a finished subagent, ask Claude to resume it (via `SendMessage` to its ID or name); it keeps its full history. Transcripts live at `~/.claude/projects/{project}/{sessionId}/subagents/agent-{agentId}.jsonl` and are deleted after `cleanupPeriodDays` (30 days by default).
 
-A report reaches the main agent under a header marking it as subagent output, with the result indented, so its text can't pass as the session's own instructions. Claude Code also scans each report first, escaping text that imitates harness tags and prepending a `[harness: subagent output matched instruction-shaped pattern(s):` marker when needed. No message from any agent counts as your approval for a permission prompt.
-
-In auto mode, a locally run non-fork subagent delivers its report through the `SubagentHandback` tool rather than as text, and the classifier reviews the report before delivery. Its `completed` result then holds only a note about the hand-back, so to read the report itself, match a `PreToolUse` or `PostToolUse` hook on `SubagentHandback` and read `tool_input.message` ([[hooks]]).
+A subagent's result reaches the main agent under a header marking it as subagent output that carries no authority from you (background results arrive in a completion notification marked as an automated event). Claude Code also escapes text in each report that imitates harness tags and prepends a `[harness: subagent output matched instruction-shaped pattern(s):` marker line when needed. No message from any agent counts as your approval for a permission prompt.

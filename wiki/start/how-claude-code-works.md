@@ -9,15 +9,15 @@ sources:
   - raw/docs/official/best-practices.md
 related: ["[[overview]]", "[[context-window]]", "[[tools-reference]]", "[[sessions-and-checkpoints]]", "[[permissions-and-modes]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
+last_verified: 2026-09-25
 aliases: [agentic-loop, claude-code-architecture, agentic-harness, how-claude-code-works-internally]
 ---
 
 # How Claude Code Works
 
-Claude Code is an **agentic harness** around Claude. It supplies the tools, the context management, and the execution environment that turn a language model into a coding agent. The model reasons and the tools act. Everything below is the same on every surface ([[overview]]). Surfaces differ only in where code runs and how you interact.
+Claude Code is the layer around the model that provides the tools and manages the context the model sees; that surrounding layer is what **agentic harness** means. The model reasons and the tools act. Everything below is the same on every surface ([[overview]]). Surfaces differ only in where code runs and how you interact.
 
 ## The agentic loop
 
@@ -32,7 +32,7 @@ For "fix the failing tests", Claude might run the suite, read the errors, search
 **Steering while it works:**
 
 - `Esc` stops Claude immediately. The running tool call is canceled and queued messages are sent next.
-- Typing a correction and pressing `Enter` sends it without stopping the current tool. Claude reads it once that action finishes.
+- Typing a correction and pressing `Enter` queues it without stopping Claude. If Claude is running tool calls, it reads the message as soon as they finish, in the same turn. Queueing rules and the send-now key are in [[interface]].
 
 ## Models
 
@@ -57,6 +57,7 @@ There are also orchestration tools for spawning subagents, asking you questions,
 | Extension | Loads | Context cost |
 |---|---|---|
 | CLAUDE.md | Session start, full content | Every request |
+| Output style | Session start and on switch; nothing for Default | Every request ([[interface]]) |
 | Skills | Descriptions at start, body when used | Low until used |
 | MCP servers | Tool names at start, schemas on demand | Low until a tool is used |
 | Subagents | When spawned | Isolated from the main session |
@@ -69,7 +70,7 @@ When you run `claude` in a directory, Claude Code can reach:
 - **Your project:** files in the directory and its subdirectories, plus files elsewhere with your permission.
 - **Your terminal:** any command you could run, including build tools, git, package managers, and scripts.
 - **Your git state:** current branch, uncommitted changes, and recent commits.
-- **CLAUDE.md and auto memory:** persistent instructions and learned notes. Claude can read a repository's `AGENTS.md` as project instructions instead, or alongside them. The first 200 lines or 25KB of `MEMORY.md` load at session start ([[claude-md-and-memory]]).
+- **CLAUDE.md and auto memory:** persistent instructions and learned notes. A repository's AGENTS.md can be read on its own or alongside CLAUDE.md. The first 200 lines or 25KB of `MEMORY.md` load at session start ([[claude-md-and-memory]]).
 - **Extensions you configured:** MCP servers, skills, subagents, and Claude in Chrome.
 
 Because it sees the whole project, Claude makes coordinated edits across files, runs tests, and commits when asked. An inline assistant sees only the current file.

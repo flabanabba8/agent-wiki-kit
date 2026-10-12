@@ -5,18 +5,18 @@ tldr: "Claude Code env vars grouped by purpose"
 sources:
   - raw/docs/official/env-vars.md
   - raw/docs/changelog-2.1.273-to-2.1.274.md
-  - raw/docs/changelog-2.1.275-to-2.1.278.md
+  - raw/docs/changelog-2.1.275-to-2.1.282.md
 related: ["[[settings]]", "[[cloud-providers]]", "[[llm-gateways]]", "[[enterprise-admin]]", "[[cli-reference]]", "[[troubleshooting]]"]
 created: 2026-09-15
-updated: 2026-09-19
+updated: 2026-09-25
 confidence: high
-last_verified: 2026-09-19
+last_verified: 2026-09-25
 aliases: [env-vars, claude-code-env, environment-variable-list, anthropic-env-vars]
 ---
 
 # Environment Variables
 
-Variables control model selection, authentication, routing, limits and feature toggles; most also have a settings key ([[settings]]), a CLI flag ([[cli-reference]]) or an in-session command. Rare display-name, region and cache-tuning variants are summarized by pattern.
+Many variables also have a settings key ([[settings]]) or CLI flag ([[cli-reference]]); rare variants are summarized by pattern.
 
 ## Setting and precedence
 
@@ -24,34 +24,35 @@ Variables control model selection, authentication, routing, limits and feature t
 - **Settings file:** under `"env"` in `~/.claude/settings.json` (user), `.claude/settings.json` (project, checked in), `.claude/settings.local.json` (user, this project) or managed settings (organization). A running session applies saved changes except startup-only features such as OpenTelemetry; removals take effect next launch.
 - A settings `env` value beats the shell; between files normal precedence applies, so managed settings win.
 - Settings can't unset a variable, but an empty string counts as unset for provider selection: `"CLAUDE_CODE_USE_VERTEX": ""`.
-- Flags and commands vary per feature: `--model` and `/model` override `ANTHROPIC_MODEL`, while `CLAUDE_CODE_EFFORT_LEVEL` overrides `--effort` and `/effort`.
-- `CLAUDE_CONFIG_DIR`, `CLAUDE_CODE_TMPDIR`, `OTEL_LOG_RAW_API_BODIES`, `BETA_TRACING_ENDPOINT` and `ENABLE_BETA_TRACING_DETAILED` are ignored in project and local settings. `CLAUDE_CODE_PROJECT_DIR_NAME` is read only from the launch environment, and `CLAUDE_CODE_RESTRICTED` is ignored in any `env` block.
+- `--model` and `/model` override `ANTHROPIC_MODEL`, but `CLAUDE_CODE_EFFORT_LEVEL` overrides `--effort` and `/effort`.
+- `CLAUDE_CONFIG_DIR`, `CLAUDE_CODE_TMPDIR`, `OTEL_LOG_RAW_API_BODIES`, `BETA_TRACING_ENDPOINT` and `ENABLE_BETA_TRACING_DETAILED` are ignored in project and local settings, as are OpenTelemetry variables that turn on export, set its endpoint or capture content (`CLAUDE_CODE_ENABLE_TELEMETRY`, `OTEL_LOG_*`); a startup notice, `/status` and `claude doctor` list the ones ignored. `CLAUDE_CODE_PROJECT_DIR_NAME` is read only from the launch environment, and `CLAUDE_CODE_RESTRICTED` is ignored in any `env` block.
 - **Values:** numeric variables accept `2e3` and `64_000` unless marked plain-digits only; on/off variables take `1`/`true` and `0`/`false`. These turn on when set to *anything*, including `0`, so unset them instead: `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`, `DISABLE_TELEMETRY`, `DISABLE_ERROR_REPORTING`, `CLAUDE_CODE_TMUX_TRUECOLOR`, `FALLBACK_FOR_ALL_PRIMARY_MODELS`, `IS_DEMO`. `FORCE_HYPERLINK` is numeric: only `0` disables it.
 
 ## Authentication
 
 | Variable | Purpose |
 |---|---|
-| `ANTHROPIC_API_KEY` | API key (`X-Api-Key`). Overrides a subscription login; always used in `-p`, approved once interactively. `unset ANTHROPIC_API_KEY` to use the subscription |
+| `ANTHROPIC_API_KEY` | API key (`X-Api-Key`); overrides a subscription login (always in `-p`, after one approval interactively) |
 | `ANTHROPIC_AUTH_TOKEN` | Custom `Authorization: Bearer` value |
 | `CLAUDE_CODE_OAUTH_TOKEN` | claude.ai access token for SDK and automation; from `claude setup-token` |
-| `CLAUDE_CODE_OAUTH_REFRESH_TOKEN`, `CLAUDE_CODE_OAUTH_SCOPES` | Let `claude auth login` exchange a refresh token without a browser |
-| `ANTHROPIC_PROFILE`; `ANTHROPIC_FEDERATION_RULE_ID`, `ANTHROPIC_ORGANIZATION_ID`, `ANTHROPIC_WORKSPACE_ID` | Profile to authenticate with; Workload Identity Federation |
+| `CLAUDE_CODE_OAUTH_REFRESH_TOKEN`, `CLAUDE_CODE_OAUTH_SCOPES` | Browserless `claude auth login` |
+| `ANTHROPIC_PROFILE` | Anthropic profile to authenticate with |
+| `ANTHROPIC_FEDERATION_RULE_ID`, `ANTHROPIC_ORGANIZATION_ID`, `ANTHROPIC_WORKSPACE_ID` | Workload Identity Federation |
 | `CLAUDE_CODE_API_KEY_HELPER_TTL_MS` | Refresh interval for `apiKeyHelper` credentials |
 
 ## Providers, endpoints, gateways
 
 | Variable | Purpose |
 |---|---|
-| `CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_USE_VERTEX`, `CLAUDE_CODE_USE_FOUNDRY`, `CLAUDE_CODE_USE_ANTHROPIC_AWS`, `CLAUDE_CODE_USE_MANTLE` | Select Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry, Claude Platform on AWS or the Bedrock Mantle endpoint |
-| `ANTHROPIC_BASE_URL` | Route through a proxy or gateway; a non-first-party host disables MCP tool search by default and disables Remote Control |
+| `CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_USE_VERTEX`, `CLAUDE_CODE_USE_FOUNDRY`, `CLAUDE_CODE_USE_ANTHROPIC_AWS`, `CLAUDE_CODE_USE_MANTLE` | Select Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry, Claude Platform on AWS, or the Bedrock Mantle endpoint |
+| `ANTHROPIC_BASE_URL` | Route through a proxy or gateway; a non-first-party host turns off MCP tool search and Remote Control |
 | `ANTHROPIC_BEDROCK_BASE_URL`, `ANTHROPIC_BEDROCK_MANTLE_BASE_URL`, `ANTHROPIC_VERTEX_BASE_URL`, `ANTHROPIC_FOUNDRY_BASE_URL`, `ANTHROPIC_AWS_BASE_URL` | Per-provider endpoint overrides |
 | `AWS_BEARER_TOKEN_BEDROCK`, `ANTHROPIC_FOUNDRY_API_KEY`, `ANTHROPIC_FOUNDRY_AUTH_TOKEN`, `ANTHROPIC_FOUNDRY_RESOURCE`, `ANTHROPIC_VERTEX_PROJECT_ID`, `ANTHROPIC_AWS_API_KEY`, `ANTHROPIC_AWS_WORKSPACE_ID` | Provider credentials and identifiers |
 | `ANTHROPIC_BEDROCK_REGION_PREFIX`, `ANTHROPIC_BEDROCK_SERVICE_TIER` | Bedrock inference-profile prefix; service tier (`default`, `flex`, `priority`) |
 | `VERTEX_REGION_CLAUDE_5_OPUS` and other `VERTEX_REGION_*` | Per-model region overrides on Agent Platform |
-| `CLAUDE_CODE_SKIP_BEDROCK_AUTH`, `CLAUDE_CODE_SKIP_VERTEX_AUTH`, `CLAUDE_CODE_SKIP_FOUNDRY_AUTH`, `CLAUDE_CODE_SKIP_MANTLE_AUTH`, `CLAUDE_CODE_SKIP_ANTHROPIC_AWS_AUTH` | Skip client-side provider auth when a gateway signs requests |
+| `CLAUDE_CODE_SKIP_BEDROCK_AUTH`, `CLAUDE_CODE_SKIP_VERTEX_AUTH`, `CLAUDE_CODE_SKIP_FOUNDRY_AUTH`, `CLAUDE_CODE_SKIP_MANTLE_AUTH`, `CLAUDE_CODE_SKIP_ANTHROPIC_AWS_AUTH` | Skip provider auth when a gateway signs |
 | `ANTHROPIC_BETAS`, `ANTHROPIC_CUSTOM_HEADERS`, `CLAUDE_CODE_EXTRA_BODY` | Extra beta headers, `Name: Value` headers, JSON merged into request bodies |
-| `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS` | Strip beta headers and beta schema fields when a gateway rejects them (turns MCP tool search off) |
+| `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS` | Strip beta headers and fields a gateway rejects (turns MCP tool search off) |
 | `DISABLE_INTERLEAVED_THINKING`, `CLAUDE_CODE_DISABLE_THINKING` | For gateways that reject interleaved thinking or the `thinking` parameter |
 | `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY`, `CLAUDE_CODE_GATEWAY_MODEL_DISCOVERY_TIMEOUT_MS` | Fill `/model` from the gateway's `/v1/models`; discovery timeout (3000) |
 | `CLAUDE_CODE_MAX_CONTEXT_TOKENS`, `CLAUDE_CODE_DISABLE_UNKNOWN_MODEL_WINDOW_ENFORCEMENT`, `CLAUDE_CODE_ALWAYS_ENABLE_EFFORT` | For gateway or custom model IDs Claude Code doesn't recognize |
@@ -65,25 +66,29 @@ Setup: [[cloud-providers]], [[llm-gateways]].
 | Variable | Purpose |
 |---|---|
 | `HTTPS_PROXY`, `HTTP_PROXY`, `NO_PROXY`, `CLAUDE_CODE_PROXY_RESOLVES_HOSTS` | Proxy settings |
-| `CLAUDE_CODE_CERT_STORE`, `CLAUDE_CODE_CLIENT_CERT`, `CLAUDE_CODE_CLIENT_KEY`, `CLAUDE_CODE_CLIENT_KEY_PASSPHRASE` | CA sources, default `bundled,system`; then mTLS cert, key, passphrase |
-| `API_TIMEOUT_MS`; `CLAUDE_STREAM_IDLE_TIMEOUT_MS`, `CLAUDE_BYTE_STREAM_IDLE_TIMEOUT_MS`, `CLAUDE_STREAM_FIRST_BYTE_TIMEOUT_MS`, `API_FORCE_IDLE_TIMEOUT` | Per-request timeout, default 600000 (10 min); streaming stall timers, where an explicit `CLAUDE_STREAM_IDLE_TIMEOUT_MS` minimum is 300000 |
+| `CLAUDE_CODE_CERT_STORE`, `CLAUDE_CODE_CLIENT_CERT`, `CLAUDE_CODE_CLIENT_KEY`, `CLAUDE_CODE_CLIENT_KEY_PASSPHRASE` | CA sources (`bundled,system`); mTLS |
+| `API_TIMEOUT_MS` | Per-request timeout, default 600000 (10 min) |
+| `CLAUDE_STREAM_IDLE_TIMEOUT_MS`, `CLAUDE_BYTE_STREAM_IDLE_TIMEOUT_MS`, `CLAUDE_STREAM_FIRST_BYTE_TIMEOUT_MS`, `API_FORCE_IDLE_TIMEOUT` | Streaming stall timers (idle minimum 300000) |
 | `CLAUDE_ENABLE_STREAM_WATCHDOG`, `CLAUDE_ENABLE_BYTE_WATCHDOG` | Force the stream watchdogs on (`1`) or off (`0`) |
-| `CLAUDE_CODE_MAX_RETRIES`, `CLAUDE_CODE_RETRY_WATCHDOG` | Retry count, default 10; unattended runs retry `429`/`529` capacity errors indefinitely and other transient errors up to 300 times |
-| `CLAUDE_CODE_DISABLE_NONSTREAMING_FALLBACK` | Disable non-streaming fallback when a proxy duplicates tool execution |
+| `CLAUDE_CODE_MAX_RETRIES` | Retry count, default 10 |
+| `CLAUDE_CODE_RETRY_WATCHDOG` | Unattended runs: retry `429`/`529` indefinitely, other transient errors up to 300 times |
+| `CLAUDE_CODE_DISABLE_NONSTREAMING_FALLBACK` | No non-streaming fallback (proxies that duplicate tool calls) |
 
 ## Models, effort, thinking
 
 | Variable | Purpose |
 |---|---|
 | `ANTHROPIC_MODEL`, `ANTHROPIC_DEFAULT_MODEL` | Model to use (read before the `model` setting); model new sessions start on |
-| `ANTHROPIC_DEFAULT_OPUS_MODEL`, `ANTHROPIC_DEFAULT_SONNET_MODEL`, `ANTHROPIC_DEFAULT_HAIKU_MODEL`, `ANTHROPIC_DEFAULT_FABLE_MODEL` | What each alias resolves to; Haiku also runs background functionality. Each has `_NAME`, `_DESCRIPTION` and `_SUPPORTED_CAPABILITIES` variants for the picker |
-| `ANTHROPIC_CUSTOM_MODEL_OPTION` | Add a custom `/model` entry (with `_NAME`, `_DESCRIPTION`, `_SUPPORTED_CAPABILITIES`) |
+| `ANTHROPIC_DEFAULT_OPUS_MODEL`, `ANTHROPIC_DEFAULT_SONNET_MODEL`, `ANTHROPIC_DEFAULT_HAIKU_MODEL`, `ANTHROPIC_DEFAULT_FABLE_MODEL` | What each alias resolves to (Haiku also runs background work); each has `_NAME`, `_DESCRIPTION`, `_SUPPORTED_CAPABILITIES` variants |
+| `ANTHROPIC_CUSTOM_MODEL_OPTION` | Add a custom `/model` entry (same variants) |
 | `CLAUDE_CODE_SUBAGENT_MODEL`, `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` | Default model for subagents, teammates and workflow agents; `_FORCE=1` imposes it |
 | `CLAUDE_CODE_EFFORT_LEVEL` | `low` to `max` or `auto`; beats `--effort`, `/effort` and settings, subject to `maxEffortLevel` |
-| `MAX_THINKING_TOKENS`, `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING` | Fixed thinking budget (`0` disables thinking on the Anthropic API except on Fable models); use that fixed budget on Opus 4.6 and Sonnet 4.6 |
-| `CLAUDE_CODE_MAX_OUTPUT_TOKENS`, `CLAUDE_CODE_DISABLE_1M_CONTEXT` | Max output tokens, where raising it shrinks usable context before compaction; hold sessions to a 200K window |
-| `CLAUDE_CODE_DISABLE_FAST_MODE`, `CLAUDE_CODE_SKIP_FAST_MODE_NETWORK_ERRORS`, `CLAUDE_CODE_SKIP_FAST_MODE_ORG_CHECK` | Fast mode off, or availability-check workarounds behind proxies |
-| `CLAUDE_CODE_DISABLE_ADVISOR_TOOL`, `FALLBACK_FOR_ALL_PRIMARY_MODELS` | Disable the advisor tool, leaving `--advisor` accepted but ignored; stop retrying repeated overloads on every model when no fallback is configured |
+| `MAX_THINKING_TOKENS`, `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING` | Fixed thinking budget (`0` disables thinking except on Opus 5.5 and Fable); use it on Opus 4.6 and Sonnet 4.6 |
+| `CLAUDE_CODE_MAX_OUTPUT_TOKENS` | Max output tokens (raising it shrinks usable context) |
+| `CLAUDE_CODE_DISABLE_1M_CONTEXT` | 200K window only |
+| `CLAUDE_CODE_DISABLE_FAST_MODE`, `CLAUDE_CODE_SKIP_FAST_MODE_NETWORK_ERRORS`, `CLAUDE_CODE_SKIP_FAST_MODE_ORG_CHECK` | Fast mode off; proxy workarounds |
+| `CLAUDE_CODE_DISABLE_ADVISOR_TOOL` | Disable the advisor tool (`--advisor` is then ignored) |
+| `FALLBACK_FOR_ALL_PRIMARY_MODELS` | Stop retrying repeated overloads on every model when no fallback is configured |
 
 `ANTHROPIC_SMALL_FAST_MODEL` is deprecated; use `ANTHROPIC_DEFAULT_HAIKU_MODEL`. See [[models-and-effort]].
 
@@ -112,7 +117,8 @@ Setup: [[cloud-providers]], [[llm-gateways]].
 | `CLAUDE_CODE_GLOB_HIDDEN`, `CLAUDE_CODE_GLOB_NO_IGNORE`, `CLAUDE_CODE_GLOB_TIMEOUT_SECONDS` | Glob dotfiles, `.gitignore`, timeout |
 | `USE_BUILTIN_RIPGREP`, `CLAUDE_CODE_USE_NATIVE_FILE_SEARCH` | `0` uses system `rg`; Node file APIs for discovery |
 | `CLAUDE_CODE_WEBFETCH_CACHE_TTL_MS`, `CLAUDE_CODE_WEBFETCH_DEADLINE_MS`, `CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION` | WebFetch cache (900000) and download deadline (300000); WebSearch cap, default 200 |
-| `CLAUDE_CODE_ENABLE_TODO_TOOLS`, `CLAUDE_CODE_ENABLE_TASKS`, `CLAUDE_CODE_TASK_LIST_ID`, `TASK_MAX_OUTPUT_LENGTH` | Task-tracking tools on every model; `0` selects `TodoWrite`; shared task list; the last has no effect |
+| `CLAUDE_CODE_ENABLE_TODO_TOOLS`, `CLAUDE_CODE_ENABLE_TASKS`, `CLAUDE_CODE_TASK_LIST_ID` | Task-tracking tools on every model; `0` selects `TodoWrite`; shared task list |
+| `CLAUDE_CODE_DISABLE_SUBSTITUTION_RM_PROMPT`, `CLAUDE_CODE_DISABLE_DANGEROUS_RM_TIMEOUT` | Skip the `rm -rf "$(...)"` prompt; stop the dangerous-`rm` prompt auto-denying after 2 minutes |
 | `CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY` | Parallel read-only tools and subagents, default 10 |
 | `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB`, `CLAUDE_CODE_SCRIPT_CAPS` | Strip credentials and config-directory pointers from subprocesses; per-script call caps |
 | `CLAUDE_CODE_PERFORCE_MODE`, `CLAUDE_CODE_DISABLE_FILE_CHECKPOINTING`, `CLAUDE_CODE_TMPDIR` | Perforce write protection; no checkpoints; temp directory |
@@ -124,9 +130,12 @@ Tool behavior: [[tools-reference]].
 | Variable | Purpose |
 |---|---|
 | `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`, `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` | Concurrency (default 20) and nesting depth (default 3) |
-| `CLAUDE_CODE_FORK_SUBAGENT`; `CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS`, `CLAUDE_AGENT_SDK_DISABLE_BUILTIN_AGENTS` | Fork mode: `1` also in `-p` and SDK, `0` off everywhere; remove built-in subagents |
-| `CLAUDE_AUTO_BACKGROUND_TASKS`, `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS`, `CLAUDE_ASYNC_AGENT_STALL_TIMEOUT_MS`, `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` | Auto-backgrounding on/off; subagent stall timeout; enable agent teams |
-| `CLAUDE_CODE_DISABLE_WORKFLOWS`, `CLAUDE_CODE_DISABLE_AGENT_VIEW`, `CLAUDE_CODE_DISABLE_CRON`, `CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS` | Turn off workflows, agent view and background agents, scheduled tasks; agents per workflow run, 1–256 ([[workflows]]) |
+| `CLAUDE_CODE_FORK_SUBAGENT` | Fork mode: `1` also in `-p` and SDK, `0` off everywhere |
+| `CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS`, `CLAUDE_AGENT_SDK_DISABLE_BUILTIN_AGENTS` | Remove built-in subagents |
+| `CLAUDE_AUTO_BACKGROUND_TASKS`, `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS`, `CLAUDE_ASYNC_AGENT_STALL_TIMEOUT_MS` | Auto-backgrounding on/off; subagent stall timeout |
+| `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` | Enable agent teams |
+| `CLAUDE_CODE_DISABLE_WORKFLOWS`, `CLAUDE_CODE_DISABLE_AGENT_VIEW`, `CLAUDE_CODE_DISABLE_CRON` | Turn off workflows, agent view and background agents, scheduled tasks |
+| `CLAUDE_CODE_WORKFLOW_MAX_CONCURRENT_AGENTS` | Agents one workflow run executes at once, 1–256 (default up to 16) |
 | `CLAUDE_DISABLE_ADOPT`, `CLAUDE_CODE_DISABLE_BG_EXIT_HANDOFF` | Stop in-flight work instead of carrying it into background sessions |
 | `CLAUDE_CODE_GOAL_CHECKIN_MINUTES`, `CLAUDE_CODE_STOP_HOOK_BLOCK_CAP`, `CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS` | `/goal` check-in interval (30); consecutive Stop-hook blocks (8); SessionEnd hook budget ([[hooks]]) |
 | `CLAUDE_CODE_AUTO_MODE_SERVER` | `0` opts out of the server-side auto-mode classifier ([[permissions-and-modes]]) |
@@ -144,16 +153,19 @@ Tool behavior: [[tools-reference]].
 | `ENABLE_CLAUDEAI_MCP_SERVERS`, `CLAUDE_CODE_MCP_ALLOWLIST_ENV`, `CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS` | claude.ai connectors; minimal stdio env; background long calls |
 | `MCP_CLIENT_SECRET`, `MCP_OAUTH_CALLBACK_PORT`, `MCP_DISCOVERY_CACHE` | OAuth and discovery cache |
 | `MCP_SDK_GENERATION`, `MCP_PROTOCOL_NEGOTIATION` | Opt out of the v2 MCP client and current protocol negotiation ([[mcp]]) |
+| `CLAUDE_CODE_MCP_STARTUP_WAIT_MS` | How long a non-interactive first turn waits for connecting servers |
+| `CLAUDE_CODE_MAX_MCP_DESCRIPTION_LENGTH` | Cap on MCP tool descriptions and server instructions, default 2,048 characters |
 | `CLAUDE_CODE_PLUGIN_CACHE_DIR`, `CLAUDE_CODE_PLUGIN_SEED_DIR`, `CLAUDE_CODE_PLUGIN_GIT_TIMEOUT_MS`, `CLAUDE_CODE_PLUGIN_PREFER_HTTPS`, `CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE` | Plugin storage, container seeding, git behavior |
 | `CLAUDE_CODE_SYNC_PLUGIN_INSTALL`, `FORCE_AUTOUPDATE_PLUGINS`, `CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL` | Plugin install and update behavior |
-| `CLAUDE_CODE_DISABLE_BUNDLED_SKILLS`, `CLAUDE_CODE_DISABLE_POLICY_SKILLS`, `CLAUDE_CODE_SYNC_SKILLS`, `SLASH_COMMAND_TOOL_CHAR_BUDGET` | Bundled and managed skills; make a `-p` run wait for your claude.ai skills; skill listing budget |
+| `CLAUDE_CODE_PLUGIN_DIRS` | Absolute plugin paths (`:`-separated, `;` on Windows) loaded like `--plugin-dir` |
+| `CLAUDE_CODE_DISABLE_BUNDLED_SKILLS`, `CLAUDE_CODE_DISABLE_POLICY_SKILLS`, `CLAUDE_CODE_SYNC_SKILLS`, `SLASH_COMMAND_TOOL_CHAR_BUDGET` | Bundled and managed skills; claude.ai skill sync in `-p`; skill listing budget |
 
 ## Privacy, updates, telemetry
 
 | Variable | Purpose |
 |---|---|
 | `DISABLE_TELEMETRY`, `DO_NOT_TRACK`, `DISABLE_ERROR_REPORTING`, `DISABLE_GROWTHBOOK` | Opt out of telemetry, error reporting, feature-flag fetching |
-| `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` | Block auto-updates, telemetry, error reporting, `/feedback`, release notes, availability checks |
+| `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` | Block auto-updates, telemetry, `/feedback` and other non-essential calls |
 | `DISABLE_AUTOUPDATER`, `DISABLE_UPDATES`, `CLAUDE_CODE_PACKAGE_MANAGER_AUTO_UPDATE` | Background updates off; all updates off; let Homebrew or WinGet upgrade |
 | `DISABLE_DOCTOR_COMMAND`, `DISABLE_FEEDBACK_COMMAND`, `DISABLE_LOGIN_COMMAND`, `DISABLE_LOGOUT_COMMAND`, `DISABLE_UPGRADE_COMMAND`, `DISABLE_EXTRA_USAGE_COMMAND`, `DISABLE_INSTALL_GITHUB_APP_COMMAND` | Hide commands |
 | `CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY`, `CLAUDE_CODE_SEND_FEEDBACK`, `DISABLE_COST_WARNINGS`, `DISABLE_INSTALLATION_CHECKS` | Surveys, Claude-drafted feedback, warnings |
@@ -174,7 +186,7 @@ Standard exporter variables such as `OTEL_EXPORTER_OTLP_ENDPOINT` also work. `DI
 | `CLAUDE_AX_SCREEN_READER`, `CLAUDE_CODE_ACCESSIBILITY`, `CLAUDE_CODE_NATIVE_CURSOR` | Screen-reader output, magnifier-friendly cursor |
 | `CLAUDE_CODE_SYNTAX_HIGHLIGHT`, `CLAUDE_CODE_TMUX_TRUECOLOR`, `FORCE_HYPERLINK`, `CLAUDE_CODE_FORCE_SYNC_OUTPUT` | Colors, hyperlinks, synchronized output |
 | `CLAUDE_CODE_NONBLOCKING_STDOUT`, `CLAUDE_CODE_DISABLE_TERMINAL_TITLE`, `CLAUDE_CODE_HIDE_CWD`, `IS_DEMO` | Stalled-terminal protection, title, hide path, demo mode |
-| `CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION`, `CLAUDE_CODE_ENABLE_AWAY_SUMMARY`, `CLAUDE_AFK_TIMEOUT_MS` | Prompt suggestions, session recap, `AskUserQuestion` auto-continue |
+| `CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION`, `CLAUDE_CODE_ENABLE_AWAY_SUMMARY`, `CLAUDE_AFK_TIMEOUT_MS` | Suggestions, recap, `AskUserQuestion` auto-continue |
 | `CLAUDE_CODE_AUTO_CONNECT_IDE`, `CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL` | IDE connection and extension install |
 
 ## Debugging and config location
@@ -182,8 +194,10 @@ Standard exporter variables such as `OTEL_EXPORTER_OTLP_ENDPOINT` also work. `DI
 | Variable | Purpose |
 |---|---|
 | `DEBUG` | `1`, `true`, `yes` or `on` enables debug mode; log at `~/.claude/debug/<session-id>.txt` |
-| `CLAUDE_CODE_DEBUG_LOGS_DIR`, `CLAUDE_CODE_DEBUG_LOG_LEVEL` | Debug log *file* path, needing debug mode enabled separately; `verbose`, `debug` (default), `info`, `warn`, `error` |
-| `CLAUDE_CONFIG_DIR`, `CLAUDE_CODE_PROJECT_DIR_NAME` | Config directory, default `~/.claude`, e.g. `alias claude-work='CLAUDE_CONFIG_DIR=~/.claude-work claude'`; the `projects/` directory name under it |
+| `CLAUDE_CODE_DEBUG_LOGS_DIR` | Debug log *file* path; needs debug mode enabled separately |
+| `CLAUDE_CODE_DEBUG_LOG_LEVEL` | `verbose`, `debug` (default), `info`, `warn`, `error` |
+| `CLAUDE_CONFIG_DIR` | Config directory, default `~/.claude` |
+| `CLAUDE_CODE_PROJECT_DIR_NAME` | With `CLAUDE_CONFIG_DIR`, choose the `projects/` directory name |
 
 ## Set by Claude Code
 
@@ -191,7 +205,7 @@ Read these from scripts, hooks and tools; don't set them.
 
 | Variable | Value |
 |---|---|
-| `CLAUDECODE`, `CLAUDE_CODE_CHILD_SESSION` | `1` in spawned subprocesses; the child marker is set only by Claude Code itself |
+| `CLAUDECODE`, `CLAUDE_CODE_CHILD_SESSION` | `1` in spawned subprocesses |
 | `CLAUDE_CODE_SESSION_ID`, `CLAUDE_PID`, `CLAUDE_EFFORT` | Session ID, Claude Code's PID, effort level in effect |
 | `CLAUDE_JOB_DIR` | Background session's `~/.claude/jobs/<id>` directory |
 | `CLAUDE_CODE_REMOTE`, `CLAUDE_CODE_REMOTE_SESSION_ID`, `CLAUDE_CODE_BRIDGE_SESSION_ID` | Cloud session marker and IDs; Remote Control session ID |

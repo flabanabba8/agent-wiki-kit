@@ -22,3 +22,7 @@ Parallel auditors with the same prompt fail the same way, so work only on the le
 | `structure` | frontmatter, broken links, tldr length, weak related links, pages missing from `wiki/index.md` |
 
 Every finding cites `wiki/<folder>/<slug>.md:<line>` and, for stale or fabrication findings, the raw file and line (or "grep of raw/ for '<term>' found nothing"). Drop any finding you can't cite. End with what you checked and found clean.
+
+## Task contract
+
+Stay within the assigned lens and page scope. Return actionable findings with severity, cited evidence, and the smallest proposed correction; do not modify the files. Label unverified suspicions separately from demonstrated defects, and state coverage limits. A clean result applies only to the pages and lens actually checked.
