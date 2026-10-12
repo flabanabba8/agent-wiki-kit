@@ -15,6 +15,7 @@ only the task, selected image paths and acceptance criteria; return text and pat
 Do not launch disposable agents for code, logs, documents, datasets, web research
 or reviews. Use local commands, bounded reads and saved logs for all non-image work.
 Never pass the parent conversation to an image worker or resume an image worker.
+The `disposable-tasks` skill is an explicit opt-in exception for non-image analysis: run it only when the user asks for it.
 
 ## Where things live
 

@@ -129,6 +129,10 @@ The installer supports `claude`, `codex`, `hermes`, or `all`, skips identical co
 
 See [.claude/skills/disposable-vision/SKILL.md](.claude/skills/disposable-vision/SKILL.md) for limits, cache controls, review criteria and metrics. Traffic counters include other applications and do not prove exact request sizes. Offline worker and installer tests run in CI without account access. Local live smoke tests exercised inspection, cache reuse, and two-reference native image generation with a separate review on Codex 0.162.0; this is not a broad model-quality benchmark. OpenCode can discover the shared skill, but its execution path has not been live-tested.
 
+### Disposable analysis workers (opt-in)
+
+`.claude/skills/disposable-tasks` runs bounded, read-only Codex workers over logs, code, diffs, documents, datasets, saved browser/game traces and web questions, and returns text findings only. It is off by default: the project instructions tell agents to use local commands for non-image work, and the skill runs only when you ask for it. It needs Python 3.11+ and an authenticated Codex CLI. See [.claude/skills/disposable-tasks/SKILL.md](.claude/skills/disposable-tasks/SKILL.md) for modes, limits and caching.
+
 The task-brief and evidence-reporting conventions draw on [Agent Personas](https://github.com/Sahil-SS9/agent-personas/tree/068a9894bb87291aab5d369404dd27047906b5e9): explicit scope and completion criteria, and separate claims for packaging, native discovery, and observed task behavior. The kit retains its existing native agent formats and imports no upstream runtime or persona catalogue.
 
 ## Wiki map
