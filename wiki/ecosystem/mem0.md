@@ -19,9 +19,9 @@ sources:
   - .mcp.json
 related: ["[[agent-memory]]", "[[harness]]", "[[mcp]]", "[[claude-md-and-memory]]"]
 created: 2026-09-15
-updated: 2026-09-17
+updated: 2026-10-11
 confidence: high
-last_verified: 2026-09-17
+last_verified: 2026-10-11
 aliases: [mem0ai, semantic-index, query-wiki, mem0-hot, hot-recall]
 ---
 
@@ -110,6 +110,6 @@ Git `post-commit`/`post-merge` hooks re-run the incremental sync in the backgrou
 Session hooks feed it automatically:
 
 - **`scripts/hooks/session-end.sh`** writes one note per session: branch, last commit, number of uncommitted files, latest `log.md` heading and re-verify queue size. It keeps the last 20 notes in `.mem0-data/hot-recent.jsonl` and also calls `remember_cli.py` in the background to add the note to the hot store.
-- **`scripts/hooks/session-start.sh`** prints the last 3 of those notes into the new session's context.
+- **`scripts/hooks/session-start.sh`** prints the last 3 of those notes into the new session's context, after the doctor summary, the three newest `wiki/log.md` headings and the five newest `wiki/hot.md` lines.
 
 Hot memory is only for short-lived facts. `./.venv/bin/python scripts/mem0/hot_audit.py` lists hot entries oldest-first and flags anything older than 14 days (change the window with `--days N`). After you've moved the keepers into wiki pages, `--purge` deletes the flagged entries.

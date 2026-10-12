@@ -17,7 +17,7 @@ import tempfile
 
 from PIL import Image
 from vision_inspect import codex_command, inspect_images, codex_usage
-from vision_metrics import measured_job
+from vision_metrics import measured_job, child_env
 
 
 def generate(output, prompt, references=(), *, model=None, timeout=300, criteria=""):
@@ -61,7 +61,7 @@ def generate(output, prompt, references=(), *, model=None, timeout=300, criteria
                    'You may use shell commands only to save or convert the generated result. '
                    'Do not inspect other directories. End with a short text status, no embedded images.\n'
                    f'Reference files: {names}\nTask: {prompt}\nAcceptance criteria: {criteria or prompt}')
-        env = {k: v for k, v in os.environ.items() if not k.startswith('ORCA_')}
+        env = child_env()
         with measured_job('generation', backend='codex', image_count=len(refs), agent_sessions=1,
                           attachment_bytes=sum(p.stat().st_size for p in refs)) as metrics:
             result = subprocess.run(command + attachments + ['--', request], env=env,

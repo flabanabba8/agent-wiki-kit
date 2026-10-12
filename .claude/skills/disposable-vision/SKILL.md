@@ -77,3 +77,5 @@ This skill guides tool use; installing it does not disable native image tools gl
 Local metrics retain actual prompt/completion/cached token usage when reported, attachment bytes, elapsed time, backend and model. Codex generation/escalation captures JSON usage privately; raw event streams are discarded. Earlier metrics did not retain tokens, so historical total savings cannot be established. JPEG byte size measures upload size, not image-token usage.
 
 Use ordinary local commands for small lookups and exact image checks. The reason to isolate a large review is bounded coordinator context; isolation alone does not prove lower total tokens.
+
+Workers inherit your environment except variables whose names start with a prefix in `VISION_WORKER_DROP_ENV_PREFIXES` (comma separated, default none); set it when a host application's own session variables should not reach a nested worker.

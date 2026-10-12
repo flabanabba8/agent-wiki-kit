@@ -18,6 +18,10 @@ sources:
   - scripts/refetch-docs.sh
   - scripts/changelog-delta.sh
   - scripts/weekly-maintenance.sh
+  - scripts/reverify_queue.py
+  - scripts/build-context-guide.py
+  - scripts/log-archive.py
+  - scripts/near-duplicates.py
   - scripts/install-maintenance-cron.sh
   - scripts/wiki-eval.py
   - scripts/eval-harvest.py
@@ -82,7 +86,7 @@ This repo keeps its wiki healthy with scripts, Claude Code hooks, a weekly cron 
 7. The installed `claude --version` isn't newer than the newest `raw/docs/changelog-*-to-*.md`.
 8. `.claude/settings.json` has no `mcpServers` key, the `mem0-hot` server can import FastMCP, and Camoufox is installed and its browser fetched.
 9. The WebFetch fallback hook is wired.
-10. Housekeeping: it deletes `outputs/webfetch-fallback` renders older than 30 days, warns about unchecked items in `outputs/reverify-queue.md`, and warns about unmerged `maintenance/*` branches.
+10. Housekeeping: it deletes `outputs/webfetch-fallback` renders older than 30 days, warns about pending or in-review (`[ ]`, `[~]`) items in `outputs/reverify-queue.md`, and warns about unmerged `maintenance/*` branches. It also warns when the generated wiki map in `CLAUDE.md` is stale or `wiki/log.md` holds entries older than the current month.
 
 `--fix` runs `scripts/mem0/setup.sh`, builds or refreshes the index and installs the git hooks. `--quiet` prints a single summary line. The script exits 1 if any check fails.
 
@@ -164,7 +168,7 @@ The manifest hashes each file's **body**, not its bytes: the SOURCE header carri
 `weekly-maintenance.sh` skips the week if tracked files have uncommitted changes. Otherwise it does this on a new `maintenance/YYYY-MM-DD` branch:
 
 1. Refetches the official docs and runs the changelog delta.
-2. Writes `outputs/reverify-queue.md`, listing each page that cites a changed official doc plus any new changelog file.
+2. Writes `outputs/reverify-queue.md`, listing each page that cites a changed official doc plus any new changelog file, merged by `scripts/reverify_queue.py` with the earlier queue and the newest four `maintenance/*` branches. Marks `[~]` (reviewing) and `[-]` (rejected) survive, an item marked `[x]` that reappears goes back to `[ ]`, and unfinished items carry over under **Carried over from earlier weeks** until their page is re-verified or its file is cited.
 3. Runs `freshness.py --bump`, reindexes and runs lint.
 4. Commits the result and switches back to the original branch.
 
@@ -184,6 +188,12 @@ For eval concepts, see [[agent-evals]].
 
 - **`hot-compact.py`** enforces the `hot.md` rules. It drops duplicate entries (ignoring dates), keeps the newest 30, sets `updated:` and reports lines of 120 characters or more without cutting them. `--check` exits 1 if it would change anything.
 - **`update-stats.py`** recomputes page, word, link, raw-file, skill and agent counts, plus lint and eval results, and rewrites the counts in `README.md`, `wiki/meta/wiki-stats.md` and `wiki/hot.md` (`--check` for CI). Its README and `hot.md` patterns still look up the older folder keys (`concepts`, `entities`, `workflows`, `how-to`, `comparisons`, `sources`, `reference`, `meta`), which are not in its `DIRS` list. Against the current layout it raises `KeyError` before writing anything.
+
+## Generated map, log archive and duplicate check
+
+- `scripts/build-context-guide.py` writes a folder-by-folder list of page slugs between two markers in `CLAUDE.md`, which is also `AGENTS.md`, capped at 3,500 characters. `--check` exits 1 when it is stale; `weekly-maintenance.sh` rebuilds it.
+- `scripts/log-archive.py` moves `wiki/log.md` entries from earlier months to `wiki/log-YYYY-MM.md` (not indexed), keeps the rest newest first, and is idempotent. `--check` exits 1 when entries are waiting.
+- `scripts/near-duplicates.py` compares pages by shared word 6-grams (default threshold 0.25) and by title or alias. `wiki-lint.sh` lists any pair as a **NEAR DUPLICATE** warning.
 
 ## Git hooks, CI and tests
 

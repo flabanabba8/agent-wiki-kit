@@ -28,6 +28,7 @@ class ImageWorkersTest(unittest.TestCase):
         self.metrics_patch.start()
         self.addCleanup(self.metrics_patch.stop)
 
+    @patch.dict(os.environ, {'VISION_WORKER_DROP_ENV_PREFIXES': 'HOSTAPP_', 'HOSTAPP_SESSION': 'abc'})
     def test_inspection_compresses_and_returns_only_text(self):
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory) / 'source.png'
@@ -43,7 +44,8 @@ class ImageWorkersTest(unittest.TestCase):
                 self.assertEqual(command[command.index('--sandbox') + 1], 'read-only')
                 self.assertEqual(command[-2], '--')
                 self.assertEqual(kwargs['stdout'], subprocess.PIPE)
-                self.assertFalse(any((k.startswith('ORCA_') for k in kwargs['env'])))
+                self.assertNotIn('HOSTAPP_SESSION', kwargs['env'])
+                self.assertIn('HOME', kwargs['env'])
                 work = Path(command[command.index('--cd') + 1])
                 workdirs.append(work)
                 previews = list(work.glob('image-*.jpg'))

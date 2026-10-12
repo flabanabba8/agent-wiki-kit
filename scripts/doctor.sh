@@ -157,10 +157,20 @@ else
   warn "AGENTS.md or .agents/skills symlink missing → Codex sees no instructions or skills. See wiki/project/cross-agent-setup.md"
 fi
 
+# 10b. generated wiki map in CLAUDE.md, and log.md kept to the current month ---------
+if [ -f scripts/build-context-guide.py ]; then
+  if python3 scripts/build-context-guide.py --check >/dev/null 2>&1; then ok "wiki map in CLAUDE.md is current"
+  else warn "wiki map in CLAUDE.md is stale. Run: python3 scripts/build-context-guide.py"; fi
+fi
+if [ -f scripts/log-archive.py ]; then
+  if python3 scripts/log-archive.py --check >/dev/null 2>&1; then ok "log.md holds only the current month"
+  else warn "log.md has older entries or is out of order. Run: python3 scripts/log-archive.py"; fi
+fi
+
 # 11. housekeeping: prune old fallback renders; surface maintenance work ------------
 find outputs/webfetch-fallback -type f -mtime +30 -delete 2>/dev/null
 if [ -f outputs/reverify-queue.md ]; then
-  QN=$(grep -c '^- \[ \]' outputs/reverify-queue.md 2>/dev/null || echo 0)
+  QN=$(grep -c '^- \[[ ~]\]' outputs/reverify-queue.md 2>/dev/null || true)
   if [ "${QN:-0}" -gt 0 ]; then warn "$QN page(s) queued for re-verification by weekly maintenance (outputs/reverify-queue.md)"; else ok "re-verification queue empty"; fi
 fi
 if git show-ref --quiet --heads 2>/dev/null && git branch --list 'maintenance/*' | grep -q .; then

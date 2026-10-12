@@ -292,6 +292,14 @@ ERRORS=0; WARNINGS=0
 [[ $NO_ALIASES -gt 0 ]] && WARNINGS=$((WARNINGS + 1))
 [[ ${#STALE_PAGES[@]} -gt 0 ]] && WARNINGS=$((WARNINGS + ${#STALE_PAGES[@]}))
 [[ ${#HASH_STALE[@]} -gt 0 ]] && WARNINGS=$((WARNINGS + ${#HASH_STALE[@]}))
+# Pages that restate each other erode "one home per fact" (scripts/near-duplicates.py)
+declare -a NEAR_DUPES=()
+if [[ -f scripts/near-duplicates.py ]] && command -v python3 >/dev/null 2>&1; then
+  while IFS= read -r nd_line; do
+    [[ -n "$nd_line" && "$nd_line" != "no near-duplicate pages" ]] && NEAR_DUPES+=("$nd_line")
+  done < <(python3 scripts/near-duplicates.py 2>/dev/null)
+fi
+[[ ${#NEAR_DUPES[@]} -gt 0 ]] && WARNINGS=$((WARNINGS + ${#NEAR_DUPES[@]}))
 [[ $HOT_STALE -eq 1 ]] && WARNINGS=$((WARNINGS + 1))
 [[ $OVERVIEW_STALE -eq 1 ]] && WARNINGS=$((WARNINGS + 1))
 [[ ${#WEAK_LINKS[@]} -gt 0 ]] && WARNINGS=$((WARNINGS + ${#WEAK_LINKS[@]}))
@@ -376,6 +384,7 @@ human_output() {
     for c in "${LOW_CONF[@]}"; do echo "    LOW CONFIDENCE: $c"; done
     for s in "${STALE_PAGES[@]}"; do echo "    STALE (>90d): $s"; done
     for h in "${HASH_STALE[@]}"; do echo "    SOURCE CHANGED: $h"; done
+    for d in "${NEAR_DUPES[@]}"; do echo "    NEAR DUPLICATE: $d"; done
     [[ $HOT_STALE -eq 1 ]] && echo "    STALE: wiki/hot.md (updated >7 days ago)"
     [[ $OVERVIEW_STALE -eq 1 ]] && echo "    STALE: wiki/overview.md (updated >7 days ago)"
     for w in "${WEAK_LINKS[@]}"; do echo "    WEAK LINK: $w"; done

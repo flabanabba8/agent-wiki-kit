@@ -48,9 +48,18 @@ NEWLOG=$( { python3 scripts/sources.py new --prefix raw/docs/changelog-; git sta
     done
   done | sort -u
   for f in $NEWLOG; do echo "- [ ] ingest \`$f\` into [[whats-new]] and the pages that own the changed features"; done
-} > outputs/reverify-queue.md
+} > outputs/.reverify-queue.new
+
+# Keep marks you set and items you have not done from earlier weeks (including the unmerged
+# maintenance branches), instead of rewriting the queue from scratch.
+python3 scripts/reverify_queue.py merge --new outputs/.reverify-queue.new \
+  --old outputs/reverify-queue.md --branches 4 --out outputs/reverify-queue.md \
+  || cp outputs/.reverify-queue.new outputs/reverify-queue.md
+rm -f outputs/.reverify-queue.new
 
 ./scripts/freshness.py --bump >/dev/null 2>&1 || true
+python3 scripts/log-archive.py >/dev/null 2>&1 || true
+python3 scripts/build-context-guide.py >/dev/null 2>&1 || true
 [ -x .venv/bin/python ] && .venv/bin/python scripts/mem0/index_wiki.py >/dev/null 2>&1
 SCORE=$(./scripts/wiki-lint.sh --json 2>/dev/null | grep -m1 '"health_score"' | grep -oE '[0-9]+')
 QN=$(grep -c '^- \[ \]' outputs/reverify-queue.md || true)

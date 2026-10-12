@@ -1,6 +1,6 @@
 ---
 title: Hot Cache
-updated: 2026-10-09
+updated: 2026-10-11
 ---
 
 # Hot Cache
@@ -15,6 +15,7 @@ Recent decisions, fixes and gotchas. Read this first in a new session, then `ind
 
 ## Compressed Observations (newest first)
 
+📝 2026-10-11 Queue marks survive weeks; wiki map in CLAUDE.md; log archive; near-duplicate lint
 🔧 2026-10-11 Changelog 2.1.283-296 ingested into 20 pages; Sonnet/Haiku 5.5 and auto-by-default now current
 ✅ 2026-10-11 Parity with source wiki: 64 pages merged, Opus 5.5, changelog to 2.1.282, plugin docs split
 ✅ 2026-10-09 Disposable image workers, cached inspections, independent review and safe user-level installer

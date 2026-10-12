@@ -97,3 +97,11 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+def child_env():
+    """Environment for a worker process. Variables whose names start with a prefix listed in
+    VISION_WORKER_DROP_ENV_PREFIXES (comma separated) are dropped, so a host application's own
+    session variables do not leak into a nested worker. The default drops nothing."""
+    prefixes = tuple(p.strip() for p in os.environ.get('VISION_WORKER_DROP_ENV_PREFIXES', '').split(',') if p.strip())
+    return {k: v for k, v in os.environ.items() if not (prefixes and k.startswith(prefixes))}

@@ -11,7 +11,7 @@ import sys
 import tempfile
 import tomllib
 
-from vision_metrics import STATE, measured_job, record
+from vision_metrics import STATE, measured_job, record, child_env
 import local_vision
 
 PREVIEW = Path(__file__).with_name('vision_preview.py')
@@ -107,7 +107,7 @@ def inspect_images(images, question, *, model=None, timeout=120, criteria='', re
                   'do not invent pixel details. These are compressed whole-image previews. '
                   'Never return image data, base64, or embedded images.\n' + labels +
                   '\nQuestion: ' + question + '\nAcceptance criteria: ' + (criteria or question))
-        env = {k: v for k, v in os.environ.items() if not k.startswith('ORCA_')}
+        env = child_env()
         with measured_job('inspection', backend=backend, model=model, cache_hit=False, cache_key=key,
                           image_count=len(sources), agent_sessions=1 if backend=='codex' else 0,
                           inference_attempts=1,
